@@ -11,12 +11,13 @@ import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 
 public class CheckboxList extends JList<JCheckBox> {
 	private static final long serialVersionUID = -3733534128522415336L;
 	protected static Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
 
-	public CheckboxList() {
+	public CheckboxList(String title) {
 		setCellRenderer(new CellRenderer());
 
 		addMouseListener(new MouseAdapter() {
@@ -33,6 +34,7 @@ public class CheckboxList extends JList<JCheckBox> {
 		});
 
 		setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		setBorder(new TitledBorder(null, title, TitledBorder.LEADING, TitledBorder.TOP, null, null));
 	}
 
 	protected class CellRenderer implements ListCellRenderer<JCheckBox> {

@@ -2,6 +2,7 @@ package de.privatepublic.midiutils.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
@@ -30,6 +31,8 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
@@ -45,9 +48,6 @@ import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.events.ClockReceiver;
 import de.privatepublic.midiutils.events.Event;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
-
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
 
 public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 
@@ -99,6 +99,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		frmDimidimi = new JFrame();
 		frmDimidimi.setTitle("diMIDImi");
 		frmDimidimi.setBounds(100, 100, 990, 557);
+		frmDimidimi.setMinimumSize(new Dimension(900, 557));
 		frmDimidimi.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmDimidimi.addWindowListener(new WindowAdapter() {
 			@Override
@@ -190,6 +191,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		
 		JButton btnLoad = new JButton("Load...");
 		GroupLayout groupLayout = new GroupLayout(frmDimidimi.getContentPane());
+		groupLayout.setAutoCreateContainerGaps(true);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
@@ -273,33 +275,53 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		panel_1.add(lblOut);
 		panel_1.add(comboMidiOut);
 		
-		JButton btnSelectInputDevices = new JButton("Inputs");
+		JButton btnSelectInputDevices = new JButton("MIDI Devices...");
 		panel_1.add(btnSelectInputDevices);
 		btnSelectInputDevices.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				CheckboxList list = new CheckboxList();
-				JCheckBox[] boxes = new JCheckBox[MidiHandler.instance().getInputDevices().size()];
-				for (int i = 0; i < boxes.length; i++) {
+				
+				CheckboxList listinput = new CheckboxList("Activate Input Devices");
+				JCheckBox[] inboxes = new JCheckBox[MidiHandler.instance().getInputDevices().size()];
+				for (int i = 0; i < inboxes.length; i++) {
 					MidiDeviceWrapper dev = MidiHandler.instance().getInputDevices().get(i);
 					JCheckBox cbox = new JCheckBox(dev.toString());
 					cbox.setSelected(dev.isActiveForInput());
-					boxes[i] = cbox;
+					inboxes[i] = cbox;
 				}
-				list.setListData(boxes);
-				int result = JOptionPane.showOptionDialog(frmDimidimi, list, "Select MIDI Input Devices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+				listinput.setListData(inboxes);
+				
+				CheckboxList listoutput = new CheckboxList("Activate Output Devices");
+				JCheckBox[] outboxes = new JCheckBox[MidiHandler.instance().getOutputDevices().size()];
+				for (int i = 0; i < outboxes.length; i++) {
+					MidiDeviceWrapper dev = MidiHandler.instance().getOutputDevices().get(i);
+					JCheckBox cbox = new JCheckBox(dev.toString());
+					cbox.setSelected(dev.isActiveForOutput());
+					outboxes[i] = cbox;
+				}
+				listoutput.setListData(outboxes);
+				
+				JPanel p = new JPanel(new BorderLayout());
+
+				p.add(listinput,BorderLayout.WEST);
+				p.add(listoutput,BorderLayout.EAST);
+				
+				int result = JOptionPane.showOptionDialog(frmDimidimi, p, "Select MIDI Devices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
 				if (result==JOptionPane.OK_OPTION) {
-					for (int i = 0; i < boxes.length; i++) {
+					for (int i = 0; i < inboxes.length; i++) {
 						MidiDeviceWrapper dev = MidiHandler.instance().getInputDevices().get(i);
-						dev.setActiveForInput(boxes[i].isSelected());
+						dev.setActiveForInput(inboxes[i].isSelected());
 					}
 					MidiHandler.instance().storeSelectedInDevices();
+					
+					for (int i = 0; i < outboxes.length; i++) {
+						MidiDeviceWrapper dev = MidiHandler.instance().getOutputDevices().get(i);
+						dev.setActiveForOutput(outboxes[i].isSelected());
+					}
+					MidiHandler.instance().storeSelectedOutDevices();
 				}
 				Event.sendLoopDisplayRefresh();
 			}});
-		
-		JButton btnSelectOutputDevices = new JButton("Outputs");
-		panel_1.add(btnSelectOutputDevices);
 		
 		JButton btnNotesOff = new JButton("Panic");
 		panel_1.add(btnNotesOff);
@@ -349,28 +371,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 			}
 		});
 		
-		btnSelectOutputDevices.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				CheckboxList list = new CheckboxList();
-				JCheckBox[] boxes = new JCheckBox[MidiHandler.instance().getOutputDevices().size()];
-				for (int i = 0; i < boxes.length; i++) {
-					MidiDeviceWrapper dev = MidiHandler.instance().getOutputDevices().get(i);
-					JCheckBox cbox = new JCheckBox(dev.toString());
-					cbox.setSelected(dev.isActiveForOutput());
-					boxes[i] = cbox;
-				}
-				list.setListData(boxes);
-				int result = JOptionPane.showOptionDialog(frmDimidimi, list, "Select MIDI Output Devices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
-				if (result==JOptionPane.OK_OPTION) {
-					for (int i = 0; i < boxes.length; i++) {
-						MidiDeviceWrapper dev = MidiHandler.instance().getOutputDevices().get(i);
-						dev.setActiveForOutput(boxes[i].isSelected());
-					}
-					MidiHandler.instance().storeSelectedOutDevices();
-				}
-				Event.sendLoopDisplayRefresh();
-			}});
+		
 		btnSave.addActionListener(new ActionListener() {
 			@SuppressWarnings("serial")
 			public void actionPerformed(ActionEvent arg0) {
