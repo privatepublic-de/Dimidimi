@@ -102,12 +102,14 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ClearReceiver,
 		StorageContainer data = new StorageContainer(cycleList, NoteRun.APPLY_TRANSPOSE, NoteRun.APPLY_QUANTIZATION, MidiHandler.instance().getNumberQuarters());		
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.writeValue(file, data);
+		LOG.info("Saved file {}", file.getPath());
 	}
 
 	@Override
 	public void loadRequest(File file) throws JsonParseException, JsonMappingException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		StorageContainer data = mapper.readValue(file, StorageContainer.class);
+		LOG.info("Loaded file {}", file.getPath());
 		clearPattern();
 		synchronized (cycleList) {
 			for (NoteRun n: data.getNotes()) {
