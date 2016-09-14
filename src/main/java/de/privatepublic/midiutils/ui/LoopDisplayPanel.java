@@ -38,6 +38,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	
 	private List<NoteRun> noteList = new ArrayList<NoteRun>();
 	private List<Line2D.Float> hitrects = new ArrayList<Line2D.Float>();
+	private boolean listsaresynced = false;
 	private Color colorActiveQuarter = Color.decode("#ff9900");
 	private Color colorOctaves = Color.decode("#dddddd");
 	
@@ -57,12 +58,15 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				// TODO Auto-generated method stub
+				if (e.isPopupTrigger()) {
+					if (selectedNote!=null && selectedNote.isCompleted()) {
+						openPopUp(e);
+					}
+				}
 			}
 			
 			@Override
 			public void mousePressed(MouseEvent e) {
-				// TODO Auto-generated method stub
 				selectedNote = hitNote;				
 				if (e.isPopupTrigger()) {
 					if (selectedNote!=null && selectedNote.isCompleted()) {
@@ -108,6 +112,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 			@Override
 			public void mouseMoved(MouseEvent e) {
+				if (!listsaresynced) {
+					return;
+				}
 				NoteRun hitNoteBefore = hitNote;
 				synchronized(noteList) {
 					int mx = e.getX();
@@ -267,6 +274,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				}
 				
 			}
+			listsaresynced = true;
 		}
 		
 	}
@@ -279,6 +287,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	@Override
 	public void loopUpdated(List<NoteRun> list) {
 		synchronized(noteList) {
+			listsaresynced = false;
 			noteList.clear();
 			for (NoteRun dc:list) {
 				noteList.add(dc);
