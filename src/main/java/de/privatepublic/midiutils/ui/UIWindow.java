@@ -377,7 +377,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		btnSave.addActionListener(new ActionListener() {
 			@SuppressWarnings("serial")
 			public void actionPerformed(ActionEvent arg0) {
-				String recentFile = Prefs.get(Prefs.OUTFILE_NAME, null);
+				String recentFile = Prefs.get(Prefs.FILE_LAST_USED_NAME, null);
 		        JFileChooser chooser = new JFileChooser() {
 					@Override
 		            public void approveSelection(){
@@ -412,7 +412,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        
 		        if (recentFile!=null) {
 		        	chooser.setSelectedFile(new File(recentFile));
-		        	
+		        	chooser.setCurrentDirectory(new File(recentFile).getParentFile());
 		        }
 		        
 		        chooser.setFileFilter(chooser.getChoosableFileFilters()[0]);
@@ -432,14 +432,14 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        		JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e.getMessage());
 		        		LOG.error("Could not write file", e);
 		        	}
-		        	Prefs.put(Prefs.OUTFILE_NAME, selectedFile.getPath());
+		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
 		        }
 			}
 		});
 		
 		btnLoad.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				String recentPath = Prefs.get(Prefs.INFILE_NAME, null);
+				String recentPath = Prefs.get(Prefs.FILE_LAST_USED_NAME, null);
 		        JFileChooser chooser = new JFileChooser();
 		        chooser.setDialogType(JFileChooser.OPEN_DIALOG);
 		        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -454,11 +454,12 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        chooser.setDialogTitle("Load Loop");
 		        if (recentPath!=null) {
 		        	chooser.setSelectedFile(new File(recentPath));
+		        	chooser.setCurrentDirectory(new File(recentPath).getParentFile());
 		        }
 		        int retvalue = chooser.showDialog(null, "Load Loop");
 		        if (retvalue==JFileChooser.APPROVE_OPTION) {
 		        	File selectedFile = chooser.getSelectedFile();
-		        	Prefs.put(Prefs.INFILE_NAME, selectedFile.getPath());
+		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
 		        	try {
 		        		Event.sendLoad(selectedFile);
 					} catch (Exception e) {
