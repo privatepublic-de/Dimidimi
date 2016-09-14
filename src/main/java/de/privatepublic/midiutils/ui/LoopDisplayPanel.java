@@ -20,6 +20,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -310,6 +311,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					LOG.info("Delete Note Called");
+					Event.sendClearNote(selectedNote);
+					selectedNote = null;
+					hitNote = null;
 				}
 			});
 	        JMenuItem shorter = new JMenuItem("Shorter");
@@ -363,7 +367,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	        		val = 127;
 	        	}
 	        	final int setval = val;
-	        	JMenuItem item = new JMenuItem(""+val);
+	        	JMenuItem item = new JRadioButtonMenuItem(""+val);
+	        	int distance = val-selectedNote.getVelocity();
+	        	if (distance<5 && distance>-4) {
+	        		item.setSelected(true);
+	        	}
 	        	item.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -374,12 +382,12 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	        	velocity.add(item);
 	        }
 	        
-	        add(delete);
+	        add(velocity);
 	        addSeparator();
 	        add(shorter);
 	        add(longer);
 	        addSeparator();
-	        add(velocity);
+	        add(delete);
 	    }
 	}
 	

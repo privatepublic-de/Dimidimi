@@ -123,6 +123,15 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ClearReceiver,
 		Event.sendSettingsUpdate();
 		MidiHandler.instance().sendAllNotesOff();
 	}
+
+	@Override
+	public void clearNote(NoteRun note) {
+		synchronized (cycleList) {
+			cycleList.remove(note);
+		}
+		MidiHandler.instance().sendAllNotesOff();
+		Event.sendLoopUpdate(cycleList);
+	}
 	
 	
 	

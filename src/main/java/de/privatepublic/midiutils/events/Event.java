@@ -100,6 +100,12 @@ public class Event {
 		}
 	}
 	
+	public static void sendClearNote(NoteRun note) {
+		for (ClearReceiver cr : clearReceivers) {
+			cr.clearNote(note);
+		}
+	}
+	
 	public static void sendSave(File file) throws JsonGenerationException, JsonMappingException, IOException {
 		for (StorageReceiver sr : storageReceivers) {
 			sr.saveRequest(file);
