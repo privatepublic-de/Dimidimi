@@ -185,7 +185,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 		int width = getWidth();
 		int height = getHeight();
-		noteheight = height*(1f/127);
+		noteheight = height*(1f/96);
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, width, height);
 		// draw grid
@@ -237,8 +237,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		synchronized(noteList) {
 			hitrects.clear();
 			for (NoteRun dc:noteList) {
-				int no = 127 - dc.getTransformedNoteNumber();
-				float colorhue = no/127f; 
+				// range from 12 to 108 = 96
+				int no = 96 - dc.getTransformedNoteNumber()+12;
+				float colorhue = no/96f; 
 				Color noteColor = Color.getHSBColor(colorhue, .9f, .7f);
 				if (dc.isPlayed()) {
 					g.setColor(Color.ORANGE);
