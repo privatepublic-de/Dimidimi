@@ -3,6 +3,7 @@ package de.privatepublic.midiutils.ui;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -13,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -237,11 +239,12 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			for (NoteRun dc:noteList) {
 				int no = 127 - dc.getTransformedNoteNumber();
 				float colorhue = no/127f; 
+				Color noteColor = Color.getHSBColor(colorhue, .9f, .7f);
 				if (dc.isPlayed()) {
 					g.setColor(Color.ORANGE);
 				}
 				else {
-					g.setColor(Color.getHSBColor(colorhue, .9f, .7f));
+					g.setColor(noteColor);
 				}
 				float notey = no*noteheight;
 				float notestartx = dc.getTransformedPosStart()*tickwidth;
@@ -253,7 +256,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						g.setColor(Color.LIGHT_GRAY);
 						g.setStroke(new BasicStroke(velo*4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 						g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
-						g.setColor(Color.getHSBColor(colorhue, .9f, .7f));
+						g.setColor(noteColor);
 					}
 					g.setStroke(new BasicStroke(velo, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 					g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
@@ -264,7 +267,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						g.setStroke(new BasicStroke(velo*4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 						g.drawLine((int)0, (int)notey, (int)noteendx, (int)notey);
 						g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
-						g.setColor(Color.getHSBColor(colorhue, .9f, .7f));
+						g.setColor(noteColor);
 					}
 					g.setStroke(new BasicStroke(velo, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 					g.drawLine((int)0, (int)notey, (int)noteendx, (int)notey);
@@ -273,8 +276,17 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				hitrects.add(new Line2D.Float(notestartx, notey, noteendx, notey));
 				
 				if (selectedNoteRun!=null) {
-					g.setColor(Color.BLACK);
-					g.drawString(dc.getNoteName(), notestartx, notey-velo+2);
+					String notetext = dc.getNoteName();
+					FontMetrics fm = g.getFontMetrics();
+	                Rectangle2D rect = fm.getStringBounds(notetext, g);
+	                int y = (int)(notey);
+	                g.setColor(noteColor);
+	                g.fillRect((int)notestartx,
+	                           y - fm.getAscent(),
+	                           (int) rect.getWidth(),
+	                           (int) rect.getHeight());
+					g.setColor(Color.WHITE);
+					g.drawString(notetext, notestartx, y);
 				}
 				
 			}
