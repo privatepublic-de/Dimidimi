@@ -20,7 +20,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
+import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -305,7 +308,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	
 	
 	class PopUpMenu extends JPopupMenu {
-	    public PopUpMenu(){
+		private static final long serialVersionUID = 9049098677413712819L;
+
+		public PopUpMenu(){
 	    	JMenuItem delete = new JMenuItem("Delete");
 	        delete.addActionListener(new ActionListener() {
 				@Override
@@ -316,79 +321,59 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					hitNote = null;
 				}
 			});
-	        JMenuItem shorter = new JMenuItem("Shorter");
-	        shorter.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					LOG.info("Shorter Note Called");
-					int length;
-					if (selectedNote.getPosEnd()>selectedNote.getPosStart()) {
-						length = selectedNote.getPosEnd()-selectedNote.getPosStart();
-					}
-					else {
-						length = selectedNote.getPosEnd()+(selectedNote.getPosStart()-MidiHandler.instance().getMaxTicks());
-					}
-					int shorten = 0;
-					if (length>6) {
-						shorten = length/4;
-					}
-					if (length>1) {
-						shorten = 1;
-					}
-					length = length - shorten;
-					selectedNote.setPosEnd((selectedNote.getPosStart()+length)%MidiHandler.instance().getMaxTicks());
-					Event.sendLoopDisplayRefresh();
-				}
-			});
-	        JMenuItem longer = new JMenuItem("Longer");
-	        longer.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					LOG.info("Longer Note Called");
-					int length;
-					if (selectedNote.getPosEnd()>selectedNote.getPosStart()) {
-						length = selectedNote.getPosEnd()-selectedNote.getPosStart();
-					}
-					else {
-						length = selectedNote.getPosEnd()+(selectedNote.getPosStart()-MidiHandler.instance().getMaxTicks());
-					}
-					length = length + (length>4?(length/4):length);
-					selectedNote.setPosEnd((selectedNote.getPosStart()+length)%MidiHandler.instance().getMaxTicks());
-					Event.sendLoopDisplayRefresh();
-				}
-			});
 	        JMenu velocity = new JMenu("Velocity");
-	        for (int i=0;i<16;i++) {
-	        	int val = i*8;
-	        	if (val==0) {
-	        		val = 1;
-	        	}
-	        	if (i==15) {
-	        		val = 127;
-	        	}
-	        	final int setval = val;
-	        	JMenuItem item = new JRadioButtonMenuItem(""+val);
-	        	int distance = val-selectedNote.getVelocity();
-	        	if (distance<5 && distance>-4) {
-	        		item.setSelected(true);
-	        	}
-	        	item.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						selectedNote.setVelocity(setval);
-						Event.sendLoopDisplayRefresh();	
-					}
-				});
-	        	velocity.add(item);
-	        }
+	        JSlider veloslider = new JSlider();
+	        veloslider.setOrientation(SwingConstants.HORIZONTAL);
+	        veloslider.setMaximum(127);
+	        veloslider.setMinimum(1);
+	        veloslider.setValue(selectedNote.getVelocity());
+	        veloslider.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					selectedNote.setVelocity(veloslider.getValue());
+					Event.sendLoopDisplayRefresh();
+				}
+			});
+	        velocity.add(veloslider);
 	        
+	        JMenu length = new JMenu("Length");
+	        JSlider lengthslider = new JSlider();
+	        lengthslider.setOrientation(SwingConstants.HORIZONTAL);
+	        lengthslider.setMaximum(MidiHandler.instance().getMaxTicks());
+	        lengthslider.setMinimum(1);
+	        int len;
+			if (selectedNote.getPosEnd()>selectedNote.getPosStart()) {
+				len = selectedNote.getPosEnd()-selectedNote.getPosStart();
+			}
+			else {
+				len = selectedNote.getPosEnd()+(selectedNote.getPosStart()-MidiHandler.instance().getMaxTicks());
+			}
+	        lengthslider.setValue(len);
+	        lengthslider.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					selectedNote.setPosEnd((selectedNote.getPosStart()+lengthslider.getValue())%MidiHandler.instance().getMaxTicks());
+					Event.sendLoopDisplayRefresh();
+				}
+			});
+	        length.add(lengthslider);
 	        add(velocity);
-	        addSeparator();
-	        add(shorter);
-	        add(longer);
+	        add(length);
 	        addSeparator();
 	        add(delete);
 	    }
 	}
+	
+//	private void fixOverlappingNotes() {
+//		synchronized(noteList) {
+//			for (NoteRun check:noteList) {
+//				for (NoteRun other:noteList) {
+//					if (other!=check && check.getNoteNumber()==other.getNoteNumber()) {
+//						
+//					}
+//				}				
+//			}
+//		}
+//	}
 	
 }
