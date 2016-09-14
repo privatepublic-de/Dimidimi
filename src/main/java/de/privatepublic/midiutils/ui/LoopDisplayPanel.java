@@ -206,12 +206,12 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			}
 			g.drawLine(xpos, 0, xpos, height);
 			if (i%4==0) { // highlight 16ths
-				g.setColor(Color.BLACK);
+				g.setColor(Color.DARK_GRAY);
 				g.drawLine(xpos+1, 0, xpos+1, height);
 				g.setColor(Color.GRAY);
 			}
 			if ((is3based && i%12==0) || (!is3based && i%16==0)) {
-				g.setColor(Color.BLACK);
+				g.setColor(Color.DARK_GRAY);
 				g.drawLine(xpos+3, 0, xpos+3, height);
 				g.drawLine(xpos-1, 0, xpos-1, height);
 				g.drawLine(xpos-3, 0, xpos-3, height);
@@ -274,7 +274,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				
 				if (selectedNoteRun!=null) {
 					g.setColor(Color.BLACK);
-					g.drawString(dc.getNoteName(), notestartx, notey-7);
+					g.drawString(dc.getNoteName(), notestartx, notey-velo+2);
 				}
 				
 			}
