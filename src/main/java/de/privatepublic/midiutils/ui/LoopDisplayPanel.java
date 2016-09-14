@@ -125,13 +125,13 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					for (NoteRun note:noteList) {
 						Line2D.Float noteline = hitrects.get(i);
 						if (noteline.getX1()<=noteline.getX2()) {
-							if (mx<=noteline.getX2() && mx>=noteline.getX1() && Math.abs(my-noteline.getY1())<5) {
+							if (mx<=noteline.getX2() && mx>=noteline.getX1() && Math.abs(my-noteline.getY1())<noteheight) {
 								hitNote = note;
 								break;
 							}
 						}
 						else {
-							if ((mx<=noteline.getX2() || mx>=noteline.getX1()) && Math.abs(my-noteline.getY1())<5) {
+							if ((mx<=noteline.getX2() || mx>=noteline.getX1()) && Math.abs(my-noteline.getY1())<noteheight) {
 								hitNote = note;
 								break;
 							}
