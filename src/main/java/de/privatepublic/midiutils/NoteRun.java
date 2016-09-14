@@ -45,6 +45,10 @@ public class NoteRun {
 		return posStart;
 	}
 	
+	public void setPosStart(int posStart) {
+		this.posStart = posStart;
+	}
+	
 	@JsonIgnore
 	public int getTransformedPosStart() {
 		if (APPLY_QUANTIZATION>0) {
@@ -108,9 +112,19 @@ public class NoteRun {
 		return playedNoteNumber;
 	}
 	
+	@JsonIgnore
+	public String getNoteName() {
+		return NOTE_NAMES[getTransformedNoteNumber()%12]+(getTransformedNoteNumber()/12-1);
+	}
+	
+	
+	@Override
+	public String toString() {
+		return "<NoteRun #"+noteNumber+", "+velocity+">";
+	}
 	
 	private static final int[] Q_STEPS = new int[]{ 0, 48, 24, 12, 6, 3, 48/3, 24/3, 12/3};
 	private static final int[] T_STEPS = new int[]{ 24, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -24};
-	
+	private static final String[] NOTE_NAMES = new String[] {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
 	
 }

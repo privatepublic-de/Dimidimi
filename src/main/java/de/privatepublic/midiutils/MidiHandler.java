@@ -188,6 +188,12 @@ public class MidiHandler {
 				return o1.info.getVendor().compareTo(o2.info.getVendor());
 			}
 		});
+		Collections.sort(inputDeviceList, new Comparator<MidiDeviceWrapper>() {
+			@Override
+			public int compare(MidiDeviceWrapper o1, MidiDeviceWrapper o2) {
+				return o1.info.getVendor().compareTo(o2.info.getVendor());
+			}
+		});
 		ClockHandler clockHandler = new ClockHandler();
 		Event.registerClockReceiver(clockHandler);
 		Event.registerNoteReceiver(clockHandler);

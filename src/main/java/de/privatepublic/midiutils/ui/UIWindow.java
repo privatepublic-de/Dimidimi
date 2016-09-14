@@ -355,6 +355,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 				// TODO better organisation
 				NoteRun.APPLY_QUANTIZATION = comboQuantize.getSelectedIndex();
 				LOG.info("Quantization: {}", comboQuantize.getSelectedItem());
+				Event.sendLoopDisplayRefresh();
 			}});
 		
 		comboBoxTranspose.addActionListener(new ActionListener(){
@@ -362,6 +363,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				NoteRun.APPLY_TRANSPOSE = comboBoxTranspose.getSelectedIndex();
 				LOG.info("Transpose: {}", comboBoxTranspose.getSelectedItem());
+				Event.sendLoopDisplayRefresh();
 			}});
 		
 		btnClear.addActionListener(new ActionListener() {
@@ -400,12 +402,12 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        };
 		        chooser.setAcceptAllFileFilterUsed(false);
 		        chooser.setDialogType(JFileChooser.SAVE_DIALOG);
-		        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		        chooser.addChoosableFileFilter(new FileFilter() {
 					@Override
-					public String getDescription() { return "diMIDImi Loop"; }
+					public String getDescription() { return "diMIDImi Loop (*.diMIDImi)"; }
 					@Override
-					public boolean accept(File f) {	return (f.getName().toLowerCase().endsWith(".dimidimi"));}
+					public boolean accept(File f) {	return (f.isDirectory() || f.getName().toLowerCase().endsWith(".dimidimi"));}
 				});
 		        
 		        if (recentFile!=null) {
@@ -427,7 +429,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        		Event.sendSave(selectedFile);
 		        	}
 		        	catch(Exception e) {
-		        		JOptionPane.showMessageDialog(null, "Could not write file\n"+e.getMessage());
+		        		JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e.getMessage());
 		        		LOG.error("Could not write file", e);
 		        	}
 		        	Prefs.put(Prefs.OUTFILE_NAME, selectedFile.getPath());
@@ -443,11 +445,11 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		        chooser.setMultiSelectionEnabled(false);
 		        chooser.setAcceptAllFileFilterUsed(false);
-		        chooser.setFileFilter(new FileFilter() {
+		        chooser.addChoosableFileFilter(new FileFilter() {
 					@Override
-					public String getDescription() { return "diMIDImi Loop"; }
+					public String getDescription() { return "diMIDImi Loop (*.diMIDImi)"; }
 					@Override
-					public boolean accept(File f) {	return (f.getName().toLowerCase().endsWith(".dimidimi"));}
+					public boolean accept(File f) {	return f.isDirectory() || (f.getName().toLowerCase().endsWith(".dimidimi"));}
 				});
 		        chooser.setDialogTitle("Load Loop");
 		        if (recentPath!=null) {
@@ -461,6 +463,10 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        		Event.sendLoad(selectedFile);
 					} catch (Exception e) {
 						LOG.error("Error loading file", e);
+						JOptionPane.showMessageDialog(frmDimidimi,
+							    "Error loading file!",
+							    "Load Loop",
+							    JOptionPane.ERROR_MESSAGE);
 					}
 		            
 		        }
