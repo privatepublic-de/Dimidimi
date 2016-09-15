@@ -114,7 +114,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		panel.setBackground(Color.WHITE);
 		panel.setBorder(new LineBorder(Color.GRAY));
 		
-		JButton btnClear = new JButton("Clear Loop");
+		JButton btnClear = new JButton("Clear");
 		
 		JLabel lblQuantizeTo = new JLabel("Quantize");
 		
@@ -191,17 +191,22 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		JButton btnSave = new JButton("Save...");
 		
 		JButton btnLoad = new JButton("Load...");
+		
+		JButton btnDouble = new JButton("Double");
+		btnDouble.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
 		GroupLayout groupLayout = new GroupLayout(frmDimidimi.getContentPane());
-		groupLayout.setAutoCreateContainerGaps(true);
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 978, Short.MAX_VALUE)
+						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 954, Short.MAX_VALUE)
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(lblDimidimiLooper)
-							.addPreferredGap(ComponentPlacement.RELATED, 99, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED, 90, Short.MAX_VALUE)
 							.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 624, GroupLayout.PREFERRED_SIZE))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(lblNumberOfQuarters)
@@ -217,12 +222,14 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 							.addComponent(lblTranspose)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(comboBoxTranspose, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED, 248, Short.MAX_VALUE)
+							.addComponent(btnDouble)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnClear)
+							.addGap(18)
 							.addComponent(btnLoad)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(btnSave)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(btnClear)))
+							.addComponent(btnSave)))
 					.addContainerGap())
 		);
 		groupLayout.setVerticalGroup(
@@ -233,7 +240,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 						.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE)
 						.addComponent(lblDimidimiLooper))
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel, GroupLayout.DEFAULT_SIZE, 422, Short.MAX_VALUE)
+					.addComponent(panel, GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblNumberOfQuarters)
@@ -243,10 +250,12 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 						.addComponent(comboQuantize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(comboBoxTranspose, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(lblTranspose)
-						.addComponent(btnClear)
 						.addComponent(btnSave)
-						.addComponent(btnLoad)))
+						.addComponent(btnLoad)
+						.addComponent(btnClear)
+						.addComponent(btnDouble)))
 		);
+		groupLayout.setAutoCreateContainerGaps(true);
 		
 		JLabel lblIn = new JLabel("Channel In");
 		
