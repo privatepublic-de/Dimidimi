@@ -207,16 +207,23 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				ManipulateReceiver.Dispatcher.sendDoublePattern();
 			}
 		});
+		
+		panelIndicator = new JPanel();
+		panelIndicator.setToolTipText("Active");
+		panelIndicator.setBackground(Color.GRAY);
+		panelIndicator.setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
 		GroupLayout groupLayout = new GroupLayout(frmDimidimi.getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 954, Short.MAX_VALUE)
+						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 978, Short.MAX_VALUE)
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(lblDimidimiLooper)
-							.addPreferredGap(ComponentPlacement.RELATED, 90, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(panelIndicator, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED, 53, Short.MAX_VALUE)
 							.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 624, GroupLayout.PREFERRED_SIZE))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(lblNumberOfQuarters)
@@ -232,7 +239,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 							.addComponent(lblTranspose)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(comboBoxTranspose, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED, 248, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED, 52, Short.MAX_VALUE)
 							.addComponent(btnDouble)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(btnClear)
@@ -245,12 +252,18 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblDimidimiLooper))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel, GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE)
+						.addGroup(groupLayout.createSequentialGroup()
+							.addContainerGap()
+							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblDimidimiLooper))
+							.addPreferredGap(ComponentPlacement.RELATED))
+						.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+							.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(panelIndicator, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+							.addGap(26)))
+					.addComponent(panel, GroupLayout.DEFAULT_SIZE, 416, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblNumberOfQuarters)
@@ -288,15 +301,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				Prefs.put(Prefs.MIDI_48PPQ, chckbxppq.isSelected()?1:2);
 			}
 		});
-		
-		JLabel lblClock = new JLabel("clock");
-		panel_1.add(lblClock);
-		
-		panelIndicator = new JPanel();
-		panelIndicator.setToolTipText("Active MIDI Clock Input");
-		panelIndicator.setBackground(Color.GRAY);
-		panelIndicator.setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
-		panel_1.add(panelIndicator);
 		chckbxppq.setToolTipText("Toggle between 24 or 48 ppq midi clock");
 		panel_1.add(chckbxppq);
 		panel_1.add(lblIn);
