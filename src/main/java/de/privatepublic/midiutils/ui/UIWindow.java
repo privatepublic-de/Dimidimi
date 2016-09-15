@@ -63,6 +63,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 	private JComboBox<String> comboQuantize;
 	private JComboBox<String> comboBoxTranspose;
 	private JCheckBox chckbxppq;
+	private JPanel panelIndicator;
 
 	/**
 	 * Create the application.
@@ -268,6 +269,15 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 				Prefs.put(Prefs.MIDI_48PPQ, chckbxppq.isSelected()?1:2);
 			}
 		});
+		
+		JLabel lblClock = new JLabel("clock");
+		panel_1.add(lblClock);
+		
+		panelIndicator = new JPanel();
+		panelIndicator.setToolTipText("Active MIDI Clock Input");
+		panelIndicator.setBackground(Color.GRAY);
+		panelIndicator.setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
+		panel_1.add(panelIndicator);
 		chckbxppq.setToolTipText("Toggle between 24 or 48 ppq midi clock");
 		panel_1.add(chckbxppq);
 		panel_1.add(lblIn);
@@ -503,7 +513,12 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 
 	@Override
 	public void receiveActive(boolean active, int pos) {
-		
+		if (active) {
+			panelIndicator.setBackground(Color.GREEN);
+		}
+		else {
+			panelIndicator.setBackground(Color.GRAY);
+		}
 	}
 
 	@Override
