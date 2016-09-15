@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.NoteRun;
-import de.privatepublic.midiutils.events.Event;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
+import de.privatepublic.midiutils.events.ManipulateReceiver;
 
 public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 
@@ -338,7 +338,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					LOG.info("Delete Note Called");
-					Event.sendClearNote(selectedNote);
+					ManipulateReceiver.Dispatcher.sendClearNote(selectedNote);
 					selectedNote = null;
 					hitNote = null;
 				}
@@ -353,7 +353,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				@Override
 				public void stateChanged(ChangeEvent e) {
 					selectedNote.setVelocity(veloslider.getValue());
-					Event.sendLoopDisplayRefresh();
+					LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();;
 				}
 			});
 	        velocity.add(veloslider);
@@ -375,7 +375,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				@Override
 				public void stateChanged(ChangeEvent e) {
 					selectedNote.setPosEnd((selectedNote.getPosStart()+lengthslider.getValue())%MidiHandler.instance().getMaxTicks());
-					Event.sendLoopDisplayRefresh();
+					LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
 				}
 			});
 	        length.add(lengthslider);

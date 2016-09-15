@@ -14,13 +14,14 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import de.privatepublic.midiutils.events.ClearReceiver;
 import de.privatepublic.midiutils.events.ClockReceiver;
-import de.privatepublic.midiutils.events.Event;
+import de.privatepublic.midiutils.events.LoopUpdateReceiver;
+import de.privatepublic.midiutils.events.ManipulateReceiver;
 import de.privatepublic.midiutils.events.NoteReceiver;
+import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.events.StorageReceiver;
 
-public class ClockHandler implements ClockReceiver, NoteReceiver, ClearReceiver, StorageReceiver {
+public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateReceiver, StorageReceiver {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(ClockHandler.class);
 	
@@ -29,28 +30,28 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ClearReceiver,
 	private boolean recordActive = false;
 	
 	public ClockHandler() {
-		Event.registerClearReceiver(this);
-		Event.registerStorageReceiver(this);
+		ManipulateReceiver.Dispatcher.register(this);
+		StorageReceiver.Dispatcher.register(this);
 	}
 	
-	public void receiveNoteOn(int noteNumber, int velocity, int pos) {
+	public void noteOn(int noteNumber, int velocity, int pos) {
 		if (recordActive) {
 			NoteRun dc = new NoteRun(noteNumber, velocity, pos);
 			lastStarted[noteNumber] = dc;
 			synchronized (cycleList) {
 				cycleList.add(dc);
 			}
-			Event.sendLoopUpdate(cycleList);
+			LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
 		}
 	}
 	
-	public void receiveNoteOff(int notenumber, int pos) {
+	public void noteOff(int notenumber, int pos) {
 		if (recordActive) {
 			NoteRun reference = lastStarted[notenumber];
 			if (reference!=null) {
 				reference.setPosEnd(pos);
 			}
-			Event.sendLoopUpdate(cycleList);
+			LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
 		}
 	}
 	
@@ -80,7 +81,7 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ClearReceiver,
 			}
 			cycleList.clear();
 		}
-		Event.sendLoopUpdate(cycleList);
+		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
 	}
 
 	@Override
@@ -119,8 +120,8 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ClearReceiver,
 			NoteRun.APPLY_TRANSPOSE = data.getTranspose();
 			MidiHandler.instance().updateSettings(MidiHandler.instance().getMidiChannelIn(), MidiHandler.instance().getMidiChannelOut(), data.getLength());
 		}
-		Event.sendLoopUpdate(cycleList);
-		Event.sendSettingsUpdate();
+		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
+		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
 		MidiHandler.instance().sendAllNotesOff();
 	}
 
@@ -130,7 +131,7 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ClearReceiver,
 			cycleList.remove(note);
 		}
 		MidiHandler.instance().sendAllNotesOff();
-		Event.sendLoopUpdate(cycleList);
+		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
 	}
 	
 	

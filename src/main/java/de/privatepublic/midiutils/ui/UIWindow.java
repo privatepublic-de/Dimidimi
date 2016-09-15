@@ -46,15 +46,17 @@ import de.privatepublic.midiutils.MidiHandler.MidiDeviceWrapper;
 import de.privatepublic.midiutils.NoteRun;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.events.ClockReceiver;
-import de.privatepublic.midiutils.events.Event;
+import de.privatepublic.midiutils.events.LoopUpdateReceiver;
+import de.privatepublic.midiutils.events.ManipulateReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
+import de.privatepublic.midiutils.events.StorageReceiver;
 
 public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UIWindow.class);
 	
 	private static final String[] MIDI_CHANNELS = new String[]{"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"};
-	private static final String[] QUANTIZE = new String[]{"no quantization","1/2","1/4","1/8","1/16","1/32","1/4 triplets", "1/8 triplets", "1/16 triplets"};
+	private static final String[] QUANTIZE = new String[]{"none","1/2","1/4","1/8","1/16","1/32","1/4 triplets", "1/8 triplets", "1/16 triplets"};
 	private static final String[] TRANSPOSE = new String[]{"+24", "+12","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","0","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-24"};
 	
 	private JFrame frmDimidimi;
@@ -184,7 +186,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 				btnApply.setEnabled(false);
 				int numberQuarters = Integer.parseInt(textFieldLength.getText());
 				MidiHandler.instance().updateSettings(MidiHandler.instance().getMidiChannelIn(), MidiHandler.instance().getMidiChannelOut(), numberQuarters);
-				Event.sendLoopDisplayRefresh();
+				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
 			}
 		});
 		
@@ -339,7 +341,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 					}
 					MidiHandler.instance().storeSelectedOutDevices();
 				}
-				Event.sendLoopDisplayRefresh();
+				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
 			}});
 		
 		JButton btnNotesOff = new JButton("Panic");
@@ -374,7 +376,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 				// TODO better organisation
 				NoteRun.APPLY_QUANTIZATION = comboQuantize.getSelectedIndex();
 				LOG.info("Quantization: {}", comboQuantize.getSelectedItem());
-				Event.sendLoopDisplayRefresh();
+				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
 			}});
 		
 		comboBoxTranspose.addActionListener(new ActionListener(){
@@ -382,13 +384,13 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				NoteRun.APPLY_TRANSPOSE = comboBoxTranspose.getSelectedIndex();
 				LOG.info("Transpose: {}", comboBoxTranspose.getSelectedItem());
-				Event.sendLoopDisplayRefresh();
+				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
 			}});
 		
 		btnClear.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Event.sendClear();
+				ManipulateReceiver.Dispatcher.sendClearPattern();;
 			}
 		});
 		
@@ -445,7 +447,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        		selectedFile = new File(selectedFile.getPath()+".dimidimi");
 		        	}
 		        	try {
-		        		Event.sendSave(selectedFile);
+		        		StorageReceiver.Dispatcher.sendSaveRequest(selectedFile);
 		        	}
 		        	catch(Exception e) {
 		        		JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e.getMessage());
@@ -480,7 +482,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        	File selectedFile = chooser.getSelectedFile();
 		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
 		        	try {
-		        		Event.sendLoad(selectedFile);
+		        		StorageReceiver.Dispatcher.sendLoadRequest(selectedFile);
 					} catch (Exception e) {
 						LOG.error("Error loading file", e);
 						JOptionPane.showMessageDialog(frmDimidimi,
@@ -493,9 +495,9 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 			}
 		});
 		
-		Event.registerLoopUpdateReceiver(loopDisplayPanel);
-		Event.registerSettingsUpdateReceiver(this);
-		Event.sendSettingsUpdate();
+		LoopUpdateReceiver.Dispatcher.register(loopDisplayPanel);
+		SettingsUpdateReceiver.Dispatcher.register(this);
+		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
 	}
 	
 	

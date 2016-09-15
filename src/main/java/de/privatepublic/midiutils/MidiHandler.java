@@ -23,7 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.Prefs.Identifiable;
-import de.privatepublic.midiutils.events.Event;
+import de.privatepublic.midiutils.events.ClockReceiver;
+import de.privatepublic.midiutils.events.NoteReceiver;
 
 public class MidiHandler {
 
@@ -195,8 +196,8 @@ public class MidiHandler {
 			}
 		});
 		ClockHandler clockHandler = new ClockHandler();
-		Event.registerClockReceiver(clockHandler);
-		Event.registerNoteReceiver(clockHandler);
+		ClockReceiver.Dispatcher.register(clockHandler);
+		NoteReceiver.Dispatcher.register(clockHandler);
 	}
 	
 	public void storeSelectedOutDevices() {
@@ -247,7 +248,7 @@ public class MidiHandler {
 			switch(status) {
 			case ShortMessage.STOP:
 				LOG.info("Received STOP - Setting song position zero");
-				Event.sendActive(false, pos);
+				ClockReceiver.Dispatcher.sendActive(false, pos);
 				pos = 0;
 				pos_in = 0;
 				sendMessage(resetPositionMessage);
@@ -255,14 +256,14 @@ public class MidiHandler {
 				break;
 			case ShortMessage.START:
 				LOG.info("Received START");
-				Event.sendActive(true, pos);
+				ClockReceiver.Dispatcher.sendActive(true, pos);
 				break;
 			case ShortMessage.CONTINUE:
 				LOG.info("Received CONTINUE");
-				Event.sendActive(true, pos);
+				ClockReceiver.Dispatcher.sendActive(true, pos);
 				break;
 			case ShortMessage.TIMING_CLOCK:
-				Event.sendClock(pos);
+				ClockReceiver.Dispatcher.sendClock(pos);
 				pos_in++;
 				pos = (pos_in/ppqdiv)%getMaxTicks();
 				break;
@@ -298,12 +299,12 @@ public class MidiHandler {
 	}
 
 	private void noteOn(int noteNumber, int velocity) {
-		Event.noteOn(noteNumber, velocity, pos);
+		NoteReceiver.Dispatcher.sendNoteOn(noteNumber, velocity, pos);
 		sendNoteOn(noteNumber, velocity);
 	}
 
 	private void noteOff(int noteNumber) {
-		Event.noteOff(noteNumber, pos);
+		NoteReceiver.Dispatcher.sendNoteOff(noteNumber, pos);
 		sendNoteOff(noteNumber);
 	}
 
@@ -391,7 +392,7 @@ public class MidiHandler {
 		}
 		if (numberQuarters!=settingsNumberQuarters) {
 			settingsNumberQuarters = numberQuarters;
-			Event.sendClock(pos);
+			ClockReceiver.Dispatcher.sendClock(pos);
 		}
 	}
 
