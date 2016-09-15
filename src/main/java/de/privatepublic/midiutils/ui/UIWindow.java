@@ -43,15 +43,15 @@ import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.MidiHandler.MidiDeviceWrapper;
-import de.privatepublic.midiutils.NoteRun;
+import de.privatepublic.midiutils.Note;
 import de.privatepublic.midiutils.Prefs;
-import de.privatepublic.midiutils.events.ClockReceiver;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
 import de.privatepublic.midiutils.events.ManipulateReceiver;
+import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.events.StorageReceiver;
 
-public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
+public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UIWindow.class);
 	
@@ -93,6 +93,11 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 
 		initialize();
 		frmDimidimi.setVisible(true);
+		LoopUpdateReceiver.Dispatcher.register(loopDisplayPanel);
+		SettingsUpdateReceiver.Dispatcher.register(this);
+		PerformanceReceiver.Dispatcher.register(this);
+		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
+		
 		LOG.info("User interface built.");
 	}
 
@@ -377,7 +382,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		comboQuantize.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				NoteRun.APPLY_QUANTIZATION = comboQuantize.getSelectedIndex();
+				Note.APPLY_QUANTIZATION = comboQuantize.getSelectedIndex();
 				LOG.info("Quantization: {}", comboQuantize.getSelectedItem());
 				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
 			}});
@@ -385,7 +390,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		comboBoxTranspose.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				NoteRun.APPLY_TRANSPOSE = comboBoxTranspose.getSelectedIndex();
+				Note.APPLY_TRANSPOSE = comboBoxTranspose.getSelectedIndex();
 				LOG.info("Transpose: {}", comboBoxTranspose.getSelectedItem());
 				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
 			}});
@@ -500,9 +505,6 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 			}
 		});
 		
-		LoopUpdateReceiver.Dispatcher.register(loopDisplayPanel);
-		SettingsUpdateReceiver.Dispatcher.register(this);
-		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
 	}
 	
 	
@@ -540,9 +542,21 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 	@Override
 	public void settingsUpdated() {
 		// update quantization, length, transpose
-		comboQuantize.setSelectedIndex(NoteRun.APPLY_QUANTIZATION);
-		comboBoxTranspose.setSelectedIndex(NoteRun.APPLY_TRANSPOSE);
+		comboQuantize.setSelectedIndex(Note.APPLY_QUANTIZATION);
+		comboBoxTranspose.setSelectedIndex(Note.APPLY_TRANSPOSE);
 		textFieldLength.setText(String.valueOf(MidiHandler.instance().getNumberQuarters()));
 		chckbxppq.setSelected(MidiHandler.instance().getPPQDiv()==2);
+	}
+
+	@Override
+	public void noteOn(int noteNumber, int velocity, int pos) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void noteOff(int notenumber, int pos) {
+		// TODO Auto-generated method stub
+		
 	}
 }

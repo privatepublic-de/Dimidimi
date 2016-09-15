@@ -4,7 +4,7 @@ import java.util.List;
 
 public class StorageContainer {
 
-	private List<NoteRun> notes;
+	private List<Note> notes;
 	private int transpose;
 	private int quantization;
 	private int length;
@@ -13,18 +13,18 @@ public class StorageContainer {
 		
 	}
 	
-	public StorageContainer(List<NoteRun> notes, int transpose, int quantization, int length) {
+	public StorageContainer(List<Note> notes, int transpose, int quantization, int length) {
 		this.notes = notes;
 		this.transpose = transpose;
 		this.quantization = quantization;
 		this.length = length;
 	}
 
-	public List<NoteRun> getNotes() {
+	public List<Note> getNotes() {
 		return notes;
 	}
 
-	public void setNotes(List<NoteRun> notes) {
+	public void setNotes(List<Note> notes) {
 		this.notes = notes;
 	}
 

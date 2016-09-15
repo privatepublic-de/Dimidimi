@@ -23,8 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.Prefs.Identifiable;
-import de.privatepublic.midiutils.events.ClockReceiver;
-import de.privatepublic.midiutils.events.NoteReceiver;
+import de.privatepublic.midiutils.events.PerformanceReceiver;
 
 public class MidiHandler {
 
@@ -195,9 +194,7 @@ public class MidiHandler {
 				return o1.info.getVendor().compareTo(o2.info.getVendor());
 			}
 		});
-		ClockHandler clockHandler = new ClockHandler();
-		ClockReceiver.Dispatcher.register(clockHandler);
-		NoteReceiver.Dispatcher.register(clockHandler);
+		new PerformanceHandler();
 	}
 	
 	public void storeSelectedOutDevices() {
@@ -248,7 +245,7 @@ public class MidiHandler {
 			switch(status) {
 			case ShortMessage.STOP:
 				LOG.info("Received STOP - Setting song position zero");
-				ClockReceiver.Dispatcher.sendActive(false, pos);
+				PerformanceReceiver.Dispatcher.sendActive(false, pos);
 				pos = 0;
 				pos_in = 0;
 				sendMessage(resetPositionMessage);
@@ -256,14 +253,14 @@ public class MidiHandler {
 				break;
 			case ShortMessage.START:
 				LOG.info("Received START");
-				ClockReceiver.Dispatcher.sendActive(true, pos);
+				PerformanceReceiver.Dispatcher.sendActive(true, pos);
 				break;
 			case ShortMessage.CONTINUE:
 				LOG.info("Received CONTINUE");
-				ClockReceiver.Dispatcher.sendActive(true, pos);
+				PerformanceReceiver.Dispatcher.sendActive(true, pos);
 				break;
 			case ShortMessage.TIMING_CLOCK:
-				ClockReceiver.Dispatcher.sendClock(pos);
+				PerformanceReceiver.Dispatcher.sendClock(pos);
 				pos_in++;
 				pos = (pos_in/ppqdiv)%getMaxTicks();
 				break;
@@ -299,12 +296,12 @@ public class MidiHandler {
 	}
 
 	private void noteOn(int noteNumber, int velocity) {
-		NoteReceiver.Dispatcher.sendNoteOn(noteNumber, velocity, pos);
+		PerformanceReceiver.Dispatcher.sendNoteOn(noteNumber, velocity, pos);
 		sendNoteOn(noteNumber, velocity);
 	}
 
 	private void noteOff(int noteNumber) {
-		NoteReceiver.Dispatcher.sendNoteOff(noteNumber, pos);
+		PerformanceReceiver.Dispatcher.sendNoteOff(noteNumber, pos);
 		sendNoteOff(noteNumber);
 	}
 

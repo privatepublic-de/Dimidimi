@@ -3,12 +3,12 @@ package de.privatepublic.midiutils.events;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import de.privatepublic.midiutils.NoteRun;
+import de.privatepublic.midiutils.Note;
 
 public interface ManipulateReceiver {
 
 	public void clearPattern();
-	public void clearNote(NoteRun note);
+	public void clearNote(Note note);
 	public void doublePattern();
 	
 	public static class Dispatcher {
@@ -27,7 +27,7 @@ public interface ManipulateReceiver {
 			}
 		}
 		
-		public static void sendClearNote(NoteRun note) {
+		public static void sendClearNote(Note note) {
 			for (ManipulateReceiver receiver: receivers) {
 				receiver.clearNote(note);
 			}

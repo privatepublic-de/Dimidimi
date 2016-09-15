@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.MidiHandler;
-import de.privatepublic.midiutils.NoteRun;
+import de.privatepublic.midiutils.Note;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
 import de.privatepublic.midiutils.events.ManipulateReceiver;
 
@@ -43,12 +43,12 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	
 	private int pos = 0;
 	
-	private List<NoteRun> noteList = new ArrayList<NoteRun>();
+	private List<Note> noteList = new ArrayList<Note>();
 	private List<Line2D.Float> notePositionList = new ArrayList<Line2D.Float>();
 	private boolean listsAreSynced = false;
 	
-	private NoteRun hitNote;
-	private NoteRun selectedNote;
+	private Note hitNote;
+	private Note selectedNote;
 	private Point dragStart;
 	
 	private int dragStartNoteNumber;
@@ -114,13 +114,13 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				if (!listsAreSynced) {
 					return;
 				}
-				NoteRun hitNoteBefore = hitNote;
+				Note hitNoteBefore = hitNote;
 				synchronized(noteList) {
 					int mx = e.getX();
 					int my = e.getY();
 					int i = 0;
 					hitNote = null;
-					for (NoteRun note:noteList) {
+					for (Note note:noteList) {
 						Line2D.Float noteline = notePositionList.get(i);
 						if (noteline.getX1()<=noteline.getX2()) {
 							if (mx<=noteline.getX2() && mx>=noteline.getX1() && Math.abs(my-noteline.getY1())<noteHeight) {
@@ -239,13 +239,13 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 
 		// draw notes
 		g.setStroke(new BasicStroke(tickwidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
-		NoteRun selectedNoteRun = selectedNote;
+		Note selectedNoteRun = selectedNote;
 		if (selectedNoteRun==null) {
 			selectedNoteRun = hitNote;
 		}
 		synchronized(noteList) {
 			notePositionList.clear();
-			for (NoteRun dc:noteList) {
+			for (Note dc:noteList) {
 				// range from 12 to 108 = 96
 				int no = 96 - dc.getTransformedNoteNumber()+12;
 				float colorhue = no/96f; 
@@ -311,11 +311,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	}
 
 	@Override
-	public void loopUpdated(List<NoteRun> list) {
+	public void loopUpdated(List<Note> list) {
 		synchronized(noteList) {
 			listsAreSynced = false;
 			noteList.clear();
-			for (NoteRun dc:list) {
+			for (Note dc:list) {
 				noteList.add(dc);
 			}
 		}

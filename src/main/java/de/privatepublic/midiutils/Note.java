@@ -3,7 +3,7 @@ package de.privatepublic.midiutils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
-public class NoteRun {
+public class Note {
 
 	private int posStart;
 	private int posEnd = -1;
@@ -18,17 +18,17 @@ public class NoteRun {
 	public static int APPLY_QUANTIZATION = 0;
 	public static int APPLY_TRANSPOSE = 13;
 	
-	public NoteRun() {
+	public Note() {
 		
 	}
 	
-	public NoteRun(int noteNumber, int velocity, int posStart) {
+	public Note(int noteNumber, int velocity, int posStart) {
 		this.noteNumber = noteNumber;
 		this.velocity = velocity;
 		this.posStart = posStart;
 	}
 	
-	public NoteRun(NoteRun other, int posOffset) { // clone constructor
+	public Note(Note other, int posOffset) { // clone constructor
 		this.velocity = other.velocity;
 		this.posStart = other.posStart + posOffset;
 		this.posEnd = other.posEnd + posOffset;

@@ -3,11 +3,11 @@ package de.privatepublic.midiutils.events;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import de.privatepublic.midiutils.NoteRun;
+import de.privatepublic.midiutils.Note;
 
 public interface LoopUpdateReceiver {
 
-	public void loopUpdated(List<NoteRun> list);
+	public void loopUpdated(List<Note> list);
 	public void refreshLoopDisplay();
 	
 	
@@ -21,7 +21,7 @@ public interface LoopUpdateReceiver {
 			}
 		}
 
-		public static void sendLoopUpdated(List<NoteRun> notelist) {
+		public static void sendLoopUpdated(List<Note> notelist) {
 			for (LoopUpdateReceiver receiver: receivers) {
 				receiver.loopUpdated(notelist);
 			}

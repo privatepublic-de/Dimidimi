@@ -5,7 +5,6 @@ import java.awt.EventQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.privatepublic.midiutils.events.ClockReceiver;
 import de.privatepublic.midiutils.ui.UIWindow;
 
 
@@ -20,8 +19,7 @@ public class DiMIDImi {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					UIWindow window = new UIWindow();
-					ClockReceiver.Dispatcher.register(window);
+					new UIWindow();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

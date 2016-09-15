@@ -14,29 +14,29 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import de.privatepublic.midiutils.events.ClockReceiver;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
 import de.privatepublic.midiutils.events.ManipulateReceiver;
-import de.privatepublic.midiutils.events.NoteReceiver;
+import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.events.StorageReceiver;
 
-public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateReceiver, StorageReceiver {
+public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiver, StorageReceiver {
 	
-	private static final Logger LOG = LoggerFactory.getLogger(ClockHandler.class);
+	private static final Logger LOG = LoggerFactory.getLogger(PerformanceHandler.class);
 	
-	private List<NoteRun> cycleList = new ArrayList<NoteRun>();
-	private NoteRun[] lastStarted = new NoteRun[128];
+	private List<Note> cycleList = new ArrayList<Note>();
+	private Note[] lastStarted = new Note[128];
 	private boolean recordActive = false;
 	
-	public ClockHandler() {
+	public PerformanceHandler() {
 		ManipulateReceiver.Dispatcher.register(this);
 		StorageReceiver.Dispatcher.register(this);
+		PerformanceReceiver.Dispatcher.register(this);
 	}
 	
 	public void noteOn(int noteNumber, int velocity, int pos) {
 		if (recordActive) {
-			NoteRun dc = new NoteRun(noteNumber, velocity, pos);
+			Note dc = new Note(noteNumber, velocity, pos);
 			lastStarted[noteNumber] = dc;
 			synchronized (cycleList) {
 				cycleList.add(dc);
@@ -47,7 +47,7 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateRece
 	
 	public void noteOff(int notenumber, int pos) {
 		if (recordActive) {
-			NoteRun reference = lastStarted[notenumber];
+			Note reference = lastStarted[notenumber];
 			if (reference!=null) {
 				reference.setPosEnd(pos);
 			}
@@ -57,7 +57,7 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateRece
 	
 	public void receiveClock(int pos) {
 		synchronized (cycleList) {
-			for (NoteRun dc:cycleList) {
+			for (Note dc:cycleList) {
 				if (!dc.isCompleted()) {
 					continue;
 				}
@@ -76,7 +76,7 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateRece
 	@Override
 	public void clearPattern() {
 		synchronized (cycleList) {
-			for (NoteRun dc:cycleList) {
+			for (Note dc:cycleList) {
 				MidiHandler.instance().sendNoteOff(dc.getPlayedNoteNumber());
 			}
 			cycleList.clear();
@@ -89,7 +89,7 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateRece
 		recordActive = active;
 		if (!recordActive) {
 			// find still uncompleted notes
-			for (NoteRun nr:cycleList) {
+			for (Note nr:cycleList) {
 				if (!nr.isCompleted()) {
 					nr.setPosEnd(pos);
 				}
@@ -100,7 +100,7 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateRece
 
 	@Override
 	public void saveRequest(File file) throws JsonGenerationException, JsonMappingException, IOException {
-		StorageContainer data = new StorageContainer(cycleList, NoteRun.APPLY_TRANSPOSE, NoteRun.APPLY_QUANTIZATION, MidiHandler.instance().getNumberQuarters());		
+		StorageContainer data = new StorageContainer(cycleList, Note.APPLY_TRANSPOSE, Note.APPLY_QUANTIZATION, MidiHandler.instance().getNumberQuarters());		
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.writeValue(file, data);
 		LOG.info("Saved file {}", file.getPath());
@@ -113,11 +113,11 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateRece
 		LOG.info("Loaded file {}", file.getPath());
 		clearPattern();
 		synchronized (cycleList) {
-			for (NoteRun n: data.getNotes()) {
+			for (Note n: data.getNotes()) {
 				cycleList.add(n);
 			}
-			NoteRun.APPLY_QUANTIZATION = data.getQuantization();
-			NoteRun.APPLY_TRANSPOSE = data.getTranspose();
+			Note.APPLY_QUANTIZATION = data.getQuantization();
+			Note.APPLY_TRANSPOSE = data.getTranspose();
 			MidiHandler.instance().updateLength(data.getLength());
 		}
 		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
@@ -126,7 +126,7 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateRece
 	}
 
 	@Override
-	public void clearNote(NoteRun note) {
+	public void clearNote(Note note) {
 		synchronized (cycleList) {
 			cycleList.remove(note);
 		}
@@ -137,12 +137,12 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateRece
 	@Override
 	public void doublePattern() {
 		synchronized(cycleList) {
-			ArrayList<NoteRun> addNotes = new ArrayList<NoteRun>();
+			ArrayList<Note> addNotes = new ArrayList<Note>();
 			int posOffset = MidiHandler.instance().getMaxTicks();
 			MidiHandler.instance().updateLength(MidiHandler.instance().getNumberQuarters()*2);
-			for (NoteRun note: cycleList) {
+			for (Note note: cycleList) {
 				if (note.isCompleted()) {
-					addNotes.add(new NoteRun(note, posOffset));
+					addNotes.add(new Note(note, posOffset));
 				}
 			}
 			cycleList.addAll(addNotes);
