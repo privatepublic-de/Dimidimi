@@ -9,6 +9,7 @@ public interface ManipulateReceiver {
 
 	public void clearPattern();
 	public void clearNote(NoteRun note);
+	public void doublePattern();
 	
 	public static class Dispatcher {
 		
@@ -28,7 +29,13 @@ public interface ManipulateReceiver {
 		
 		public static void sendClearNote(NoteRun note) {
 			for (ManipulateReceiver receiver: receivers) {
-				receiver.clearNote(note );
+				receiver.clearNote(note);
+			}
+		}
+		
+		public static void sendDoublePattern() {
+			for (ManipulateReceiver receiver: receivers) {
+				receiver.doublePattern();
 			}
 		}
 		

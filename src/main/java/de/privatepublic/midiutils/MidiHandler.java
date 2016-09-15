@@ -381,19 +381,40 @@ public class MidiHandler {
 		return ppqdiv;
 	}
 
-	public void updateSettings(int midiIn, int midiOut, int numberQuarters) {
-		if (midiIn!=settingsChannelIn || midiOut!=settingsChannelOut) {
-			int oldOut = settingsChannelOut;
-			settingsChannelIn = midiIn;
-			settingsChannelOut = midiOut;
-			sendAllNotesOff(oldOut);
-			Prefs.put(Prefs.MIDI_IN_CHANNEL, settingsChannelIn);
-			Prefs.put(Prefs.MIDI_OUT_CHANNEL, settingsChannelOut);
-		}
-		if (numberQuarters!=settingsNumberQuarters) {
-			settingsNumberQuarters = numberQuarters;
-			ClockReceiver.Dispatcher.sendClock(pos);
-		}
+//	public void updateSettings(int midiIn, int midiOut, int numberQuarters) {
+//		if (midiIn!=settingsChannelIn || midiOut!=settingsChannelOut) {
+//			int oldOut = settingsChannelOut;
+//			settingsChannelIn = midiIn;
+//			settingsChannelOut = midiOut;
+//			sendAllNotesOff(oldOut);
+//			Prefs.put(Prefs.MIDI_IN_CHANNEL, settingsChannelIn);
+//			Prefs.put(Prefs.MIDI_OUT_CHANNEL, settingsChannelOut);
+//		}
+//		if (numberQuarters!=settingsNumberQuarters) {
+//			settingsNumberQuarters = numberQuarters;
+//			//ClockReceiver.Dispatcher.sendClock(pos);
+//		}
+//	}
+	
+	public void setMidiChannelIn(int midiChannel) {
+		settingsChannelIn = midiChannel;
+		Prefs.put(Prefs.MIDI_IN_CHANNEL, settingsChannelIn);
 	}
+	
+	public void setMidiChannelOut(int midiChannel) {
+		int oldOut = settingsChannelOut;
+		settingsChannelOut = midiChannel;
+		sendAllNotesOff(oldOut);
+		Prefs.put(Prefs.MIDI_OUT_CHANNEL, settingsChannelOut);
+	}
+	
+	
+	public void updateLength(int numberQuarters) {
+		settingsNumberQuarters = numberQuarters;
+		//ClockReceiver.Dispatcher.sendClock(pos);
+	}
+	
+	
+	
 
 }

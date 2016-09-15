@@ -28,6 +28,14 @@ public class NoteRun {
 		this.posStart = posStart;
 	}
 	
+	public NoteRun(NoteRun other, int posOffset) { // clone constructor
+		this.velocity = other.velocity;
+		this.posStart = other.posStart + posOffset;
+		this.posEnd = other.posEnd + posOffset;
+		this.noteNumber = other.noteNumber;
+		this.isCompleted = other.isCompleted;
+	}
+	
 	@JsonIgnore
 	public int getTransformedPosEnd() {
 		return (posEnd + qoffset)%MidiHandler.instance().getMaxTicks();

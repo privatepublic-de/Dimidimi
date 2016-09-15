@@ -118,7 +118,7 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateRece
 			}
 			NoteRun.APPLY_QUANTIZATION = data.getQuantization();
 			NoteRun.APPLY_TRANSPOSE = data.getTranspose();
-			MidiHandler.instance().updateSettings(MidiHandler.instance().getMidiChannelIn(), MidiHandler.instance().getMidiChannelOut(), data.getLength());
+			MidiHandler.instance().updateLength(data.getLength());
 		}
 		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
 		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
@@ -132,6 +132,23 @@ public class ClockHandler implements ClockReceiver, NoteReceiver, ManipulateRece
 		}
 		MidiHandler.instance().sendAllNotesOff();
 		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
+	}
+
+	@Override
+	public void doublePattern() {
+		synchronized(cycleList) {
+			ArrayList<NoteRun> addNotes = new ArrayList<NoteRun>();
+			int posOffset = MidiHandler.instance().getMaxTicks();
+			MidiHandler.instance().updateLength(MidiHandler.instance().getNumberQuarters()*2);
+			for (NoteRun note: cycleList) {
+				if (note.isCompleted()) {
+					addNotes.add(new NoteRun(note, posOffset));
+				}
+			}
+			cycleList.addAll(addNotes);
+		}
+		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
+		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
 	}
 	
 	

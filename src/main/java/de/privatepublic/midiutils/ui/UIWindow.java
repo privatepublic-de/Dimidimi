@@ -55,6 +55,8 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UIWindow.class);
 	
+	private static final String APP_TITLE = "diMIDImi";
+	
 	private static final String[] MIDI_CHANNELS = new String[]{"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"};
 	private static final String[] QUANTIZE = new String[]{"none","1/2","1/4","1/8","1/16","1/32","1/4 triplets", "1/8 triplets", "1/16 triplets"};
 	private static final String[] TRANSPOSE = new String[]{"+24", "+12","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","0","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-24"};
@@ -100,7 +102,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initialize() {
 		frmDimidimi = new JFrame();
-		frmDimidimi.setTitle("diMIDImi");
+		frmDimidimi.setTitle(APP_TITLE);
 		frmDimidimi.setBounds(100, 100, 990, 557);
 		frmDimidimi.setMinimumSize(new Dimension(900, 557));
 		frmDimidimi.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -185,7 +187,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				btnApply.setEnabled(false);
 				int numberQuarters = Integer.parseInt(textFieldLength.getText());
-				MidiHandler.instance().updateSettings(MidiHandler.instance().getMidiChannelIn(), MidiHandler.instance().getMidiChannelOut(), numberQuarters);
+				MidiHandler.instance().updateLength(numberQuarters);
 				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
 			}
 		});
@@ -197,6 +199,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		JButton btnDouble = new JButton("Double");
 		btnDouble.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				ManipulateReceiver.Dispatcher.sendDoublePattern();
 			}
 		});
 		GroupLayout groupLayout = new GroupLayout(frmDimidimi.getContentPane());
@@ -364,7 +367,8 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				int midiIn = comboMidiIn.getSelectedIndex();
 				int midiOut = comboMidiOut.getSelectedIndex();
-				MidiHandler.instance().updateSettings(midiIn, midiOut, MidiHandler.instance().getNumberQuarters());
+				MidiHandler.instance().setMidiChannelIn(midiIn);
+				MidiHandler.instance().setMidiChannelOut(midiOut);
 			}};
 		
 		comboMidiIn.addActionListener(settingChanged);
@@ -373,7 +377,6 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		comboQuantize.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO better organisation
 				NoteRun.APPLY_QUANTIZATION = comboQuantize.getSelectedIndex();
 				LOG.info("Quantization: {}", comboQuantize.getSelectedItem());
 				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
@@ -448,6 +451,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        	}
 		        	try {
 		        		StorageReceiver.Dispatcher.sendSaveRequest(selectedFile);
+		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
 		        	}
 		        	catch(Exception e) {
 		        		JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e.getMessage());
@@ -483,6 +487,7 @@ public class UIWindow implements ClockReceiver, SettingsUpdateReceiver {
 		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
 		        	try {
 		        		StorageReceiver.Dispatcher.sendLoadRequest(selectedFile);
+		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
 					} catch (Exception e) {
 						LOG.error("Error loading file", e);
 						JOptionPane.showMessageDialog(frmDimidimi,
