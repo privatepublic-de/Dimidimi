@@ -19,7 +19,7 @@ public class Theme {
 //	static final Color colorPlayhead = Color.ORANGE;
 //	static final Color colorPlayedNote = Color.ORANGE;
 //	static final Color colorOctaves = Color.decode("#dddddd");
-//	static final Color colorSelectedNoteOutline = Color.LIGHT_GRAY;
+//	static final Color colorSelectedNoteOutline = new Color(.7f, .7f, .7f, .6f);
 //	static final Color colorSelectedNoteText = Color.WHITE;
 //	
 //	static final Color colorClockOn = colorActiveQuarter;
@@ -40,7 +40,7 @@ public class Theme {
 	static final Color colorPlayhead = Color.decode("#cccccc");
 	static final Color colorPlayedNote = colorGridIntense;
 	static final Color colorOctaves = colorGrid;
-	static final Color colorSelectedNoteOutline = Color.decode("#999999");
+	static final Color colorSelectedNoteOutline = new Color(.6f, .6f, .6f, .6f);
 	static final Color colorSelectedNoteText = Color.BLACK;
 	
 	static final Color colorClockOn = Color.getHSBColor(.58f, .8f, 1f);

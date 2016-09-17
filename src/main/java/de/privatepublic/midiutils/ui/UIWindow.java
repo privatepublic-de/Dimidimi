@@ -528,14 +528,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		}
 	}
 	
-	
-
 	@Override
 	public void receiveClock(int pos) {
 		loopDisplayPanel.updateLoopPosition(pos);
 		if (active) {
 			if (pos%24<12) {
-			panelIndicator.setBackground(Theme.colorClockOn);
+				panelIndicator.setBackground(Theme.colorClockOn);
 			}
 			else {
 				panelIndicator.setBackground(Theme.colorClockOff);
@@ -565,13 +563,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	@Override
 	public void noteOn(int noteNumber, int velocity, int pos) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void noteOff(int notenumber, int pos) {
-		// TODO Auto-generated method stub
-		
 	}
 }

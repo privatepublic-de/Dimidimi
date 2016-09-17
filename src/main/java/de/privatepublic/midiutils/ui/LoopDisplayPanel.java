@@ -232,7 +232,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		g.fillRect((int)(playheadx-tickwidth/2), 0, (int)tickwidth, height);
 
 		// draw notes
-		g.setStroke(new BasicStroke(tickwidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+		//g.setStroke(new BasicStroke(tickwidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 		Note selectedNoteRun = selectedNote;
 		if (selectedNoteRun==null) {
 			selectedNoteRun = hitNote;
@@ -254,6 +254,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				float noteendx = dc.isCompleted()?dc.getTransformedPosEnd()*tickwidth:pos*tickwidth;
 				float veloHeight = Math.max(dc.getVelocity()/127f * noteHeight*2, noteHeight/3f);
 				
+				int lineCap = (dc==selectedNoteRun)?BasicStroke.CAP_BUTT:BasicStroke.CAP_ROUND;
+				
 				if (noteendx>=notestartx) {
 					if (dc==selectedNoteRun) {
 						g.setColor(Theme.colorSelectedNoteOutline);
@@ -261,7 +263,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
 						g.setColor(noteColor);
 					}
-					g.setStroke(new BasicStroke(veloHeight, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+					g.setStroke(new BasicStroke(veloHeight, lineCap, BasicStroke.JOIN_MITER));
 					g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
 				}
 				else {
@@ -272,7 +274,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
 						g.setColor(noteColor);
 					}
-					g.setStroke(new BasicStroke(veloHeight, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+					g.setStroke(new BasicStroke(veloHeight, lineCap, BasicStroke.JOIN_MITER));
 					g.drawLine((int)0, (int)notey, (int)noteendx, (int)notey);
 					g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
 				}
@@ -283,6 +285,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					FontMetrics fm = g.getFontMetrics();
 	                Rectangle2D rect = fm.getStringBounds(notetext, g);
 	                int y = (int)(notey);
+	                if (dc==selectedNoteRun) {
+	                	y -= veloHeight;	
+	                }
 	                g.setColor(noteColor);
 	                g.fill(new RoundRectangle2D.Float(notestartx-1, (float)(y-fm.getAscent()), (float)rect.getWidth()+2, (float)rect.getHeight(), 7, 7));
 //	                g.fillRect((int)notestartx-1,
@@ -375,7 +380,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	        
 	        JMenu length = new JMenu("Length");
 	        JSlider lengthslider = new JSlider();
-	        lengthslider.setPreferredSize(new Dimension(MidiHandler.instance().getMaxTicks()*2, 48));
+	        lengthslider.setPreferredSize(new Dimension(MidiHandler.instance().getMaxTicks(), 48));
 	        lengthslider.setOrientation(SwingConstants.HORIZONTAL);
 	        lengthslider.setMajorTickSpacing(24);
 	        lengthslider.setMinorTickSpacing(6);
