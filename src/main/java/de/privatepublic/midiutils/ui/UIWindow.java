@@ -27,6 +27,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.LineBorder;
@@ -50,8 +51,6 @@ import de.privatepublic.midiutils.events.ManipulateReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.events.StorageReceiver;
-import javax.swing.SwingConstants;
-import java.awt.Canvas;
 
 public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
@@ -278,13 +277,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelTitle.add(lblDimidimiLooper);
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
 		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-64.png")));
-		
-		panelIndicator = new JPanel();
-		panelIndicator.setPreferredSize(new Dimension(24, 24));
-		panelTitle.add(panelIndicator);
-		panelIndicator.setToolTipText("Active");
-		panelIndicator.setBackground(Color.GRAY);
-		panelIndicator.setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
 		groupLayout.setAutoCreateContainerGaps(true);
 		
 		JLabel lblIn = new JLabel("Channel In");
@@ -367,6 +359,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		JButton btnNotesOff = new JButton("Panic");
 		btnNotesOff.setToolTipText("Turns off all playing or stuck MIDI notes.");
 		panelMidi.add(btnNotesOff);
+		
+		panelIndicator = new JPanel();
+		panelMidi.add(panelIndicator);
+		panelIndicator.setPreferredSize(new Dimension(24, 24));
+		panelIndicator.setToolTipText("Active");
+		panelIndicator.setBackground(Color.GRAY);
+		panelIndicator.setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
 		
 		btnNotesOff.addActionListener(new ActionListener() {
 			@Override
