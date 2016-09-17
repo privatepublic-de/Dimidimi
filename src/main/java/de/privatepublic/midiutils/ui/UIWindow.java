@@ -146,7 +146,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		JLabel lblTranspose = new JLabel("Transpose");
 		
-		JLabel lblNumberOfQuarters = new JLabel("Length (¼)");
+		JLabel lblNumberOfQuarters = new JLabel("Length");
 		
 		JButton btnApply = new JButton("Apply");
 		btnApply.setEnabled(false);
@@ -215,23 +215,27 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelIndicator.setToolTipText("Active");
 		panelIndicator.setBackground(Color.GRAY);
 		panelIndicator.setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
+		
+		JLabel lblLength2 = new JLabel("¼s");
 		GroupLayout groupLayout = new GroupLayout(frmDimidimi.getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 978, Short.MAX_VALUE)
+						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 954, Short.MAX_VALUE)
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(lblDimidimiLooper)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(panelIndicator, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED, 53, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED, 63, Short.MAX_VALUE)
 							.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 624, GroupLayout.PREFERRED_SIZE))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(lblNumberOfQuarters)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(textFieldLength, GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(lblLength2)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(btnApply)
 							.addPreferredGap(ComponentPlacement.UNRELATED)
@@ -242,7 +246,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 							.addComponent(lblTranspose)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(comboBoxTranspose, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED, 52, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED, 259, Short.MAX_VALUE)
 							.addComponent(btnDouble)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(btnClear)
@@ -255,18 +259,17 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
+					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
 						.addGroup(groupLayout.createSequentialGroup()
-							.addContainerGap()
 							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
 								.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE)
 								.addComponent(lblDimidimiLooper))
 							.addPreferredGap(ComponentPlacement.RELATED))
-						.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
-							.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(panelIndicator, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
 							.addGap(26)))
-					.addComponent(panel, GroupLayout.DEFAULT_SIZE, 416, Short.MAX_VALUE)
+					.addComponent(panel, GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblNumberOfQuarters)
@@ -279,7 +282,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 						.addComponent(btnSave)
 						.addComponent(btnLoad)
 						.addComponent(btnClear)
-						.addComponent(btnDouble)))
+						.addComponent(btnDouble)
+						.addComponent(lblLength2)))
 		);
 		groupLayout.setAutoCreateContainerGaps(true);
 		
