@@ -34,6 +34,7 @@ public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiv
 		PerformanceReceiver.Dispatcher.register(this);
 	}
 	
+	@Override
 	public void noteOn(int noteNumber, int velocity, int pos) {
 		if (recordActive) {
 			Note dc = new Note(noteNumber, velocity, pos);
@@ -45,6 +46,7 @@ public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiv
 		}
 	}
 	
+	@Override
 	public void noteOff(int notenumber, int pos) {
 		if (recordActive) {
 			Note reference = lastStarted[notenumber];
@@ -55,6 +57,7 @@ public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiv
 		}
 	}
 	
+	@Override
 	public void receiveClock(int pos) {
 		synchronized (cycleList) {
 			for (Note dc:cycleList) {

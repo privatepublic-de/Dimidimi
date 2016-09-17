@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.Prefs.Identifiable;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
+import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
 public class MidiHandler {
 
@@ -132,7 +133,7 @@ public class MidiHandler {
 		settingsChannelIn  = Prefs.get(Prefs.MIDI_IN_CHANNEL, settingsChannelIn);
 		settingsChannelOut  = Prefs.get(Prefs.MIDI_OUT_CHANNEL, settingsChannelOut);
 		
-		ppqdiv = Prefs.get(Prefs.MIDI_48PPQ, 2);
+		setPPQDiv(Prefs.get(Prefs.MIDI_48PPQ, 2));
 		
 		MidiDevice device;
 		MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
@@ -195,6 +196,7 @@ public class MidiHandler {
 			}
 		});
 		new PerformanceHandler();
+		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
 	}
 	
 	public void storeSelectedOutDevices() {
@@ -219,7 +221,7 @@ public class MidiHandler {
 
 	private int pos_in;
 	private int pos;
-	private int ppqdiv = 1;
+	private int ppqdiv = 2;
 //	List<Receiver> receivers = new ArrayList<Receiver>();
 	ShortMessage resetPositionMessage = new ShortMessage();
 	
@@ -370,8 +372,9 @@ public class MidiHandler {
 		return settingsChannelIn;
 	}
 	
-	public void set48PPQ(boolean ppq48) {
-		ppqdiv = ppq48?2:1;
+	// 2 = 48ppq input 1 = 24ppq input
+	public void setPPQDiv(int ppq48div) {
+		ppqdiv = ppq48div;
 	}
 	
 	public int getPPQDiv() {

@@ -3,7 +3,7 @@ package de.privatepublic.midiutils.ui;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Font;
+import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -16,9 +16,13 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -56,6 +60,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private int dragStartPosEnd;
 	
 	private float noteHeight;
+	private static final int bufferSemis = 5;
+	private int highestNote = 96-bufferSemis;
+	private int lowestNote = 12+bufferSemis;
 	
 	public LoopDisplayPanel() {
 		super();
@@ -169,24 +176,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		});
 	}
 	
-	private static class Theme {
-		
-		private static final Font fontNotes = new Font(Font.SANS_SERIF, Font.BOLD, 12); 
-		
-		private static final Color colorBackground = Color.WHITE;
-		private static final Color colorGrid = Color.GRAY;
-		private static final Color colorGridIntense = Color.DARK_GRAY;
-		private static final Color colorActiveQuarter = Color.decode("#ffee77");
-		private static final Color colorPlayhead = Color.ORANGE;
-		private static final Color colorPlayedNote = Color.ORANGE;
-		private static final Color colorOctaves = Color.decode("#dddddd");
-		private static final Color colorSelectedNoteOutline = Color.LIGHT_GRAY;
-		private static final Color colorSelectedNoteText = Color.WHITE;
-		
-		private static final float noteColorSaturation = .9f;
-		private static final float noteColorBrightness = .7f;
-	}
-	
 	@Override
 	public void paint(Graphics go) {
 		Graphics2D g = (Graphics2D)go;
@@ -195,13 +184,18 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		g.setFont(Theme.fontNotes);
 		int width = getWidth();
 		int height = getHeight();
-		noteHeight = height*(1f/96);
+		int displayNoteCount = highestNote-lowestNote + 2*bufferSemis;
+		noteHeight = height*(1f/displayNoteCount);
 		g.setColor(Theme.colorBackground);
 		g.fillRect(0, 0, width, height);
+		
 		// draw grid
 		g.setColor(Theme.colorOctaves);
-		for (int i=1;i<11;i++) {
-			g.drawLine(0, height-(int)(i*12*noteHeight), width, height-(int)(i*12*noteHeight));
+		for (int i=0;i<11;i++) {
+			float colorhue = (96-i*12)/96f;
+			g.setColor(Color.getHSBColor(colorhue, Theme.octaveColorSaturation, Theme.octaveColorBrightness));
+			int y = (int)(((highestNote+bufferSemis)-i*12)*noteHeight);
+			g.drawLine(0, y, width, y);
 		}
 		boolean is3based = MidiHandler.instance().getNumberQuarters()%3==0;
 		int activeQuarter = pos/24;
@@ -246,9 +240,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		synchronized(noteList) {
 			notePositionList.clear();
 			for (Note dc:noteList) {
-				// range from 12 to 108 = 96
-				int no = 96 - dc.getTransformedNoteNumber()+12;
-				float colorhue = no/96f; 
+				int no = (highestNote+bufferSemis)-dc.getTransformedNoteNumber();
+				float colorhue = (96-dc.getTransformedNoteNumber())/96f; 
 				Color noteColor = Color.getHSBColor(colorhue, Theme.noteColorSaturation, Theme.noteColorBrightness);
 				if (dc.isPlayed()) {
 					g.setColor(Theme.colorPlayedNote);
@@ -259,27 +252,27 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				float notey = no*noteHeight;
 				float notestartx = dc.getTransformedPosStart()*tickwidth;
 				float noteendx = dc.isCompleted()?dc.getTransformedPosEnd()*tickwidth:pos*tickwidth;
-				float velo = Math.max(dc.getVelocity()/127f * tickwidth*2,1);
+				float veloHeight = Math.max(dc.getVelocity()/127f * noteHeight*2, noteHeight/3f);
 				
 				if (noteendx>=notestartx) {
 					if (dc==selectedNoteRun) {
 						g.setColor(Theme.colorSelectedNoteOutline);
-						g.setStroke(new BasicStroke(velo*4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+						g.setStroke(new BasicStroke(veloHeight*2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 						g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
 						g.setColor(noteColor);
 					}
-					g.setStroke(new BasicStroke(velo, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+					g.setStroke(new BasicStroke(veloHeight, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 					g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
 				}
 				else {
 					if (dc==selectedNoteRun) {
 						g.setColor(Theme.colorSelectedNoteOutline);
-						g.setStroke(new BasicStroke(velo*4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+						g.setStroke(new BasicStroke(veloHeight*2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 						g.drawLine((int)0, (int)notey, (int)noteendx, (int)notey);
 						g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
 						g.setColor(noteColor);
 					}
-					g.setStroke(new BasicStroke(velo, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+					g.setStroke(new BasicStroke(veloHeight, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 					g.drawLine((int)0, (int)notey, (int)noteendx, (int)notey);
 					g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
 				}
@@ -291,10 +284,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	                Rectangle2D rect = fm.getStringBounds(notetext, g);
 	                int y = (int)(notey);
 	                g.setColor(noteColor);
-	                g.fillRect((int)notestartx,
-	                           y - fm.getAscent(),
-	                           (int) rect.getWidth(),
-	                           (int) rect.getHeight());
+	                g.fill(new RoundRectangle2D.Float(notestartx-1, (float)(y-fm.getAscent()), (float)rect.getWidth()+2, (float)rect.getHeight(), 7, 7));
+//	                g.fillRect((int)notestartx-1,
+//	                           y - fm.getAscent(),
+//	                           (int) rect.getWidth()+2,
+//	                           (int) rect.getHeight());
 					g.setColor(Theme.colorSelectedNoteText);
 					g.drawString(notetext, notestartx, y);
 				}
@@ -312,12 +306,22 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 
 	@Override
 	public void loopUpdated(List<Note> list) {
+		int maxNote = 12;
+		int minNote = 96+12; 
 		synchronized(noteList) {
 			listsAreSynced = false;
 			noteList.clear();
 			for (Note dc:list) {
 				noteList.add(dc);
+				minNote = Math.min(dc.getNoteNumber(), minNote);
+				maxNote = Math.max(dc.getNoteNumber(), maxNote);
 			}
+			if (list.size()==0) {
+				minNote = 12 + bufferSemis;
+				maxNote = 96+12 - bufferSemis;
+			}
+			highestNote = maxNote;
+			lowestNote = minNote;
 		}
 		repaint();
 	}
@@ -345,10 +349,21 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			});
 	        JMenu velocity = new JMenu("Velocity");
 	        JSlider veloslider = new JSlider();
-	        veloslider.setOrientation(SwingConstants.HORIZONTAL);
+	        veloslider.setOrientation(SwingConstants.VERTICAL);
 	        veloslider.setMaximum(127);
 	        veloslider.setMinimum(1);
 	        veloslider.setValue(selectedNote.getVelocity());
+	        Dictionary<Integer, JLabel> labels = new Hashtable<Integer, JLabel>(); // TODO static
+	        labels.put(1, new JLabel("1"));
+	        labels.put(32, new JLabel("32"));
+	        labels.put(64, new JLabel("64"));
+	        labels.put(96, new JLabel("96"));
+	        labels.put(127, new JLabel("127")); 
+	        veloslider.setLabelTable(labels);
+	        veloslider.setMajorTickSpacing(32);
+	        veloslider.setMinorTickSpacing(8);
+	        veloslider.setPaintTicks(true);
+	        veloslider.setPaintLabels(true);
 	        veloslider.addChangeListener(new ChangeListener() {
 				@Override
 				public void stateChanged(ChangeEvent e) {
@@ -360,8 +375,12 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	        
 	        JMenu length = new JMenu("Length");
 	        JSlider lengthslider = new JSlider();
+	        lengthslider.setPreferredSize(new Dimension(MidiHandler.instance().getMaxTicks()*2, 48));
 	        lengthslider.setOrientation(SwingConstants.HORIZONTAL);
-	        lengthslider.setMaximum(MidiHandler.instance().getMaxTicks());
+	        lengthslider.setMajorTickSpacing(24);
+	        lengthslider.setMinorTickSpacing(6);
+	        lengthslider.setPaintTicks(true);
+	        lengthslider.setMaximum(MidiHandler.instance().getMaxTicks()-1);
 	        lengthslider.setMinimum(1);
 	        int len;
 			if (selectedNote.getPosEnd()>selectedNote.getPosStart()) {

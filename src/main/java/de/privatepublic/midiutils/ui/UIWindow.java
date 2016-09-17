@@ -61,6 +61,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private static final String[] QUANTIZE = new String[]{"none","1/2","1/4","1/8","1/16","1/32","1/4 triplets", "1/8 triplets", "1/16 triplets"};
 	private static final String[] TRANSPOSE = new String[]{"+24", "+12","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","0","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-24"};
 	
+	private boolean active;
 	private JFrame frmDimidimi;
 	private JTextField textFieldLength;
 	private LoopDisplayPanel loopDisplayPanel;
@@ -297,8 +298,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		chckbxppq = new JCheckBox("48ppq");
 		chckbxppq.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				MidiHandler.instance().set48PPQ(chckbxppq.isSelected());
-				Prefs.put(Prefs.MIDI_48PPQ, chckbxppq.isSelected()?1:2);
+				int div = chckbxppq.isSelected()?2:1;
+				MidiHandler.instance().setPPQDiv(div);
+				Prefs.put(Prefs.MIDI_48PPQ, div);
 			}
 		});
 		chckbxppq.setToolTipText("Toggle between 24 or 48 ppq midi clock");
@@ -531,16 +533,25 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	@Override
 	public void receiveClock(int pos) {
 		loopDisplayPanel.updateLoopPosition(pos);
+		if (active) {
+			if (pos%24<12) {
+			panelIndicator.setBackground(Theme.colorClockOn);
+			}
+			else {
+				panelIndicator.setBackground(Theme.colorClockOff);
+			}
+		}
 	}
 
 	@Override
 	public void receiveActive(boolean active, int pos) {
 		if (active) {
-			panelIndicator.setBackground(Color.GREEN);
+			panelIndicator.setBackground(Theme.colorClockOn);
 		}
 		else {
-			panelIndicator.setBackground(Color.GRAY);
+			panelIndicator.setBackground(Theme.colorClockOff);
 		}
+		this.active = active;
 	}
 
 	@Override
