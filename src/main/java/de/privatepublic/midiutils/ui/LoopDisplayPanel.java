@@ -205,8 +205,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			int xpos = (int)(i*sixthwidth);
 			if (i/4 == activeQuarter) {
 				g.setColor(Theme.colorActiveQuarter);
-				g.fillRect(xpos, height-height/30, (int)sixthwidth, height);
-				g.fillRect(xpos, 0, (int)sixthwidth, height/30);
+				g.fillRect(xpos, height-height/30, Math.round(sixthwidth), height);
+				g.fillRect(xpos, 0, Math.round(sixthwidth), height/30);
 			}
 			g.setColor(Theme.colorGrid);
 			g.drawLine(xpos, 0, xpos, height);
