@@ -51,6 +51,7 @@ import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.events.StorageReceiver;
 import javax.swing.SwingConstants;
+import java.awt.Canvas;
 
 public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
@@ -121,9 +122,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 		setIcon(frmDimidimi);
 		
-		JPanel panel = new JPanel();
-		panel.setBackground(Color.WHITE);
-		panel.setBorder(new LineBorder(Color.GRAY));
+		JPanel panelLoop = new JPanel();
+		panelLoop.setBackground(Color.WHITE);
+		panelLoop.setBorder(new LineBorder(Color.GRAY));
 		
 		JButton btnClear = new JButton("Clear");
 		
@@ -132,12 +133,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboQuantize = new JComboBox(QUANTIZE);
 		comboQuantize.setMaximumRowCount(12);
 		
-		JPanel panel_1 = new JPanel();
-		panel_1.setBorder(new TitledBorder(null, "MIDI", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		
-		JLabel lblDimidimiLooper = new JLabel("diMIDImi Looper");
-		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
-		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-64.png")));
+		JPanel panelMidi = new JPanel();
+		panelMidi.setBorder(new TitledBorder(null, "MIDI", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		
 		comboBoxTranspose = new JComboBox(TRANSPOSE);
 		comboBoxTranspose.setMaximumRowCount(27);
@@ -211,25 +208,20 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		
-		panelIndicator = new JPanel();
-		panelIndicator.setToolTipText("Active");
-		panelIndicator.setBackground(Color.GRAY);
-		panelIndicator.setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
-		
 		JLabel lblLength2 = new JLabel("¼s");
+		
+		JPanel panelTitle = new JPanel();
 		GroupLayout groupLayout = new GroupLayout(frmDimidimi.getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 954, Short.MAX_VALUE)
+						.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 978, Short.MAX_VALUE)
 						.addGroup(groupLayout.createSequentialGroup()
-							.addComponent(lblDimidimiLooper)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(panelIndicator, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED, 63, Short.MAX_VALUE)
-							.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 624, GroupLayout.PREFERRED_SIZE))
+							.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED, 72, Short.MAX_VALUE)
+							.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 624, GroupLayout.PREFERRED_SIZE))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(lblNumberOfQuarters)
 							.addPreferredGap(ComponentPlacement.RELATED)
@@ -246,7 +238,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 							.addComponent(lblTranspose)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(comboBoxTranspose, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED, 259, Short.MAX_VALUE)
+							.addPreferredGap(ComponentPlacement.RELATED, 51, Short.MAX_VALUE)
 							.addComponent(btnDouble)
 							.addPreferredGap(ComponentPlacement.RELATED)
 							.addComponent(btnClear)
@@ -259,17 +251,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
-						.addGroup(groupLayout.createSequentialGroup()
-							.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-								.addComponent(panel_1, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblDimidimiLooper))
-							.addPreferredGap(ComponentPlacement.RELATED))
-						.addGroup(groupLayout.createSequentialGroup()
-							.addComponent(panelIndicator, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
-							.addGap(26)))
-					.addComponent(panel, GroupLayout.DEFAULT_SIZE, 396, Short.MAX_VALUE)
+					.addContainerGap()
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 408, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblNumberOfQuarters)
@@ -283,8 +270,21 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 						.addComponent(btnLoad)
 						.addComponent(btnClear)
 						.addComponent(btnDouble)
-						.addComponent(lblLength2)))
+						.addComponent(lblLength2))
+					.addGap(4))
 		);
+		
+		JLabel lblDimidimiLooper = new JLabel("diMIDImi Looper");
+		panelTitle.add(lblDimidimiLooper);
+		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
+		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-64.png")));
+		
+		panelIndicator = new JPanel();
+		panelIndicator.setPreferredSize(new Dimension(24, 24));
+		panelTitle.add(panelIndicator);
+		panelIndicator.setToolTipText("Active");
+		panelIndicator.setBackground(Color.GRAY);
+		panelIndicator.setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
 		groupLayout.setAutoCreateContainerGaps(true);
 		
 		JLabel lblIn = new JLabel("Channel In");
@@ -299,7 +299,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		JComboBox comboMidiOut = new JComboBox(MIDI_CHANNELS);
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(MidiHandler.instance().getMidiChannelOut());
-		panel_1.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		panelMidi.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
 		chckbxppq = new JCheckBox("48ppq");
 		chckbxppq.addChangeListener(new ChangeListener() {
@@ -310,14 +310,14 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		chckbxppq.setToolTipText("Toggle between 24 or 48 ppq midi clock");
-		panel_1.add(chckbxppq);
-		panel_1.add(lblIn);
-		panel_1.add(comboMidiIn);
-		panel_1.add(lblOut);
-		panel_1.add(comboMidiOut);
+		panelMidi.add(chckbxppq);
+		panelMidi.add(lblIn);
+		panelMidi.add(comboMidiIn);
+		panelMidi.add(lblOut);
+		panelMidi.add(comboMidiOut);
 		
 		JButton btnSelectInputDevices = new JButton("MIDI Devices...");
-		panel_1.add(btnSelectInputDevices);
+		panelMidi.add(btnSelectInputDevices);
 		btnSelectInputDevices.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -366,17 +366,17 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		JButton btnNotesOff = new JButton("Panic");
 		btnNotesOff.setToolTipText("Turns off all playing or stuck MIDI notes.");
-		panel_1.add(btnNotesOff);
+		panelMidi.add(btnNotesOff);
 		
 		btnNotesOff.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				MidiHandler.instance().sendAllNotesOff();
 			}});
-		panel.setLayout(new BorderLayout(0, 0));
+		panelLoop.setLayout(new BorderLayout(0, 0));
 		loopDisplayPanel = new LoopDisplayPanel();
 		loopDisplayPanel.setBackground(Color.WHITE);
-		panel.add(loopDisplayPanel);
+		panelLoop.add(loopDisplayPanel);
 		loopDisplayPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		frmDimidimi.getContentPane().setLayout(groupLayout);
 		

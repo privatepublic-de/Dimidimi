@@ -311,32 +311,39 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 
 	@Override
 	public void loopUpdated(List<Note> list) {
-		int maxNote = 12;
-		int minNote = 96+12; 
 		synchronized(noteList) {
 			listsAreSynced = false;
 			noteList.clear();
 			for (Note dc:list) {
 				noteList.add(dc);
-				minNote = Math.min(dc.getNoteNumber(), minNote);
-				maxNote = Math.max(dc.getNoteNumber(), maxNote);
 			}
-			if (list.size()==0) {
-				minNote = 12 + bufferSemis;
-				maxNote = 96+12 - bufferSemis;
-			}
-			highestNote = maxNote;
-			lowestNote = minNote;
+			calculateNoteExtents();
 		}
 		repaint();
 	}
 
 	@Override
 	public void refreshLoopDisplay() {
+		calculateNoteExtents();
 		repaint();
 	}
 	
-	
+	private void calculateNoteExtents() {
+		int maxNote = 12;
+		int minNote = 96+12; 
+		synchronized(noteList) {
+			for (Note dc:noteList) {
+				minNote = Math.min(dc.getTransformedNoteNumber(), minNote);
+				maxNote = Math.max(dc.getTransformedNoteNumber(), maxNote);
+			}
+			if (noteList.size()==0) {
+				minNote = 12 + bufferSemis;
+				maxNote = 96+12 - bufferSemis;
+			}
+			highestNote = maxNote;
+			lowestNote = minNote;
+		}
+	}
 	
 	class PopUpMenu extends JPopupMenu {
 		private static final long serialVersionUID = 9049098677413712819L;
