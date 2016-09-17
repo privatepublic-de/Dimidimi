@@ -50,6 +50,7 @@ import de.privatepublic.midiutils.events.ManipulateReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.events.StorageReceiver;
+import javax.swing.SwingConstants;
 
 public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
@@ -151,6 +152,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		btnApply.setEnabled(false);
 		
 		textFieldLength = new JTextField();
+		textFieldLength.setHorizontalAlignment(SwingConstants.CENTER);
 		
 		textFieldLength.setText("4");
 		textFieldLength.setColumns(10);
@@ -359,6 +361,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}});
 		
 		JButton btnNotesOff = new JButton("Panic");
+		btnNotesOff.setToolTipText("Turns off all playing or stuck MIDI notes.");
 		panel_1.add(btnNotesOff);
 		
 		btnNotesOff.addActionListener(new ActionListener() {
