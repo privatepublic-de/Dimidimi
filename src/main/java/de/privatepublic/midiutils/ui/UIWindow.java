@@ -324,9 +324,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		checkBoxMidiOut.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				MidiHandler.instance().setSendNotes(checkBoxMidiOut.isSelected());
-				if (!MidiHandler.instance().isSendNotes()) {
-					MidiHandler.instance().sendAllNotesOff();
-				}
 				LOG.info("Send Notes {}", MidiHandler.instance().isSendNotes());
 			}
 		});

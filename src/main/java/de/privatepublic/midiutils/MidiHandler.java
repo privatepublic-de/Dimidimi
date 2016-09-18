@@ -429,6 +429,9 @@ public class MidiHandler {
 	}
 
 	public void setSendNotes(boolean sendNotes) {
+		if (this.sendNotes!=sendNotes && !sendNotes) {
+			sendAllNotesOff();
+		}
 		this.sendNotes = sendNotes;
 	}
 
