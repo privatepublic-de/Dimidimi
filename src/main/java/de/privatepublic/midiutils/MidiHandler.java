@@ -124,6 +124,9 @@ public class MidiHandler {
 	private int settingsChannelOut = 3 -1;
 	private int settingsNumberQuarters = 8;
 	
+	private boolean receiveNotes = true;
+	private boolean sendNotes = true;
+	
 	
 	private MidiHandler() {
 		
@@ -267,7 +270,7 @@ public class MidiHandler {
 				pos = (pos_in/ppqdiv)%getMaxTicks();
 				break;
 			}
-			if (message instanceof ShortMessage && device.isActiveForInput) {
+			if (message instanceof ShortMessage && device.isActiveForInput && isReceiveNotes()) {
 				final ShortMessage msg = (ShortMessage)message;
 				final int channel = msg.getChannel();
 				if (channel==settingsChannelIn) {
@@ -308,22 +311,26 @@ public class MidiHandler {
 	}
 
 	public void sendNoteOn(int noteNumber, int velocity) {
-		try {
-			ShortMessage message = new ShortMessage();
-			message.setMessage(ShortMessage.NOTE_ON, settingsChannelOut, noteNumber, velocity);
-			sendMessage(message);
-		} catch (InvalidMidiDataException e) {
-			e.printStackTrace();
+		if (isSendNotes()) {
+			try {
+				ShortMessage message = new ShortMessage();
+				message.setMessage(ShortMessage.NOTE_ON, settingsChannelOut, noteNumber, velocity);
+				sendMessage(message);
+			} catch (InvalidMidiDataException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public void sendNoteOff(int noteNumber) {
-		try {
-			ShortMessage message = new ShortMessage();
-			message.setMessage(ShortMessage.NOTE_OFF, settingsChannelOut, noteNumber, 0);
-			sendMessage(message);
-		} catch (InvalidMidiDataException e) {
-			e.printStackTrace();
+		if (isSendNotes()) {
+			try {
+				ShortMessage message = new ShortMessage();
+				message.setMessage(ShortMessage.NOTE_OFF, settingsChannelOut, noteNumber, 0);
+				sendMessage(message);
+			} catch (InvalidMidiDataException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -409,6 +416,22 @@ public class MidiHandler {
 	}
 	
 	
+	public boolean isReceiveNotes() {
+		return receiveNotes;
+	}
+
+	public void setReceiveNotes(boolean receiveNotes) {
+		this.receiveNotes = receiveNotes;
+	}
+
+	public boolean isSendNotes() {
+		return sendNotes;
+	}
+
+	public void setSendNotes(boolean sendNotes) {
+		this.sendNotes = sendNotes;
+	}
+
 	public void updateLength(int numberQuarters) {
 		settingsNumberQuarters = numberQuarters;
 		//ClockReceiver.Dispatcher.sendClock(pos);

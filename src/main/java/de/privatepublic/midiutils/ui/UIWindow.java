@@ -30,6 +30,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
@@ -133,7 +134,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboQuantize.setMaximumRowCount(12);
 		
 		JPanel panelMidi = new JPanel();
-		panelMidi.setBorder(new TitledBorder(null, "MIDI", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panelMidi.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "MIDI", TitledBorder.TRAILING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		
 		comboBoxTranspose = new JComboBox(TRANSPOSE);
 		comboBoxTranspose.setMaximumRowCount(27);
@@ -219,8 +220,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 						.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 978, Short.MAX_VALUE)
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED, 72, Short.MAX_VALUE)
-							.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 624, GroupLayout.PREFERRED_SIZE))
+							.addGap(18)
+							.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 695, Short.MAX_VALUE))
 						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(lblNumberOfQuarters)
 							.addPreferredGap(ComponentPlacement.RELATED)
@@ -255,7 +256,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 						.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 408, Short.MAX_VALUE)
+					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblNumberOfQuarters)
@@ -304,8 +305,33 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		chckbxppq.setToolTipText("Toggle between 24 or 48 ppq midi clock");
 		panelMidi.add(chckbxppq);
 		panelMidi.add(lblIn);
+		
+		JCheckBox checkBoxMidiIn = new JCheckBox("");
+		checkBoxMidiIn.setSelected(true);
+		checkBoxMidiIn.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				MidiHandler.instance().setReceiveNotes(checkBoxMidiIn.isSelected());
+				LOG.info("Receive Notes {}", MidiHandler.instance().isReceiveNotes());
+			}
+		});
+		checkBoxMidiIn.setToolTipText("Receive Notes from selected Channel");
+		panelMidi.add(checkBoxMidiIn);
 		panelMidi.add(comboMidiIn);
 		panelMidi.add(lblOut);
+		
+		JCheckBox checkBoxMidiOut = new JCheckBox("");
+		checkBoxMidiOut.setSelected(true);
+		checkBoxMidiOut.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				MidiHandler.instance().setSendNotes(checkBoxMidiOut.isSelected());
+				if (!MidiHandler.instance().isSendNotes()) {
+					MidiHandler.instance().sendAllNotesOff();
+				}
+				LOG.info("Send Notes {}", MidiHandler.instance().isSendNotes());
+			}
+		});
+		checkBoxMidiOut.setToolTipText("Output Notes on selcted Channel");
+		panelMidi.add(checkBoxMidiOut);
 		panelMidi.add(comboMidiOut);
 		
 		JButton btnSelectInputDevices = new JButton("MIDI Devices...");
