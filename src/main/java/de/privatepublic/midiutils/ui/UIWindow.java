@@ -57,7 +57,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UIWindow.class);
 	
-	private static final String APP_TITLE = "diMIDImi";
+	private static final String APP_TITLE = "dimidimi Looper";
 	
 	private static final String[] MIDI_CHANNELS = new String[]{"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"};
 	private static final String[] QUANTIZE = new String[]{"none","1/2","1/4","1/8","1/16","1/32","1/4 triplets", "1/8 triplets", "1/16 triplets"};
@@ -274,7 +274,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 					.addGap(4))
 		);
 		
-		JLabel lblDimidimiLooper = new JLabel("diMIDImi Looper");
+		JLabel lblDimidimiLooper = new JLabel(APP_TITLE);
 		panelTitle.add(lblDimidimiLooper);
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
 		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-64.png")));
