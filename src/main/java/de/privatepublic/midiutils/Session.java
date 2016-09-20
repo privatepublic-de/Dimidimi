@@ -1,32 +1,48 @@
 package de.privatepublic.midiutils;
 
+import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.privatepublic.midiutils.events.DimidimiEventReceiver;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
-import de.privatepublic.midiutils.events.ManipulateReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
-import de.privatepublic.midiutils.events.StorageReceiver;
+import de.privatepublic.midiutils.ui.UIWindow;
 
 public class Session {
 
-	
+	private static final Logger LOG = LoggerFactory.getLogger(Session.class);
+
 	public Session() {
 		midiHandler = new MidiHandler(this);
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					UIWindow window = new UIWindow(Session.this);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
-	
-	
+
+
 	public int getClockDivision() {
 		return ppqdiv;
 	}
-	
+
 	public void setClockDivision(int div) {
 		ppqdiv = div;
 	}
@@ -68,12 +84,12 @@ public class Session {
 		getMidiHandler().sendAllNotesOff(oldOut);
 		Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
 	}
-	
-	
+
+
 	public MidiHandler getMidiHandler() {
 		return midiHandler;
 	}
-	
+
 
 	public boolean isMidiInputOn() {
 		return midiInputOn;
@@ -128,12 +144,74 @@ public class Session {
 	}
 
 
+
+
+	public void clearPattern() {
+		for (Note dc:getNotesList()) {
+			getMidiHandler().sendNoteOff(dc.getPlayedNoteNumber());
+		}
+		getNotesList().clear();
+		emitLoopUpdated();
+	}
+
+
+	public void saveLoop(File file) throws JsonGenerationException, JsonMappingException, IOException {
+		StorageContainer data = new StorageContainer(getNotesList(), Note.APPLY_TRANSPOSE, Note.APPLY_QUANTIZATION, getLengthQuarters());		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.writeValue(file, data);
+		LOG.info("Saved file {}", file.getPath());
+	}
+
+	public void loadLoop(File file) throws JsonParseException, JsonMappingException, IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		StorageContainer data = mapper.readValue(file, StorageContainer.class);
+		LOG.info("Loaded file {}", file.getPath());
+		clearPattern();
+		for (Note n: data.getNotes()) {
+			getNotesList().add(n);
+		}
+		Note.APPLY_QUANTIZATION = data.getQuantization();
+		Note.APPLY_TRANSPOSE = data.getTranspose();
+		setLengthQuarters(data.getLength());
+
+		emitLoopUpdated();
+		emitSettingsUpdated();
+		getMidiHandler().sendAllNotesOff();
+	}
+
+	public void clearNote(Note note) {
+		getNotesList().remove(note);
+		getMidiHandler().sendNoteOff(note.getTransformedNoteNumber());
+		emitLoopUpdated();
+	}
+
+	public void doublePattern() {
+		ArrayList<Note> addNotes = new ArrayList<Note>();
+		int posOffset = getMaxTicks();
+		setLengthQuarters(getLengthQuarters()*2);
+		for (Note note: getNotesList()) {
+			if (note.isCompleted()) {
+				addNotes.add(new Note(note, posOffset));
+			}
+		}
+		getNotesList().addAll(addNotes);
+		emitLoopUpdated();
+		emitSettingsUpdated();
+	}
+
+
+
+
+
+
+
+
+
+
+
 	public void registerAsReceiver(DimidimiEventReceiver receiver) {
 		if (receiver.getClass().isAssignableFrom(LoopUpdateReceiver.class)) {
 			loopUpdateReceivers.add((LoopUpdateReceiver)receiver);
-		}
-		if (receiver.getClass().isAssignableFrom(ManipulateReceiver.class)) {
-			manipulateReceivers.add((ManipulateReceiver)receiver);
 		}
 		if (receiver.getClass().isAssignableFrom(PerformanceReceiver.class)) {
 			performanceReceivers.add((PerformanceReceiver)receiver);
@@ -141,43 +219,22 @@ public class Session {
 		if (receiver.getClass().isAssignableFrom(SettingsUpdateReceiver.class)) {
 			settingsUpdateReceivers.add((SettingsUpdateReceiver)receiver);
 		}
-		if (receiver.getClass().isAssignableFrom(StorageReceiver.class)) {
-			storageReceivers.add((StorageReceiver)receiver);
-		}
 	}
-	
-	
+
+
 	public void emitLoopUpdated() {
 		for (LoopUpdateReceiver receiver: loopUpdateReceivers) {
 			receiver.loopUpdated(getNotesList());
 		}
 	}
-	
+
 	public void emitRefreshLoopDisplay() {
 		for (LoopUpdateReceiver receiver: loopUpdateReceivers) {
 			receiver.refreshLoopDisplay();
 		}
 	}
-	
-	
-	public void emitClearPattern() {
-		for (ManipulateReceiver receiver: manipulateReceivers) {
-			receiver.clearPattern();
-		}
-	}
-	
-	public void emitClearNote(Note note) {
-		for (ManipulateReceiver receiver: manipulateReceivers) {
-			receiver.clearNote(note);
-		}
-	}
-	
-	public void emitDoublePattern() {
-		for (ManipulateReceiver receiver: manipulateReceivers) {
-			receiver.doublePattern();
-		}
-	}
-	
+
+
 	public void emitNoteOn(int noteNumber, int velocity, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
 			receiver.noteOn(noteNumber, velocity, pos);
@@ -189,7 +246,7 @@ public class Session {
 			receiver.noteOff(notenumber, pos);;
 		}
 	}
-	
+
 	public void emitClock(int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
 			receiver.receiveClock(pos);
@@ -201,26 +258,15 @@ public class Session {
 			receiver.receiveActive(active, pos);
 		}
 	}
-	
+
 	public void emitSettingsUpdated() {
 		for (SettingsUpdateReceiver receiver: settingsUpdateReceivers) {
 			receiver.settingsUpdated();
 		}
 	}
-	
-	public void emitSaveRequest(File file) throws JsonGenerationException, JsonMappingException, IOException {
-		for (StorageReceiver receiver: storageReceivers) {
-			receiver.saveRequest(file);
-		}
-	}
-	
-	public void emitLoadRequest(File file) throws JsonGenerationException, JsonMappingException, IOException {
-		for (StorageReceiver receiver: storageReceivers) {
-			receiver.loadRequest(file);
-		}
-	}
-	
-	
+
+
+
 	private int lengthQuarters = 8;
 	private int maxTicks = lengthQuarters*TICK_COUNT_BASE;
 	private MidiHandler midiHandler;
@@ -232,14 +278,12 @@ public class Session {
 	private int quantization;
 	private int transposeBy;
 	private List<Note> notesList = new CopyOnWriteArrayList<Note>();
-	
+
 	private List<LoopUpdateReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<LoopUpdateReceiver>();
-	private List<ManipulateReceiver> manipulateReceivers = new CopyOnWriteArrayList<ManipulateReceiver>();
 	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
 	private List<SettingsUpdateReceiver> settingsUpdateReceivers = new CopyOnWriteArrayList<SettingsUpdateReceiver>();
-	private List<StorageReceiver> storageReceivers = new CopyOnWriteArrayList<StorageReceiver>();
-	
+
 	private static final int TICK_COUNT_BASE = 48;
-	
-	
+
+
 }

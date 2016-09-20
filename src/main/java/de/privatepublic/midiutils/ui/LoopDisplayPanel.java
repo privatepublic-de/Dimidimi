@@ -35,15 +35,16 @@ import javax.swing.event.ChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Note;
+import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
-import de.privatepublic.midiutils.events.ManipulateReceiver;
 
 public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 
 	private static final long serialVersionUID = -592444184016477559L;
 	private static final Logger LOG = LoggerFactory.getLogger(LoopDisplayPanel.class);
+	
+	private Session session;
 	
 	private int pos = 0;
 	
@@ -64,8 +65,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private int highestNote = 96-bufferSemis;
 	private int lowestNote = 12+bufferSemis;
 	
-	public LoopDisplayPanel() {
+	public LoopDisplayPanel(Session session) {
 		super();
+		this.session = session;
 		addMouseListener(new MouseListener() {
 			
 			@Override
@@ -165,15 +167,16 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					int noteOffset = (int)(distY/noteHeight);
 					selectedNote.setNoteNumber(dragStartNoteNumber+noteOffset);
 					
-					float tickwidth = getWidth()/(float)MidiHandler.instance().getMaxTicks();
+					float tickwidth = getWidth()/(float)session.getMaxTicks();
 					int ticksOffset = (int)(distX/tickwidth);
-					selectedNote.setPosStart((dragStartPosStart+ticksOffset+MidiHandler.instance().getMaxTicks())%MidiHandler.instance().getMaxTicks());
-					selectedNote.setPosEnd((dragStartPosEnd+ticksOffset+MidiHandler.instance().getMaxTicks())%MidiHandler.instance().getMaxTicks());
+					selectedNote.setPosStart((dragStartPosStart+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+					selectedNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
 					
 					repaint();
 				}
 			}
 		});
+		session.registerAsReceiver(this);
 	}
 	
 	@Override
@@ -197,11 +200,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			int y = (int)(((highestNote+bufferSemis)-i*12)*noteHeight);
 			g.drawLine(0, y, width, y);
 		}
-		boolean is3based = MidiHandler.instance().getNumberQuarters()%3==0;
+		boolean is3based = session.getLengthQuarters()%3==0;
 		int activeQuarter = pos/24;
-		float quarterwidth = width*(24f/MidiHandler.instance().getMaxTicks());
+		float quarterwidth = width*(24f/session.getMaxTicks());
 		float sixthwidth = quarterwidth/4f; 
-		for (int i=0;i<MidiHandler.instance().getNumberQuarters()*4;i++) {
+		for (int i=0;i<session.getLengthQuarters()*4;i++) {
 			int xpos = (int)(i*sixthwidth);
 			if (i/4 == activeQuarter) {
 				g.setColor(Theme.colorActiveQuarter);
@@ -227,8 +230,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		
 		// draw playhead
 		g.setColor(Theme.colorPlayhead);
-		float playheadx = width*((float)pos/MidiHandler.instance().getMaxTicks());
-		float tickwidth = width*(1f/MidiHandler.instance().getMaxTicks());
+		float playheadx = width*((float)pos/session.getMaxTicks());
+		float tickwidth = width*(1f/session.getMaxTicks());
 		g.fillRect((int)(playheadx-tickwidth/2), 0, (int)tickwidth, height);
 
 		// draw notes
@@ -250,8 +253,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					g.setColor(noteColor);
 				}
 				float notey = no*noteHeight;
-				float notestartx = dc.getTransformedPosStart()*tickwidth;
-				float noteendx = dc.isCompleted()?dc.getTransformedPosEnd()*tickwidth:pos*tickwidth;
+				float notestartx = dc.getTransformedPosStart(session.getMaxTicks())*tickwidth;
+				float noteendx = dc.isCompleted()?dc.getTransformedPosEnd(session.getMaxTicks())*tickwidth:pos*tickwidth;
 				float veloHeight = Math.max(dc.getVelocity()/127f * noteHeight*2, noteHeight/3f);
 				
 				int lineCap = (dc==selectedNoteRun)?BasicStroke.CAP_BUTT:BasicStroke.CAP_ROUND;
@@ -354,7 +357,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					LOG.info("Delete Note Called");
-					ManipulateReceiver.Dispatcher.sendClearNote(selectedNote);
+					session.clearNote(selectedNote);
 					selectedNote = null;
 					hitNote = null;
 				}
@@ -380,33 +383,33 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				@Override
 				public void stateChanged(ChangeEvent e) {
 					selectedNote.setVelocity(veloslider.getValue());
-					LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();;
+					session.emitRefreshLoopDisplay();;
 				}
 			});
 	        velocity.add(veloslider);
 	        
 	        JMenu length = new JMenu("Length");
 	        JSlider lengthslider = new JSlider();
-	        lengthslider.setPreferredSize(new Dimension(MidiHandler.instance().getMaxTicks(), 48));
+	        lengthslider.setPreferredSize(new Dimension(session.getMaxTicks(), 48));
 	        lengthslider.setOrientation(SwingConstants.HORIZONTAL);
 	        lengthslider.setMajorTickSpacing(24);
 	        lengthslider.setMinorTickSpacing(6);
 	        lengthslider.setPaintTicks(true);
-	        lengthslider.setMaximum(MidiHandler.instance().getMaxTicks()-1);
+	        lengthslider.setMaximum(session.getMaxTicks()-1);
 	        lengthslider.setMinimum(1);
 	        int len;
 			if (selectedNote.getPosEnd()>selectedNote.getPosStart()) {
 				len = selectedNote.getPosEnd()-selectedNote.getPosStart();
 			}
 			else {
-				len = selectedNote.getPosEnd()+(selectedNote.getPosStart()-MidiHandler.instance().getMaxTicks());
+				len = selectedNote.getPosEnd()+(selectedNote.getPosStart()-session.getMaxTicks());
 			}
 	        lengthslider.setValue(len);
 	        lengthslider.addChangeListener(new ChangeListener() {
 				@Override
 				public void stateChanged(ChangeEvent e) {
-					selectedNote.setPosEnd((selectedNote.getPosStart()+lengthslider.getValue())%MidiHandler.instance().getMaxTicks());
-					LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
+					selectedNote.setPosEnd((selectedNote.getPosStart()+lengthslider.getValue())%session.getMaxTicks());
+					session.emitRefreshLoopDisplay();
 				}
 			});
 	        length.add(lengthslider);

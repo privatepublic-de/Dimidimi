@@ -16,16 +16,7 @@ public class DiMIDImi {
 	
 	public static void main(String[] args) {
 		LOG.info("DiMIDImi Looper starting ...");
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					UIWindow window = new UIWindow();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		new Session();
+		Session session = new Session();
 	}
 	
 }

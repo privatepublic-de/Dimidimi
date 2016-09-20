@@ -44,14 +44,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.MidiDeviceWrapper;
-import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Note;
 import de.privatepublic.midiutils.Prefs;
-import de.privatepublic.midiutils.events.LoopUpdateReceiver;
-import de.privatepublic.midiutils.events.ManipulateReceiver;
+import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
-import de.privatepublic.midiutils.events.StorageReceiver;
 
 public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
@@ -71,11 +68,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JComboBox<String> comboBoxTranspose;
 	private JCheckBox chckbxppq;
 	private JPanel panelIndicator;
+	private Session session;
 
 	/**
 	 * Create the application.
 	 */
-	public UIWindow() {
+	public UIWindow(Session session) {
+		this.session = session;
 		try {
 			// Set cross-platform Java L&F (also called "Metal")
 			UIManager.setLookAndFeel(
@@ -96,10 +95,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 		initialize();
 		frmDimidimi.setVisible(true);
-		LoopUpdateReceiver.Dispatcher.register(loopDisplayPanel);
-		SettingsUpdateReceiver.Dispatcher.register(this);
-		PerformanceReceiver.Dispatcher.register(this);
-		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
+		session.registerAsReceiver(this);
 		
 		LOG.info("User interface built.");
 	}
@@ -153,7 +149,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		textFieldLength.setText("4");
 		textFieldLength.setColumns(10);
-		textFieldLength.setText(String.valueOf(MidiHandler.instance().getNumberQuarters()));
+		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
 		textFieldLength.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent e) {
@@ -172,7 +168,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			private void checkInput() {
 				try {
 					int value = Integer.parseInt(textFieldLength.getText());
-					if (value>0 && value!=MidiHandler.instance().getNumberQuarters()){
+					if (value>0 && value!=session.getLengthQuarters()){
 						btnApply.setEnabled(true);	 
 					}
 					else {
@@ -192,8 +188,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				btnApply.setEnabled(false);
 				int numberQuarters = Integer.parseInt(textFieldLength.getText());
-				MidiHandler.instance().updateLength(numberQuarters);
-				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
+				session.setLengthQuarters(numberQuarters);
+				session.emitRefreshLoopDisplay();
 			}
 		});
 		
@@ -204,7 +200,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		JButton btnDouble = new JButton("Double");
 		btnDouble.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				ManipulateReceiver.Dispatcher.sendDoublePattern();
+				session.doublePattern();
 			}
 		});
 		
@@ -285,20 +281,20 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		JComboBox comboMidiIn = new JComboBox(MIDI_CHANNELS);
 		comboMidiIn.setMaximumRowCount(16);
 		
-		comboMidiIn.setSelectedIndex(MidiHandler.instance().getMidiChannelIn());
+		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
 		
 		JLabel lblOut = new JLabel("Out");
 		
 		JComboBox comboMidiOut = new JComboBox(MIDI_CHANNELS);
 		comboMidiOut.setMaximumRowCount(16);
-		comboMidiOut.setSelectedIndex(MidiHandler.instance().getMidiChannelOut());
+		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		panelMidi.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
 		chckbxppq = new JCheckBox("48ppq");
 		chckbxppq.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				int div = chckbxppq.isSelected()?2:1;
-				MidiHandler.instance().setPPQDiv(div);
+				session.setClockDivision(div);;
 				Prefs.put(Prefs.MIDI_48PPQ, div);
 			}
 		});
@@ -310,8 +306,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		checkBoxMidiIn.setSelected(true);
 		checkBoxMidiIn.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				MidiHandler.instance().setReceiveNotes(checkBoxMidiIn.isSelected());
-				LOG.info("Receive Notes {}", MidiHandler.instance().isReceiveNotes());
+				session.setMidiInputOn(checkBoxMidiIn.isSelected());
+				LOG.info("Receive Notes {}", session.isMidiInputOn());
 			}
 		});
 		checkBoxMidiIn.setToolTipText("Receive Notes from selected Channel");
@@ -323,8 +319,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		checkBoxMidiOut.setSelected(true);
 		checkBoxMidiOut.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				MidiHandler.instance().setSendNotes(checkBoxMidiOut.isSelected());
-				LOG.info("Send Notes {}", MidiHandler.instance().isSendNotes());
+				session.setMidiOutputOn(checkBoxMidiOut.isSelected());
+				LOG.info("Send Notes {}", session.isMidiOutputOn());
 			}
 		});
 		checkBoxMidiOut.setToolTipText("Output Notes on selcted Channel");
@@ -338,9 +334,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				
 				CheckboxList listinput = new CheckboxList("Activate Input Devices");
-				JCheckBox[] inboxes = new JCheckBox[MidiHandler.instance().getInputDevices().size()];
+				JCheckBox[] inboxes = new JCheckBox[session.getMidiHandler().getInputDevices().size()];
 				for (int i = 0; i < inboxes.length; i++) {
-					MidiDeviceWrapper dev = MidiHandler.instance().getInputDevices().get(i);
+					MidiDeviceWrapper dev = session.getMidiHandler().getInputDevices().get(i);
 					JCheckBox cbox = new JCheckBox(dev.toString());
 					cbox.setSelected(dev.isActiveForInput());
 					inboxes[i] = cbox;
@@ -348,9 +344,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				listinput.setListData(inboxes);
 				
 				CheckboxList listoutput = new CheckboxList("Activate Output Devices");
-				JCheckBox[] outboxes = new JCheckBox[MidiHandler.instance().getOutputDevices().size()];
+				JCheckBox[] outboxes = new JCheckBox[session.getMidiHandler().getOutputDevices().size()];
 				for (int i = 0; i < outboxes.length; i++) {
-					MidiDeviceWrapper dev = MidiHandler.instance().getOutputDevices().get(i);
+					MidiDeviceWrapper dev = session.getMidiHandler().getOutputDevices().get(i);
 					JCheckBox cbox = new JCheckBox(dev.toString());
 					cbox.setSelected(dev.isActiveForOutput());
 					outboxes[i] = cbox;
@@ -365,18 +361,18 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				int result = JOptionPane.showOptionDialog(frmDimidimi, p, "Select MIDI Devices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
 				if (result==JOptionPane.OK_OPTION) {
 					for (int i = 0; i < inboxes.length; i++) {
-						MidiDeviceWrapper dev = MidiHandler.instance().getInputDevices().get(i);
+						MidiDeviceWrapper dev = session.getMidiHandler().getInputDevices().get(i);
 						dev.setActiveForInput(inboxes[i].isSelected());
 					}
-					MidiHandler.instance().storeSelectedInDevices();
+					session.getMidiHandler().storeSelectedInDevices();
 					
 					for (int i = 0; i < outboxes.length; i++) {
-						MidiDeviceWrapper dev = MidiHandler.instance().getOutputDevices().get(i);
+						MidiDeviceWrapper dev = session.getMidiHandler().getOutputDevices().get(i);
 						dev.setActiveForOutput(outboxes[i].isSelected());
 					}
-					MidiHandler.instance().storeSelectedOutDevices();
+					session.getMidiHandler().storeSelectedOutDevices();
 				}
-				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
+				session.emitRefreshLoopDisplay();
 			}});
 		
 		JButton btnNotesOff = new JButton("Panic");
@@ -393,10 +389,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		btnNotesOff.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				MidiHandler.instance().sendAllNotesOff();
+				session.getMidiHandler().sendAllNotesOff();
 			}});
 		panelLoop.setLayout(new BorderLayout(0, 0));
-		loopDisplayPanel = new LoopDisplayPanel();
+		loopDisplayPanel = new LoopDisplayPanel(session);
 		loopDisplayPanel.setBackground(Color.WHITE);
 		panelLoop.add(loopDisplayPanel);
 		loopDisplayPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
@@ -407,8 +403,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				int midiIn = comboMidiIn.getSelectedIndex();
 				int midiOut = comboMidiOut.getSelectedIndex();
-				MidiHandler.instance().setMidiChannelIn(midiIn);
-				MidiHandler.instance().setMidiChannelOut(midiOut);
+				session.setMidiChannelIn(midiIn);
+				session.setMidiChannelOut(midiOut);
 			}};
 		
 		comboMidiIn.addActionListener(settingChanged);
@@ -419,7 +415,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				Note.APPLY_QUANTIZATION = comboQuantize.getSelectedIndex();
 				LOG.info("Quantization: {}", comboQuantize.getSelectedItem());
-				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
+				session.emitRefreshLoopDisplay();
 			}});
 		
 		comboBoxTranspose.addActionListener(new ActionListener(){
@@ -427,13 +423,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				Note.APPLY_TRANSPOSE = comboBoxTranspose.getSelectedIndex();
 				LOG.info("Transpose: {}", comboBoxTranspose.getSelectedItem());
-				LoopUpdateReceiver.Dispatcher.sendRefreshLoopDisplay();
+				session.emitRefreshLoopDisplay();
 			}});
 		
 		btnClear.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ManipulateReceiver.Dispatcher.sendClearPattern();;
+				session.clearPattern();;
 			}
 		});
 		
@@ -490,7 +486,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		        		selectedFile = new File(selectedFile.getPath()+".dimidimi");
 		        	}
 		        	try {
-		        		StorageReceiver.Dispatcher.sendSaveRequest(selectedFile);
+		        		session.saveLoop(selectedFile);
 		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
 		        	}
 		        	catch(Exception e) {
@@ -526,7 +522,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		        	File selectedFile = chooser.getSelectedFile();
 		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
 		        	try {
-		        		StorageReceiver.Dispatcher.sendLoadRequest(selectedFile);
+		        		session.loadLoop(selectedFile);
 		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
 					} catch (Exception e) {
 						LOG.error("Error loading file", e);
@@ -586,8 +582,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		// update quantization, length, transpose
 		comboQuantize.setSelectedIndex(Note.APPLY_QUANTIZATION);
 		comboBoxTranspose.setSelectedIndex(Note.APPLY_TRANSPOSE);
-		textFieldLength.setText(String.valueOf(MidiHandler.instance().getNumberQuarters()));
-		chckbxppq.setSelected(MidiHandler.instance().getPPQDiv()==2);
+		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
+		chckbxppq.setSelected(session.getClockDivision()==2);
 	}
 
 	@Override
