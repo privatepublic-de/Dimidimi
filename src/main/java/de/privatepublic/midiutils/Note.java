@@ -37,8 +37,8 @@ public class Note {
 	}
 	
 	@JsonIgnore
-	public int getTransformedPosEnd() {
-		return (posEnd + qoffset)%MidiHandler.instance().getMaxTicks();
+	public int getTransformedPosEnd(int maxTicks) {
+		return (posEnd + qoffset)%maxTicks;
 	}
 	public void setPosEnd(int posEnd) {
 		this.posEnd = posEnd;
@@ -58,7 +58,7 @@ public class Note {
 	}
 	
 	@JsonIgnore
-	public int getTransformedPosStart() {
+	public int getTransformedPosStart(int maxTicks) {
 		if (APPLY_QUANTIZATION>0) {
 			int stepsize = Q_STEPS[APPLY_QUANTIZATION];
 			int offset = posStart % stepsize;
@@ -72,7 +72,7 @@ public class Note {
 		else {
 			qoffset = 0;
 		}
-		return (posStart + qoffset)%MidiHandler.instance().getMaxTicks();
+		return (posStart + qoffset)%maxTicks;
 	}
 	
 	@JsonIgnore

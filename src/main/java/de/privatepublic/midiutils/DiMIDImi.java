@@ -19,13 +19,13 @@ public class DiMIDImi {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					new UIWindow();
+					UIWindow window = new UIWindow();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
-		MidiHandler.instance();
+		new Session();
 	}
 	
 }

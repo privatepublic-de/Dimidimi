@@ -4,7 +4,6 @@ package de.privatepublic.midiutils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,24 +13,21 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import de.privatepublic.midiutils.events.LoopUpdateReceiver;
 import de.privatepublic.midiutils.events.ManipulateReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
-import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.events.StorageReceiver;
 
-public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiver, StorageReceiver {
+public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiver, StorageReceiver { // TODO Storage and Manipulate go to session and not as events!
 	
 	private static final Logger LOG = LoggerFactory.getLogger(PerformanceHandler.class);
 	
-	private List<Note> cycleList = new ArrayList<Note>();
 	private Note[] lastStarted = new Note[128];
 	private boolean recordActive = false;
+	private Session session;
 	
-	public PerformanceHandler() {
-		ManipulateReceiver.Dispatcher.register(this);
-		StorageReceiver.Dispatcher.register(this);
-		PerformanceReceiver.Dispatcher.register(this);
+	public PerformanceHandler(Session session) {
+		this.session = session;
+		session.registerAsReceiver(this);
 	}
 	
 	@Override
@@ -39,10 +35,8 @@ public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiv
 		if (recordActive) {
 			Note dc = new Note(noteNumber, velocity, pos);
 			lastStarted[noteNumber] = dc;
-			synchronized (cycleList) {
-				cycleList.add(dc);
-			}
-			LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
+			session.getNotesList().add(dc);
+			session.emitLoopUpdated();
 		}
 	}
 	
@@ -53,38 +47,37 @@ public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiv
 			if (reference!=null) {
 				reference.setPosEnd(pos);
 			}
-			LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
+			session.emitLoopUpdated();
 		}
 	}
 	
 	@Override
 	public void receiveClock(int pos) {
-		synchronized (cycleList) {
-			for (Note dc:cycleList) {
+		
+			for (Note dc:session.getNotesList()) {
 				if (!dc.isCompleted()) {
 					continue;
 				}
-				if (pos==dc.getTransformedPosStart()) {
+				if (pos==dc.getTransformedPosStart(session.getMaxTicks())) {
 					dc.setPlayed(true);
-					MidiHandler.instance().sendNoteOn(dc.getTransformedNoteNumber(), dc.getVelocity());
+					session.getMidiHandler().sendNoteOn(dc.getTransformedNoteNumber(), dc.getVelocity());
 				}
-				if (pos==dc.getTransformedPosEnd()) {
-					MidiHandler.instance().sendNoteOff(dc.getPlayedNoteNumber());
+				if (pos==dc.getTransformedPosEnd(session.getMaxTicks())) {
+					session.getMidiHandler().sendNoteOff(dc.getPlayedNoteNumber());
 					dc.setPlayed(false);
 				}
 			}
-		}
+		
 	}
 
 	@Override
 	public void clearPattern() {
-		synchronized (cycleList) {
-			for (Note dc:cycleList) {
-				MidiHandler.instance().sendNoteOff(dc.getPlayedNoteNumber());
-			}
-			cycleList.clear();
+		for (Note dc:session.getNotesList()) {
+			session.getMidiHandler().sendNoteOff(dc.getPlayedNoteNumber());
 		}
-		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
+		session.getNotesList().clear();
+
+		session.emitLoopUpdated();
 	}
 
 	@Override
@@ -92,7 +85,7 @@ public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiv
 		recordActive = active;
 		if (!recordActive) {
 			// find still uncompleted notes
-			for (Note nr:cycleList) {
+			for (Note nr:session.getNotesList()) {
 				if (!nr.isCompleted()) {
 					nr.setPosEnd(pos);
 				}
@@ -103,7 +96,7 @@ public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiv
 
 	@Override
 	public void saveRequest(File file) throws JsonGenerationException, JsonMappingException, IOException {
-		StorageContainer data = new StorageContainer(cycleList, Note.APPLY_TRANSPOSE, Note.APPLY_QUANTIZATION, MidiHandler.instance().getNumberQuarters());		
+		StorageContainer data = new StorageContainer(session.getNotesList(), Note.APPLY_TRANSPOSE, Note.APPLY_QUANTIZATION, session.getLengthQuarters());		
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.writeValue(file, data);
 		LOG.info("Saved file {}", file.getPath());
@@ -115,43 +108,41 @@ public class PerformanceHandler implements PerformanceReceiver, ManipulateReceiv
 		StorageContainer data = mapper.readValue(file, StorageContainer.class);
 		LOG.info("Loaded file {}", file.getPath());
 		clearPattern();
-		synchronized (cycleList) {
-			for (Note n: data.getNotes()) {
-				cycleList.add(n);
-			}
-			Note.APPLY_QUANTIZATION = data.getQuantization();
-			Note.APPLY_TRANSPOSE = data.getTranspose();
-			MidiHandler.instance().updateLength(data.getLength());
+		
+		for (Note n: data.getNotes()) {
+			session.getNotesList().add(n);
 		}
-		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
-		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
-		MidiHandler.instance().sendAllNotesOff();
+		Note.APPLY_QUANTIZATION = data.getQuantization();
+		Note.APPLY_TRANSPOSE = data.getTranspose();
+		session.setLengthQuarters(data.getLength());
+		
+		session.emitLoopUpdated();
+		session.emitSettingsUpdated();
+		session.getMidiHandler().sendAllNotesOff();
 	}
 
 	@Override
 	public void clearNote(Note note) {
-		synchronized (cycleList) {
-			cycleList.remove(note);
-		}
-		MidiHandler.instance().sendAllNotesOff();
-		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
+		session.getNotesList().remove(note);
+		session.getMidiHandler().sendAllNotesOff();
+		session.emitLoopUpdated();
 	}
 
 	@Override
 	public void doublePattern() {
-		synchronized(cycleList) {
-			ArrayList<Note> addNotes = new ArrayList<Note>();
-			int posOffset = MidiHandler.instance().getMaxTicks();
-			MidiHandler.instance().updateLength(MidiHandler.instance().getNumberQuarters()*2);
-			for (Note note: cycleList) {
-				if (note.isCompleted()) {
-					addNotes.add(new Note(note, posOffset));
-				}
+		
+		ArrayList<Note> addNotes = new ArrayList<Note>();
+		int posOffset = session.getMaxTicks();
+		session.setLengthQuarters(session.getLengthQuarters()*2);
+		for (Note note: session.getNotesList()) {
+			if (note.isCompleted()) {
+				addNotes.add(new Note(note, posOffset));
 			}
-			cycleList.addAll(addNotes);
 		}
-		LoopUpdateReceiver.Dispatcher.sendLoopUpdated(cycleList);
-		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
+		session.getNotesList().addAll(addNotes);
+		
+		session.emitLoopUpdated();
+		session.emitSettingsUpdated();
 	}
 	
 	

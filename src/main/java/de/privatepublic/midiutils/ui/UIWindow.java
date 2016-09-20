@@ -43,8 +43,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.privatepublic.midiutils.MidiDeviceWrapper;
 import de.privatepublic.midiutils.MidiHandler;
-import de.privatepublic.midiutils.MidiHandler.MidiDeviceWrapper;
 import de.privatepublic.midiutils.Note;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
