@@ -47,12 +47,12 @@ public class PerformanceHandler implements PerformanceReceiver {
 				if (!dc.isCompleted()) {
 					continue;
 				}
-				if (pos==dc.getTransformedPosStart(session.getMaxTicks())) {
+				if (pos==dc.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex())) {
 					dc.setPlayed(true);
-					session.getMidiHandler().sendNoteOn(dc.getTransformedNoteNumber(), dc.getVelocity());
+					session.getMidiHandler().sendNoteOn(dc.getTransformedNoteNumber(session.getTransposeIndex()), dc.getVelocity());
 				}
-				if (pos==dc.getTransformedPosEnd(session.getMaxTicks())) {
-					session.getMidiHandler().sendNoteOff(dc.getPlayedNoteNumber());
+				if (pos==dc.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex())) {
+					session.getMidiHandler().sendNoteOff(dc.getTransformedNoteNumber(session.getTransposeIndex()));
 					dc.setPlayed(false);
 				}
 			}

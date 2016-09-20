@@ -8,16 +8,21 @@ public class StorageContainer {
 	private int transpose;
 	private int quantization;
 	private int length;
+	private int midiChannelIn;
+	private int midiChannelOut;
 	
 	public StorageContainer() {
 		
 	}
 	
-	public StorageContainer(List<Note> notes, int transpose, int quantization, int length) {
-		this.notes = notes;
-		this.transpose = transpose;
-		this.quantization = quantization;
-		this.length = length;
+	
+	public StorageContainer(Session session) {
+		this.notes = session.getNotesList();
+		this.transpose = session.getTransposeIndex();
+		this.quantization = session.getQuantizationIndex();
+		this.length = session.getLengthQuarters();
+		this.midiChannelIn = session.getMidiChannelIn();
+		this.midiChannelOut = session.getMidiChannelOut();
 	}
 
 	public List<Note> getNotes() {
@@ -50,6 +55,26 @@ public class StorageContainer {
 
 	public void setLength(int length) {
 		this.length = length;
+	}
+
+
+	public int getMidiChannelIn() {
+		return midiChannelIn;
+	}
+
+
+	public void setMidiChannelIn(int midiChannelIn) {
+		this.midiChannelIn = midiChannelIn;
+	}
+
+
+	public int getMidiChannelOut() {
+		return midiChannelOut;
+	}
+
+
+	public void setMidiChannelOut(int midiChannelOut) {
+		this.midiChannelOut = midiChannelOut;
 	}
 	
 	

@@ -107,7 +107,6 @@ public class MidiHandler {
 				return o1.getInfo().getVendor().compareTo(o2.getInfo().getVendor());
 			}
 		});
-		new PerformanceHandler(session);
 		session.emitSettingsUpdated();
 	}
 	
@@ -171,7 +170,7 @@ public class MidiHandler {
 				break;
 			case ShortMessage.TIMING_CLOCK:
 				session.emitClock(pos);
-				pos += session.getClockDivision();
+				pos += session.getClockIncrement();
 				pos = pos%session.getMaxTicks();
 				break;
 			}

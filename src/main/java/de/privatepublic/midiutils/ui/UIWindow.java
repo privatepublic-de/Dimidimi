@@ -44,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.MidiDeviceWrapper;
-import de.privatepublic.midiutils.Note;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
@@ -293,9 +292,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		chckbxppq = new JCheckBox("48ppq");
 		chckbxppq.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				int div = chckbxppq.isSelected()?2:1;
-				session.setClockDivision(div);;
-				Prefs.put(Prefs.MIDI_48PPQ, div);
+				int inc = chckbxppq.isSelected()?1:2;
+				session.setClockIncrement(inc);;
+				Prefs.put(Prefs.MIDI_CLOCK_INCREMENT, inc);
 			}
 		});
 		chckbxppq.setToolTipText("Toggle between 24 or 48 ppq midi clock");
@@ -413,7 +412,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboQuantize.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Note.APPLY_QUANTIZATION = comboQuantize.getSelectedIndex();
+				session.setQuantizationIndex(comboQuantize.getSelectedIndex());
 				LOG.info("Quantization: {}", comboQuantize.getSelectedItem());
 				session.emitRefreshLoopDisplay();
 			}});
@@ -421,7 +420,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboBoxTranspose.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Note.APPLY_TRANSPOSE = comboBoxTranspose.getSelectedIndex();
+				session.setTransposeIndex(comboBoxTranspose.getSelectedIndex());
 				LOG.info("Transpose: {}", comboBoxTranspose.getSelectedItem());
 				session.emitRefreshLoopDisplay();
 			}});
@@ -557,7 +556,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	public void receiveClock(int pos) {
 		loopDisplayPanel.updateLoopPosition(pos);
 		if (active) {
-			if (pos%24<12) {
+			if (pos%Session.TICK_COUNT_BASE<Session.TICK_COUNT_BASE/2) {
 				panelIndicator.setBackground(Theme.colorClockOn);
 			}
 			else {
@@ -580,10 +579,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	@Override
 	public void settingsUpdated() {
 		// update quantization, length, transpose
-		comboQuantize.setSelectedIndex(Note.APPLY_QUANTIZATION);
-		comboBoxTranspose.setSelectedIndex(Note.APPLY_TRANSPOSE);
+		comboQuantize.setSelectedIndex(session.getQuantizationIndex());
+		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		chckbxppq.setSelected(session.getClockDivision()==2);
+		chckbxppq.setSelected(session.getClockIncrement()==1);
 	}
 
 	@Override

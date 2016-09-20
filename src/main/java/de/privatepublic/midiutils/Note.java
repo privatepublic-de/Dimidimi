@@ -12,11 +12,8 @@ public class Note {
 	private boolean isCompleted;
 	private boolean isPlayed;
 
-	private int playedNoteNumber;
 	private int qoffset = 0;
 	
-	public static int APPLY_QUANTIZATION = 0;
-	public static int APPLY_TRANSPOSE = 13;
 	
 	public Note() {
 		
@@ -37,7 +34,7 @@ public class Note {
 	}
 	
 	@JsonIgnore
-	public int getTransformedPosEnd(int maxTicks) {
+	public int getTransformedPosEnd(int maxTicks, int quantizationIndex) {
 		return (posEnd + qoffset)%maxTicks;
 	}
 	public void setPosEnd(int posEnd) {
@@ -58,9 +55,9 @@ public class Note {
 	}
 	
 	@JsonIgnore
-	public int getTransformedPosStart(int maxTicks) {
-		if (APPLY_QUANTIZATION>0) {
-			int stepsize = Q_STEPS[APPLY_QUANTIZATION];
+	public int getTransformedPosStart(int maxTicks, int quantizationIndex) {
+		if (quantizationIndex>0) {
+			int stepsize = Q_STEPS[quantizationIndex];
 			int offset = posStart % stepsize;
 			if (offset<stepsize/2) {
 				qoffset = -offset;
@@ -76,8 +73,8 @@ public class Note {
 	}
 	
 	@JsonIgnore
-	public int getTransformedNoteNumber() {
-		int result = noteNumber+T_STEPS[APPLY_TRANSPOSE];
+	public int getTransformedNoteNumber(int transposeIndex) {
+		int result = noteNumber+T_STEPS[transposeIndex];
 		return result<0?0:(result>127?127:result);
 	}
 	
@@ -110,19 +107,11 @@ public class Note {
 
 	public void setPlayed(boolean isPlayed) {
 		this.isPlayed = isPlayed;
-		if (isPlayed) {
-			playedNoteNumber = getTransformedNoteNumber();
-		}
-	}
-
-	@JsonIgnore
-	public int getPlayedNoteNumber() {
-		return playedNoteNumber;
 	}
 	
 	@JsonIgnore
-	public String getNoteName() {
-		return NOTE_NAMES[getTransformedNoteNumber()%12]+(getTransformedNoteNumber()/12-1);
+	public String getNoteName(int transposeIndex) {
+		return NOTE_NAMES[getTransformedNoteNumber(transposeIndex)%12]+(getTransformedNoteNumber(transposeIndex)/12-1);
 	}
 	
 	

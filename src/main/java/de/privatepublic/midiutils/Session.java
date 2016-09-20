@@ -26,25 +26,29 @@ public class Session {
 	private static final Logger LOG = LoggerFactory.getLogger(Session.class);
 
 	public Session() {
-		midiHandler = new MidiHandler(this);
+		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
+		midiChannelOut = Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1);
+		clockIncrement = Prefs.get(Prefs.MIDI_CLOCK_INCREMENT, 2);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					UIWindow window = new UIWindow(Session.this);
+					new PerformanceHandler(Session.this);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
+		midiHandler = new MidiHandler(this);
 	}
 
 
-	public int getClockDivision() {
-		return ppqdiv;
+	public int getClockIncrement() {
+		return clockIncrement;
 	}
 
-	public void setClockDivision(int div) {
-		ppqdiv = div;
+	public void setClockIncrement(int steps) {
+		clockIncrement = steps;
 	}
 
 	public int getLengthQuarters() {
@@ -114,23 +118,23 @@ public class Session {
 	}
 
 
-	public int getQuantization() {
-		return quantization;
+	public int getQuantizationIndex() {
+		return quantizationIndex;
 	}
 
 
-	public void setQuantization(int quantization) {
-		this.quantization = quantization;
+	public void setQuantizationIndex(int quantization) {
+		this.quantizationIndex = quantization;
 	}
 
 
-	public int getTransposeBy() {
-		return transposeBy;
+	public int getTransposeIndex() {
+		return transposeIndex;
 	}
 
 
-	public void setTransposeBy(int transposeBy) {
-		this.transposeBy = transposeBy;
+	public void setTransposeIndex(int transposeBy) {
+		this.transposeIndex = transposeBy;
 	}
 
 
@@ -148,7 +152,7 @@ public class Session {
 
 	public void clearPattern() {
 		for (Note dc:getNotesList()) {
-			getMidiHandler().sendNoteOff(dc.getPlayedNoteNumber());
+			getMidiHandler().sendNoteOff(dc.getTransformedNoteNumber(getTransposeIndex()));
 		}
 		getNotesList().clear();
 		emitLoopUpdated();
@@ -156,7 +160,7 @@ public class Session {
 
 
 	public void saveLoop(File file) throws JsonGenerationException, JsonMappingException, IOException {
-		StorageContainer data = new StorageContainer(getNotesList(), Note.APPLY_TRANSPOSE, Note.APPLY_QUANTIZATION, getLengthQuarters());		
+		StorageContainer data = new StorageContainer(this);		
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.writeValue(file, data);
 		LOG.info("Saved file {}", file.getPath());
@@ -170,10 +174,11 @@ public class Session {
 		for (Note n: data.getNotes()) {
 			getNotesList().add(n);
 		}
-		Note.APPLY_QUANTIZATION = data.getQuantization();
-		Note.APPLY_TRANSPOSE = data.getTranspose();
+		setQuantizationIndex(data.getQuantization());
+		setTransposeIndex(data.getTranspose());
 		setLengthQuarters(data.getLength());
-
+		setMidiChannelIn(data.getMidiChannelIn());
+		setMidiChannelOut(data.getMidiChannelOut());
 		emitLoopUpdated();
 		emitSettingsUpdated();
 		getMidiHandler().sendAllNotesOff();
@@ -181,7 +186,7 @@ public class Session {
 
 	public void clearNote(Note note) {
 		getNotesList().remove(note);
-		getMidiHandler().sendNoteOff(note.getTransformedNoteNumber());
+		getMidiHandler().sendNoteOff(note.getTransformedNoteNumber(getTransposeIndex()));
 		emitLoopUpdated();
 	}
 
@@ -274,16 +279,16 @@ public class Session {
 	private int midiChannelOut = 1;// 0 - based
 	private boolean midiInputOn = true;
 	private boolean midiOutputOn = true;
-	private int ppqdiv = 2;
-	private int quantization;
-	private int transposeBy;
+	private int clockIncrement = 2;
+	private int quantizationIndex = 0;
+	private int transposeIndex = 13;
 	private List<Note> notesList = new CopyOnWriteArrayList<Note>();
 
 	private List<LoopUpdateReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<LoopUpdateReceiver>();
 	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
 	private List<SettingsUpdateReceiver> settingsUpdateReceivers = new CopyOnWriteArrayList<SettingsUpdateReceiver>();
 
-	private static final int TICK_COUNT_BASE = 48;
+	public static final int TICK_COUNT_BASE = 48;
 
 
 }
