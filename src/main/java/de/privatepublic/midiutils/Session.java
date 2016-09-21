@@ -24,18 +24,19 @@ import de.privatepublic.midiutils.ui.UIWindow;
 public class Session {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Session.class);
+	
+	private static int CLOCK_INCREMENT = Prefs.get(Prefs.MIDI_CLOCK_INCREMENT, 2);
 
 	public Session() {
 		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
 		midiChannelOut = Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1);
-		clockIncrement = Prefs.get(Prefs.MIDI_CLOCK_INCREMENT, 2);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					UIWindow window = new UIWindow(Session.this);
+					new UIWindow(Session.this);
 					new PerformanceHandler(Session.this);
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOG.error("Could not create UIWindow", e);
 				}
 			}
 		});
@@ -44,11 +45,15 @@ public class Session {
 
 
 	public int getClockIncrement() {
-		return clockIncrement;
+		return CLOCK_INCREMENT;
 	}
 
 	public void setClockIncrement(int steps) {
-		clockIncrement = steps;
+		if (steps != CLOCK_INCREMENT) {
+			CLOCK_INCREMENT = steps;
+			Prefs.put(Prefs.MIDI_CLOCK_INCREMENT, steps);
+			DiMIDImi.updateSettingsOnAllSessions();
+		}
 	}
 
 	public int getLengthQuarters() {
@@ -215,13 +220,13 @@ public class Session {
 
 
 	public void registerAsReceiver(DimidimiEventReceiver receiver) {
-		if (receiver.getClass().isAssignableFrom(LoopUpdateReceiver.class)) {
+		if (receiver instanceof LoopUpdateReceiver) {
 			loopUpdateReceivers.add((LoopUpdateReceiver)receiver);
 		}
-		if (receiver.getClass().isAssignableFrom(PerformanceReceiver.class)) {
+		if (receiver instanceof PerformanceReceiver) {
 			performanceReceivers.add((PerformanceReceiver)receiver);
 		}
-		if (receiver.getClass().isAssignableFrom(SettingsUpdateReceiver.class)) {
+		if (receiver instanceof SettingsUpdateReceiver) {
 			settingsUpdateReceivers.add((SettingsUpdateReceiver)receiver);
 		}
 	}
@@ -279,7 +284,6 @@ public class Session {
 	private int midiChannelOut = 1;// 0 - based
 	private boolean midiInputOn = true;
 	private boolean midiOutputOn = true;
-	private int clockIncrement = 2;
 	private int quantizationIndex = 0;
 	private int transposeIndex = 13;
 	private List<Note> notesList = new CopyOnWriteArrayList<Note>();

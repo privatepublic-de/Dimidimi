@@ -2,6 +2,7 @@ package de.privatepublic.midiutils.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -9,6 +10,8 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -27,6 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -43,6 +47,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.MidiDeviceWrapper;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
@@ -65,7 +70,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private LoopDisplayPanel loopDisplayPanel;
 	private JComboBox<String> comboQuantize;
 	private JComboBox<String> comboBoxTranspose;
-	private JCheckBox chckbxppq;
+	private JCheckBox chckbxclockinc;
 	private JPanel panelIndicator;
 	private Session session;
 
@@ -95,7 +100,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		initialize();
 		frmDimidimi.setVisible(true);
 		session.registerAsReceiver(this);
-		
+		settingsUpdated();
 		LOG.info("User interface built.");
 	}
 
@@ -106,13 +111,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private void initialize() {
 		frmDimidimi = new JFrame();
 		frmDimidimi.setTitle(APP_TITLE);
-		frmDimidimi.setBounds(100, 100, 990, 557);
-		frmDimidimi.setMinimumSize(new Dimension(900, 557));
-		frmDimidimi.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmDimidimi.setBounds(100, 100, 1028, 524);
+		frmDimidimi.setMinimumSize(new Dimension(1028, 300));
+		frmDimidimi.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frmDimidimi.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				System.exit(0);
+				DiMIDImi.removeSession(session);
 			}
 		});
 		setIcon(frmDimidimi);
@@ -121,34 +126,277 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelLoop.setBackground(Color.WHITE);
 		panelLoop.setBorder(new LineBorder(Color.GRAY));
 		
-		JButton btnClear = new JButton("Clear");
-		
-		JLabel lblQuantizeTo = new JLabel("Quantize");
-		
-		comboQuantize = new JComboBox(QUANTIZE);
-		comboQuantize.setMaximumRowCount(12);
-		
 		JPanel panelMidi = new JPanel();
 		panelMidi.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "MIDI", TitledBorder.TRAILING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		
-		comboBoxTranspose = new JComboBox(TRANSPOSE);
-		comboBoxTranspose.setMaximumRowCount(27);
-		comboBoxTranspose.setSelectedIndex(13);
-		((JLabel)comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
+		JPanel panelTitle = new JPanel();
 		
-		JLabel lblTranspose = new JLabel("Transpose");
+		JPanel panel = new JPanel();
+		GroupLayout groupLayout = new GroupLayout(frmDimidimi.getContentPane());
+		groupLayout.setHorizontalGroup(
+			groupLayout.createParallelGroup(Alignment.TRAILING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
+						.addComponent(panel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
+						.addComponent(panelLoop, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
+						.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
+							.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addGap(18)
+							.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, 734, Short.MAX_VALUE)))
+					.addContainerGap())
+		);
+		groupLayout.setVerticalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 385, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap())
+		);
+		SpringLayout sl_panel = new SpringLayout();
+		panel.setLayout(sl_panel);
 		
 		JLabel lblNumberOfQuarters = new JLabel("Length");
-		
-		JButton btnApply = new JButton("Apply");
-		btnApply.setEnabled(false);
+		sl_panel.putConstraint(SpringLayout.NORTH, lblNumberOfQuarters, 11, SpringLayout.NORTH, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, lblNumberOfQuarters, 8, SpringLayout.WEST, panel);
+		panel.add(lblNumberOfQuarters);
 		
 		textFieldLength = new JTextField();
+		sl_panel.putConstraint(SpringLayout.NORTH, textFieldLength, 5, SpringLayout.NORTH, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, textFieldLength, 56, SpringLayout.WEST, panel);
+		textFieldLength.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(textFieldLength);
 		textFieldLength.setHorizontalAlignment(SwingConstants.CENTER);
 		
 		textFieldLength.setText("4");
-		textFieldLength.setColumns(10);
+		textFieldLength.setColumns(3);
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
+		
+		JLabel lblLength2 = new JLabel("¼s");
+		sl_panel.putConstraint(SpringLayout.NORTH, lblLength2, 11, SpringLayout.NORTH, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, lblLength2, 111, SpringLayout.WEST, panel);
+		panel.add(lblLength2);
+		
+		JButton btnApply = new JButton("Apply");
+		sl_panel.putConstraint(SpringLayout.NORTH, btnApply, 5, SpringLayout.NORTH, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 133, SpringLayout.WEST, panel);
+		panel.add(btnApply);
+		btnApply.setEnabled(false);
+		
+		JLabel lblQuantizeTo = new JLabel("Quantize");
+		sl_panel.putConstraint(SpringLayout.NORTH, lblQuantizeTo, 11, SpringLayout.NORTH, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, lblQuantizeTo, 218, SpringLayout.WEST, panel);
+		panel.add(lblQuantizeTo);
+		
+		comboQuantize = new JComboBox(QUANTIZE);
+		sl_panel.putConstraint(SpringLayout.NORTH, comboQuantize, 6, SpringLayout.NORTH, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 279, SpringLayout.WEST, panel);
+		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(comboQuantize);
+		comboQuantize.setMaximumRowCount(12);
+		
+		JLabel lblTranspose = new JLabel("Transpose");
+		sl_panel.putConstraint(SpringLayout.NORTH, lblTranspose, 11, SpringLayout.NORTH, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 420, SpringLayout.WEST, panel);
+		panel.add(lblTranspose);
+		
+		comboBoxTranspose = new JComboBox(TRANSPOSE);
+		sl_panel.putConstraint(SpringLayout.NORTH, comboBoxTranspose, 6, SpringLayout.NORTH, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 490, SpringLayout.WEST, panel);
+		comboBoxTranspose.setAlignmentX(Component.LEFT_ALIGNMENT);
+		panel.add(comboBoxTranspose);
+		comboBoxTranspose.setMaximumRowCount(27);
+		comboBoxTranspose.setSelectedIndex(13);
+		
+		JButton btnDouble = new JButton("Double");
+		sl_panel.putConstraint(SpringLayout.NORTH, btnDouble, 5, SpringLayout.NORTH, panel);
+		btnDouble.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		panel.add(btnDouble);
+		
+		JButton btnClear = new JButton("Clear");
+		sl_panel.putConstraint(SpringLayout.WEST, btnDouble, -94, SpringLayout.WEST, btnClear);
+		sl_panel.putConstraint(SpringLayout.EAST, btnDouble, -5, SpringLayout.WEST, btnClear);
+		sl_panel.putConstraint(SpringLayout.NORTH, btnClear, 5, SpringLayout.NORTH, panel);
+		btnClear.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		panel.add(btnClear);
+		
+		JButton btnLoad = new JButton("Load...");
+		sl_panel.putConstraint(SpringLayout.WEST, btnClear, -81, SpringLayout.WEST, btnLoad);
+		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -5, SpringLayout.WEST, btnLoad);
+		sl_panel.putConstraint(SpringLayout.NORTH, btnLoad, 5, SpringLayout.NORTH, panel);
+		btnLoad.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		panel.add(btnLoad);
+		
+		JButton btnSave = new JButton("Save...");
+		sl_panel.putConstraint(SpringLayout.WEST, btnLoad, -91, SpringLayout.WEST, btnSave);
+		sl_panel.putConstraint(SpringLayout.EAST, btnLoad, -5, SpringLayout.WEST, btnSave);
+		sl_panel.putConstraint(SpringLayout.NORTH, btnSave, 5, SpringLayout.NORTH, panel);
+		btnSave.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		panel.add(btnSave);
+		
+		JButton buttonNewSession = new JButton("+");
+		sl_panel.putConstraint(SpringLayout.WEST, btnSave, -90, SpringLayout.WEST, buttonNewSession);
+		sl_panel.putConstraint(SpringLayout.EAST, btnSave, -6, SpringLayout.WEST, buttonNewSession);
+		sl_panel.putConstraint(SpringLayout.NORTH, buttonNewSession, -5, SpringLayout.NORTH, lblNumberOfQuarters);
+		sl_panel.putConstraint(SpringLayout.WEST, buttonNewSession, -83, SpringLayout.EAST, panel);
+		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, -8, SpringLayout.EAST, panel);
+		buttonNewSession.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		panel.add(buttonNewSession);
+		buttonNewSession.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				DiMIDImi.createSession();
+			}
+		});
+		
+		
+		btnSave.addActionListener(new ActionListener() {
+			@SuppressWarnings("serial")
+			public void actionPerformed(ActionEvent arg0) {
+				String recentFile = Prefs.get(Prefs.FILE_LAST_USED_NAME, null);
+		        JFileChooser chooser = new JFileChooser() {
+					@Override
+		            public void approveSelection(){
+		                File f = getSelectedFile();
+		                if(f.exists()){
+		                    int result = JOptionPane.showConfirmDialog(this, "Overwrite existing file?", "File exists", JOptionPane.YES_NO_CANCEL_OPTION);
+		                    switch(result){
+		                        case JOptionPane.YES_OPTION:
+		                            super.approveSelection();
+		                            return;
+		                        case JOptionPane.NO_OPTION:
+		                            return;
+		                        case JOptionPane.CLOSED_OPTION:
+		                            return;
+		                        case JOptionPane.CANCEL_OPTION:
+		                            cancelSelection();
+		                            return;
+		                    }
+		                }
+		                super.approveSelection();
+		            }        
+		        };
+		        chooser.setAcceptAllFileFilterUsed(false);
+		        chooser.setDialogType(JFileChooser.SAVE_DIALOG);
+		        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		        chooser.addChoosableFileFilter(new FileFilter() {
+					@Override
+					public String getDescription() { return "diMIDImi Loop (*.diMIDImi)"; }
+					@Override
+					public boolean accept(File f) {	return (f.isDirectory() || f.getName().toLowerCase().endsWith(".dimidimi"));}
+				});
+		        
+		        if (recentFile!=null) {
+		        	chooser.setSelectedFile(new File(recentFile));
+		        	chooser.setCurrentDirectory(new File(recentFile).getParentFile());
+		        }
+		        
+		        chooser.setFileFilter(chooser.getChoosableFileFilters()[0]);
+		        
+		        chooser.setMultiSelectionEnabled(false);
+		        chooser.setDialogTitle("Save Loop");
+		        int retvalue = chooser.showDialog(null, "Save Loop");
+		        if (retvalue==JFileChooser.APPROVE_OPTION) {
+		        	File selectedFile = chooser.getSelectedFile();
+		        	if (!"dimidimi".equals(FilenameUtils.getExtension(selectedFile.getName()))) {
+		        		selectedFile = new File(selectedFile.getPath()+".dimidimi");
+		        	}
+		        	try {
+		        		session.saveLoop(selectedFile);
+		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
+		        	}
+		        	catch(Exception e) {
+		        		JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e.getMessage());
+		        		LOG.error("Could not write file", e);
+		        	}
+		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
+		        }
+			}
+		});
+		
+		btnLoad.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String recentPath = Prefs.get(Prefs.FILE_LAST_USED_NAME, null);
+		        JFileChooser chooser = new JFileChooser();
+		        chooser.setDialogType(JFileChooser.OPEN_DIALOG);
+		        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		        chooser.setMultiSelectionEnabled(false);
+		        chooser.setAcceptAllFileFilterUsed(false);
+		        chooser.addChoosableFileFilter(new FileFilter() {
+					@Override
+					public String getDescription() { return "diMIDImi Loop (*.diMIDImi)"; }
+					@Override
+					public boolean accept(File f) {	return f.isDirectory() || (f.getName().toLowerCase().endsWith(".dimidimi"));}
+				});
+		        chooser.setDialogTitle("Load Loop");
+		        if (recentPath!=null) {
+		        	chooser.setSelectedFile(new File(recentPath));
+		        	chooser.setCurrentDirectory(new File(recentPath).getParentFile());
+		        }
+		        int retvalue = chooser.showDialog(null, "Load Loop");
+		        if (retvalue==JFileChooser.APPROVE_OPTION) {
+		        	File selectedFile = chooser.getSelectedFile();
+		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
+		        	try {
+		        		session.loadLoop(selectedFile);
+		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
+					} catch (Exception e) {
+						LOG.error("Error loading file", e);
+						JOptionPane.showMessageDialog(frmDimidimi,
+							    "Error loading file!",
+							    "Load Loop",
+							    JOptionPane.ERROR_MESSAGE);
+					}
+		            
+		        }
+			}
+		});
+		
+		btnClear.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.clearPattern();;
+			}
+		});
+		btnDouble.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				session.doublePattern();
+			}
+		});
+		((JLabel)comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
+		
+		comboBoxTranspose.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.setTransposeIndex(comboBoxTranspose.getSelectedIndex());
+				LOG.info("Transpose: {}", comboBoxTranspose.getSelectedItem());
+				session.emitRefreshLoopDisplay();
+			}});
+		
+		comboQuantize.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.setQuantizationIndex(comboQuantize.getSelectedIndex());
+				LOG.info("Quantization: {}", comboQuantize.getSelectedItem());
+				session.emitRefreshLoopDisplay();
+			}});
+		
+		
+		
+		btnApply.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				btnApply.setEnabled(false);
+				int numberQuarters = Integer.parseInt(textFieldLength.getText());
+				session.setLengthQuarters(numberQuarters);
+				session.emitRefreshLoopDisplay();
+			}
+		});
 		textFieldLength.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent e) {
@@ -180,95 +428,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		
-		
-		
-		btnApply.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnApply.setEnabled(false);
-				int numberQuarters = Integer.parseInt(textFieldLength.getText());
-				session.setLengthQuarters(numberQuarters);
-				session.emitRefreshLoopDisplay();
-			}
-		});
-		
-		JButton btnSave = new JButton("Save...");
-		
-		JButton btnLoad = new JButton("Load...");
-		
-		JButton btnDouble = new JButton("Double");
-		btnDouble.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				session.doublePattern();
-			}
-		});
-		
-		JLabel lblLength2 = new JLabel("¼s");
-		
-		JPanel panelTitle = new JPanel();
-		GroupLayout groupLayout = new GroupLayout(frmDimidimi.getContentPane());
-		groupLayout.setHorizontalGroup(
-			groupLayout.createParallelGroup(Alignment.TRAILING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 978, Short.MAX_VALUE)
-						.addGroup(groupLayout.createSequentialGroup()
-							.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 695, Short.MAX_VALUE))
-						.addGroup(groupLayout.createSequentialGroup()
-							.addComponent(lblNumberOfQuarters)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(textFieldLength, GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(lblLength2)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(btnApply)
-							.addPreferredGap(ComponentPlacement.UNRELATED)
-							.addComponent(lblQuantizeTo)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(comboQuantize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(lblTranspose)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(comboBoxTranspose, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED, 51, Short.MAX_VALUE)
-							.addComponent(btnDouble)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(btnClear)
-							.addGap(18)
-							.addComponent(btnLoad)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(btnSave)))
-					.addContainerGap())
-		);
-		groupLayout.setVerticalGroup(
-			groupLayout.createParallelGroup(Alignment.LEADING)
-				.addGroup(groupLayout.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblNumberOfQuarters)
-						.addComponent(textFieldLength, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnApply)
-						.addComponent(lblQuantizeTo)
-						.addComponent(comboQuantize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(comboBoxTranspose, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblTranspose)
-						.addComponent(btnSave)
-						.addComponent(btnLoad)
-						.addComponent(btnClear)
-						.addComponent(btnDouble)
-						.addComponent(lblLength2))
-					.addGap(4))
-		);
-		
 		JLabel lblDimidimiLooper = new JLabel(APP_TITLE);
 		panelTitle.add(lblDimidimiLooper);
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
@@ -289,16 +448,16 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		panelMidi.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
-		chckbxppq = new JCheckBox("48ppq");
-		chckbxppq.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				int inc = chckbxppq.isSelected()?1:2;
-				session.setClockIncrement(inc);;
-				Prefs.put(Prefs.MIDI_CLOCK_INCREMENT, inc);
+		chckbxclockinc = new JCheckBox("48ppq");
+		chckbxclockinc.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				boolean selected = e.getStateChange()==ItemEvent.SELECTED;
+				int inc = selected?1:2;
+				session.setClockIncrement(inc);
 			}
 		});
-		chckbxppq.setToolTipText("Toggle between 24 or 48 ppq midi clock");
-		panelMidi.add(chckbxppq);
+		chckbxclockinc.setToolTipText("Toggle between 24 or 48 ppq midi clock");
+		panelMidi.add(chckbxclockinc);
 		panelMidi.add(lblIn);
 		
 		JCheckBox checkBoxMidiIn = new JCheckBox("");
@@ -409,132 +568,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboMidiIn.addActionListener(settingChanged);
 		comboMidiOut.addActionListener(settingChanged);
 		
-		comboQuantize.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				session.setQuantizationIndex(comboQuantize.getSelectedIndex());
-				LOG.info("Quantization: {}", comboQuantize.getSelectedItem());
-				session.emitRefreshLoopDisplay();
-			}});
-		
-		comboBoxTranspose.addActionListener(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				session.setTransposeIndex(comboBoxTranspose.getSelectedIndex());
-				LOG.info("Transpose: {}", comboBoxTranspose.getSelectedItem());
-				session.emitRefreshLoopDisplay();
-			}});
-		
-		btnClear.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				session.clearPattern();;
-			}
-		});
-		
-		
-		btnSave.addActionListener(new ActionListener() {
-			@SuppressWarnings("serial")
-			public void actionPerformed(ActionEvent arg0) {
-				String recentFile = Prefs.get(Prefs.FILE_LAST_USED_NAME, null);
-		        JFileChooser chooser = new JFileChooser() {
-					@Override
-		            public void approveSelection(){
-		                File f = getSelectedFile();
-		                if(f.exists()){
-		                    int result = JOptionPane.showConfirmDialog(this, "Overwrite existing file?", "File exists", JOptionPane.YES_NO_CANCEL_OPTION);
-		                    switch(result){
-		                        case JOptionPane.YES_OPTION:
-		                            super.approveSelection();
-		                            return;
-		                        case JOptionPane.NO_OPTION:
-		                            return;
-		                        case JOptionPane.CLOSED_OPTION:
-		                            return;
-		                        case JOptionPane.CANCEL_OPTION:
-		                            cancelSelection();
-		                            return;
-		                    }
-		                }
-		                super.approveSelection();
-		            }        
-		        };
-		        chooser.setAcceptAllFileFilterUsed(false);
-		        chooser.setDialogType(JFileChooser.SAVE_DIALOG);
-		        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		        chooser.addChoosableFileFilter(new FileFilter() {
-					@Override
-					public String getDescription() { return "diMIDImi Loop (*.diMIDImi)"; }
-					@Override
-					public boolean accept(File f) {	return (f.isDirectory() || f.getName().toLowerCase().endsWith(".dimidimi"));}
-				});
-		        
-		        if (recentFile!=null) {
-		        	chooser.setSelectedFile(new File(recentFile));
-		        	chooser.setCurrentDirectory(new File(recentFile).getParentFile());
-		        }
-		        
-		        chooser.setFileFilter(chooser.getChoosableFileFilters()[0]);
-		        
-		        chooser.setMultiSelectionEnabled(false);
-		        chooser.setDialogTitle("Save Loop");
-		        int retvalue = chooser.showDialog(null, "Save Loop");
-		        if (retvalue==JFileChooser.APPROVE_OPTION) {
-		        	File selectedFile = chooser.getSelectedFile();
-		        	if (!"dimidimi".equals(FilenameUtils.getExtension(selectedFile.getName()))) {
-		        		selectedFile = new File(selectedFile.getPath()+".dimidimi");
-		        	}
-		        	try {
-		        		session.saveLoop(selectedFile);
-		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
-		        	}
-		        	catch(Exception e) {
-		        		JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e.getMessage());
-		        		LOG.error("Could not write file", e);
-		        	}
-		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
-		        }
-			}
-		});
-		
-		btnLoad.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				String recentPath = Prefs.get(Prefs.FILE_LAST_USED_NAME, null);
-		        JFileChooser chooser = new JFileChooser();
-		        chooser.setDialogType(JFileChooser.OPEN_DIALOG);
-		        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		        chooser.setMultiSelectionEnabled(false);
-		        chooser.setAcceptAllFileFilterUsed(false);
-		        chooser.addChoosableFileFilter(new FileFilter() {
-					@Override
-					public String getDescription() { return "diMIDImi Loop (*.diMIDImi)"; }
-					@Override
-					public boolean accept(File f) {	return f.isDirectory() || (f.getName().toLowerCase().endsWith(".dimidimi"));}
-				});
-		        chooser.setDialogTitle("Load Loop");
-		        if (recentPath!=null) {
-		        	chooser.setSelectedFile(new File(recentPath));
-		        	chooser.setCurrentDirectory(new File(recentPath).getParentFile());
-		        }
-		        int retvalue = chooser.showDialog(null, "Load Loop");
-		        if (retvalue==JFileChooser.APPROVE_OPTION) {
-		        	File selectedFile = chooser.getSelectedFile();
-		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
-		        	try {
-		        		session.loadLoop(selectedFile);
-		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
-					} catch (Exception e) {
-						LOG.error("Error loading file", e);
-						JOptionPane.showMessageDialog(frmDimidimi,
-							    "Error loading file!",
-							    "Load Loop",
-							    JOptionPane.ERROR_MESSAGE);
-					}
-		            
-		        }
-			}
-		});
-		
 	}
 	
 	
@@ -582,7 +615,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboQuantize.setSelectedIndex(session.getQuantizationIndex());
 		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		chckbxppq.setSelected(session.getClockIncrement()==1);
+		chckbxclockinc.setSelected(session.getClockIncrement()==1);
+		frmDimidimi.repaint();
 	}
 
 	@Override

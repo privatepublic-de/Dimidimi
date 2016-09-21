@@ -168,7 +168,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				}
 			}
 		});
-		session.registerAsReceiver(this);
+		if (session!=null) {
+			session.registerAsReceiver(this);
+		}
 	}
 	
 	@Override
@@ -191,6 +193,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			g.setColor(Color.getHSBColor(colorhue, Theme.octaveColorSaturation, Theme.octaveColorBrightness));
 			int y = (int)(((highestNote+bufferSemis)-i*12)*noteHeight);
 			g.drawLine(0, y, width, y);
+		}
+		if (session==null) {
+			return;
 		}
 		boolean is3based = session.getLengthQuarters()%3==0;
 		int activeQuarter = pos/Session.TICK_COUNT_BASE;
