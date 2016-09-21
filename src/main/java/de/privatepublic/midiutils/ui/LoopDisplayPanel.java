@@ -309,6 +309,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 
 	@Override
 	public void loopUpdated(List<Note> list) {
+		calculateNoteExtents();
 		repaint();
 	}
 
