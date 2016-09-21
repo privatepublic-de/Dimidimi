@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.MidiDeviceWrapper;
+import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
@@ -64,7 +65,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private static final String[] QUANTIZE = new String[]{"none","1/2","1/4","1/8","1/16","1/32","1/4 triplets", "1/8 triplets", "1/16 triplets"};
 	private static final String[] TRANSPOSE = new String[]{"+24", "+12","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","0","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-24"};
 	
-	private boolean active;
+//	private boolean active;
 	private JFrame frmDimidimi;
 	private JTextField textFieldLength;
 	private LoopDisplayPanel loopDisplayPanel;
@@ -588,7 +589,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	@Override
 	public void receiveClock(int pos) {
 		loopDisplayPanel.updateLoopPosition(pos);
-		if (active) {
+		if (MidiHandler.ACTIVE) {
 			if (pos%Session.TICK_COUNT_BASE<Session.TICK_COUNT_BASE/2) {
 				panelActive.setBackground(Theme.colorClockOn);
 			}
@@ -606,7 +607,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		else {
 			panelActive.setBackground(Theme.colorClockOff);
 		}
-		this.active = active;
 	}
 
 	@Override

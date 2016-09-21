@@ -11,7 +11,7 @@ public class PerformanceHandler implements PerformanceReceiver {
 	private static final Logger LOG = LoggerFactory.getLogger(PerformanceHandler.class);
 	
 	private Note[] lastStarted = new Note[128];
-	private boolean recordActive = false;
+//	private boolean recordActive = false;
 	private Session session;
 	
 	public PerformanceHandler(Session session) {
@@ -21,7 +21,7 @@ public class PerformanceHandler implements PerformanceReceiver {
 	
 	@Override
 	public void noteOn(int noteNumber, int velocity, int pos) {
-		if (recordActive) {
+		if (MidiHandler.ACTIVE) {
 			Note dc = new Note(noteNumber, velocity, pos);
 			lastStarted[noteNumber] = dc;
 			session.getNotesList().add(dc);
@@ -31,7 +31,7 @@ public class PerformanceHandler implements PerformanceReceiver {
 	
 	@Override
 	public void noteOff(int notenumber, int pos) {
-		if (recordActive) {
+		if (MidiHandler.ACTIVE) {
 			Note reference = lastStarted[notenumber];
 			if (reference!=null) {
 				reference.setPosEnd(pos);
@@ -62,8 +62,7 @@ public class PerformanceHandler implements PerformanceReceiver {
 
 	@Override
 	public void receiveActive(boolean active, int pos) {
-		recordActive = active;
-		if (!recordActive) {
+		if (!active) {
 			// find still uncompleted notes
 			for (Note nr:session.getNotesList()) {
 				if (!nr.isCompleted()) {

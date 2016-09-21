@@ -27,7 +27,7 @@ public class Session {
 	
 	private static int CLOCK_INCREMENT = Prefs.get(Prefs.MIDI_CLOCK_INCREMENT, 2);
 
-	public Session() {
+	public Session(int pos) {
 		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
 		midiChannelOut = Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1);
 		EventQueue.invokeLater(new Runnable() {
@@ -40,7 +40,7 @@ public class Session {
 				}
 			}
 		});
-		midiHandler = new MidiHandler(this);
+		midiHandler = new MidiHandler(this, pos);
 	}
 
 

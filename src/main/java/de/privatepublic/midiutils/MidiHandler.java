@@ -22,6 +22,7 @@ public class MidiHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MidiHandler.class);
 	
+	public static boolean ACTIVE = false;
 	
 	private ArrayList<MidiDeviceWrapper> outputDeviceList = new ArrayList<MidiDeviceWrapper>();
 	private ArrayList<MidiDeviceWrapper> inputDeviceList = new ArrayList<MidiDeviceWrapper>();
@@ -35,9 +36,10 @@ public class MidiHandler {
 	private Session session;
 	
 	
-	public MidiHandler(Session session) {
+	public MidiHandler(Session session, int pos) {
 		
 		this.session = session;
+		this.pos = pos;
 		
 		List<String> prefInIds = Prefs.getPrefIdentifierList(Prefs.MIDI_IN_DEVICES);
 		List<String> prefOutIds = Prefs.getPrefIdentifierList(Prefs.MIDI_OUT_DEVICES);
@@ -155,6 +157,7 @@ public class MidiHandler {
 			switch(status) {
 			case ShortMessage.STOP:
 				LOG.info("Received STOP - Setting song position zero");
+				ACTIVE = false;
 				session.emitActive(false, pos);
 				pos = 0;
 				sendMessage(resetPositionMessage);
@@ -162,10 +165,12 @@ public class MidiHandler {
 				break;
 			case ShortMessage.START:
 				LOG.info("Received START");
+				ACTIVE = true;
 				session.emitActive(true, pos);
 				break;
 			case ShortMessage.CONTINUE:
 				LOG.info("Received CONTINUE");
+				ACTIVE = true;
 				session.emitActive(true, pos);
 				break;
 			case ShortMessage.TIMING_CLOCK:
@@ -262,6 +267,10 @@ public class MidiHandler {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public int getPos() {
+		return pos;
 	}
 	
 //	public int getMaxTicks() {
