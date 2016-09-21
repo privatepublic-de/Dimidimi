@@ -2,6 +2,7 @@ package de.privatepublic.midiutils.ui;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.SystemColor;
 
 public class Theme {
 	
@@ -44,7 +45,7 @@ public class Theme {
 	static final Color colorSelectedNoteText = Color.BLACK;
 	
 	static final Color colorClockOn = Color.getHSBColor(.58f, .8f, 1f);
-	static final Color colorClockOff = colorBackground;
+	static final Color colorClockOff = SystemColor.window;
 	
 	
 	static final float noteColorSaturation = .6f;

@@ -71,7 +71,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JComboBox<String> comboQuantize;
 	private JComboBox<String> comboBoxTranspose;
 	private JCheckBox chckbxclockinc;
-	private JPanel panelIndicator;
+	private JLabel lblDimidimiLooper;
+	JPanel panelActive;
 	private Session session;
 
 	/**
@@ -214,7 +215,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboBoxTranspose.setMaximumRowCount(27);
 		comboBoxTranspose.setSelectedIndex(13);
 		
-		JButton btnDouble = new JButton("Double");
+		JButton btnDouble = new JButton("x2");
 		sl_panel.putConstraint(SpringLayout.NORTH, btnDouble, 5, SpringLayout.NORTH, panel);
 		btnDouble.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panel.add(btnDouble);
@@ -428,7 +429,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		
-		JLabel lblDimidimiLooper = new JLabel(APP_TITLE);
+		lblDimidimiLooper = new JLabel(APP_TITLE);
 		panelTitle.add(lblDimidimiLooper);
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
 		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-64.png")));
@@ -456,6 +457,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				session.setClockIncrement(inc);
 			}
 		});
+		
+		panelActive = new JPanel();
+		panelActive.setBorder(new LineBorder(null, 1, true));
+		panelActive.setPreferredSize(new Dimension(16, 16));
+		panelActive.setBackground(Theme.colorClockOff);
+		panelMidi.add(panelActive);
 		chckbxclockinc.setToolTipText("Toggle between 24 or 48 ppq midi clock");
 		panelMidi.add(chckbxclockinc);
 		panelMidi.add(lblIn);
@@ -485,7 +492,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(checkBoxMidiOut);
 		panelMidi.add(comboMidiOut);
 		
-		JButton btnSelectInputDevices = new JButton("MIDI Devices...");
+		JButton btnSelectInputDevices = new JButton("Devices...");
 		panelMidi.add(btnSelectInputDevices);
 		btnSelectInputDevices.addActionListener(new ActionListener() {
 			@Override
@@ -537,13 +544,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		btnNotesOff.setToolTipText("Turns off all playing or stuck MIDI notes.");
 		panelMidi.add(btnNotesOff);
 		
-		panelIndicator = new JPanel();
-		panelMidi.add(panelIndicator);
-		panelIndicator.setPreferredSize(new Dimension(24, 24));
-		panelIndicator.setToolTipText("Active");
-		panelIndicator.setBackground(Color.GRAY);
-		panelIndicator.setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
-		
 		btnNotesOff.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -590,10 +590,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		loopDisplayPanel.updateLoopPosition(pos);
 		if (active) {
 			if (pos%Session.TICK_COUNT_BASE<Session.TICK_COUNT_BASE/2) {
-				panelIndicator.setBackground(Theme.colorClockOn);
+				panelActive.setBackground(Theme.colorClockOn);
 			}
 			else {
-				panelIndicator.setBackground(Theme.colorClockOff);
+				panelActive.setBackground(Theme.colorClockOff);
 			}
 		}
 	}
@@ -601,10 +601,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	@Override
 	public void receiveActive(boolean active, int pos) {
 		if (active) {
-			panelIndicator.setBackground(Theme.colorClockOn);
+			panelActive.setBackground(Theme.colorClockOn);
 		}
 		else {
-			panelIndicator.setBackground(Theme.colorClockOff);
+			panelActive.setBackground(Theme.colorClockOff);
 		}
 		this.active = active;
 	}
