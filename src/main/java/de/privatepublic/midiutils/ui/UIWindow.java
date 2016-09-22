@@ -36,7 +36,6 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -54,6 +53,8 @@ import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
+import javax.swing.border.MatteBorder;
+import javax.swing.border.BevelBorder;
 
 public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
@@ -129,7 +130,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelLoop.setBorder(new LineBorder(Color.GRAY));
 		
 		JPanel panelMidi = new JPanel();
-		panelMidi.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "MIDI", TitledBorder.TRAILING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		panelMidi.setBorder(null);
 		
 		JPanel panelTitle = new JPanel();
 		
@@ -139,24 +140,26 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
-						.addComponent(panel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
-						.addComponent(panelLoop, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
-						.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
+						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
+						.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
 							.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addGap(18)
-							.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, 734, Short.MAX_VALUE)))
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE)))
 					.addContainerGap())
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
 						.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 65, GroupLayout.PREFERRED_SIZE))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 385, Short.MAX_VALUE)
+					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
 					.addContainerGap())
@@ -433,10 +436,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		lblDimidimiLooper = new JLabel(APP_TITLE);
 		panelTitle.add(lblDimidimiLooper);
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
-		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-64.png")));
+		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-32.png")));
 		groupLayout.setAutoCreateContainerGaps(true);
 		
-		JLabel lblIn = new JLabel("Channel In");
+		JLabel lblIn = new JLabel("Channel:  In");
 		
 		JComboBox comboMidiIn = new JComboBox(MIDI_CHANNELS);
 		comboMidiIn.setMaximumRowCount(16);
@@ -448,7 +451,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		JComboBox comboMidiOut = new JComboBox(MIDI_CHANNELS);
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
-		panelMidi.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
 		chckbxclockinc = new JCheckBox("48ppq");
 		chckbxclockinc.addItemListener(new ItemListener() {
@@ -458,9 +460,23 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				session.setClockIncrement(inc);
 			}
 		});
+		SpringLayout sl_panelMidi = new SpringLayout();
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, comboMidiOut, 10, SpringLayout.NORTH, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, lblOut, 14, SpringLayout.NORTH, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, comboMidiIn, 10, SpringLayout.NORTH, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, lblIn, 14, SpringLayout.NORTH, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, chckbxclockinc, 10, SpringLayout.NORTH, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, chckbxclockinc, -12, SpringLayout.WEST, lblIn);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -6, SpringLayout.WEST, lblOut);
+		panelMidi.setLayout(sl_panelMidi);
 		
 		panelActive = new JPanel();
-		panelActive.setBorder(new LineBorder(null, 1, true));
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, panelActive, 10, SpringLayout.NORTH, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.WEST, panelActive, 0, SpringLayout.WEST, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.SOUTH, panelActive, -10, SpringLayout.SOUTH, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, panelActive, 20, SpringLayout.WEST, panelMidi);
+		panelActive.setToolTipText("Indicates active MIDI clock");
+		panelActive.setBorder(new LineBorder(UIManager.getColor("windowBorder")));
 		panelActive.setPreferredSize(new Dimension(16, 16));
 		panelActive.setBackground(Theme.colorClockOff);
 		panelMidi.add(panelActive);
@@ -469,6 +485,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(lblIn);
 		
 		JCheckBox checkBoxMidiIn = new JCheckBox("");
+		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -28, SpringLayout.EAST, checkBoxMidiIn);
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, checkBoxMidiIn, 10, SpringLayout.NORTH, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, checkBoxMidiIn, 3, SpringLayout.WEST, comboMidiIn);
 		checkBoxMidiIn.setSelected(true);
 		checkBoxMidiIn.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
@@ -482,6 +501,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(lblOut);
 		
 		JCheckBox checkBoxMidiOut = new JCheckBox("");
+		sl_panelMidi.putConstraint(SpringLayout.EAST, checkBoxMidiOut, 3, SpringLayout.WEST, comboMidiOut);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, lblOut, 0, SpringLayout.WEST, checkBoxMidiOut);
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, checkBoxMidiOut, 10, SpringLayout.NORTH, panelMidi);
 		checkBoxMidiOut.setSelected(true);
 		checkBoxMidiOut.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
@@ -494,6 +516,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(comboMidiOut);
 		
 		JButton btnSelectInputDevices = new JButton("Devices...");
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, btnSelectInputDevices, 9, SpringLayout.NORTH, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, -16, SpringLayout.WEST, btnSelectInputDevices);
 		panelMidi.add(btnSelectInputDevices);
 		btnSelectInputDevices.addActionListener(new ActionListener() {
 			@Override
@@ -542,6 +566,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}});
 		
 		JButton btnNotesOff = new JButton("Panic");
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, btnNotesOff, 9, SpringLayout.NORTH, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, btnSelectInputDevices, -16, SpringLayout.WEST, btnNotesOff);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, btnNotesOff, -10, SpringLayout.EAST, panelMidi);
 		btnNotesOff.setToolTipText("Turns off all playing or stuck MIDI notes.");
 		panelMidi.add(btnNotesOff);
 		
