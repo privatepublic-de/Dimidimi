@@ -1,6 +1,9 @@
 package de.privatepublic.midiutils;
 
+import java.awt.Rectangle;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class StorageContainer {
 
@@ -10,6 +13,7 @@ public class StorageContainer {
 	private int length;
 	private int midiChannelIn;
 	private int midiChannelOut;
+	private Map<String, Integer> windowPos;
 	
 	public StorageContainer() {
 		
@@ -23,6 +27,12 @@ public class StorageContainer {
 		this.length = session.getLengthQuarters();
 		this.midiChannelIn = session.getMidiChannelIn();
 		this.midiChannelOut = session.getMidiChannelOut();
+		this.windowPos = new HashMap<String, Integer>();
+		Rectangle bounds = session.getWindow().getScreenPosition();
+		windowPos.put("x", bounds.x);
+		windowPos.put("y", bounds.y);
+		windowPos.put("w", bounds.width);
+		windowPos.put("h", bounds.height);
 	}
 
 	public List<Note> getNotes() {
@@ -75,6 +85,16 @@ public class StorageContainer {
 
 	public void setMidiChannelOut(int midiChannelOut) {
 		this.midiChannelOut = midiChannelOut;
+	}
+
+
+	public Map<String, Integer> getWindowPos() {
+		return windowPos;
+	}
+
+
+	public void setWindowPos(Map<String, Integer> windowPos) {
+		this.windowPos = windowPos;
 	}
 	
 	

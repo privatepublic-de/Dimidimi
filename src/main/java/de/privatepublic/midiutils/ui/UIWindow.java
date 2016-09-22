@@ -7,12 +7,12 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -104,6 +104,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 		initialize();
 		frmDimidimi.setVisible(true);
+		// this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
 		session.registerAsReceiver(this);
 		settingsUpdated();
 		LOG.info("User interface built.");
@@ -626,6 +627,14 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		} catch (Exception e) {
 			// fail silently
 		}
+	}
+	
+	public Rectangle getScreenPosition() {
+		return frmDimidimi.getBounds();
+	}
+	
+	public void setScreenPosition(Rectangle r) {
+		frmDimidimi.setBounds(r);
 	}
 	
 	@Override

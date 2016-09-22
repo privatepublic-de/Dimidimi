@@ -1,10 +1,12 @@
 package de.privatepublic.midiutils;
 
 import java.awt.EventQueue;
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.slf4j.Logger;
@@ -26,7 +28,7 @@ public class Session {
 	private static final Logger LOG = LoggerFactory.getLogger(Session.class);
 	
 	private static int CLOCK_INCREMENT = Prefs.get(Prefs.MIDI_CLOCK_INCREMENT, 2);
-
+	
 	public Session(int pos) {
 		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
 		midiChannelOut = Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1);
@@ -41,6 +43,21 @@ public class Session {
 			}
 		});
 		midiHandler = new MidiHandler(this, pos);
+	}
+	
+	public Session(StorageContainer data) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					window = new UIWindow(Session.this);
+					new PerformanceHandler(Session.this);
+					applyStorageData(data);
+				} catch (Exception e) {
+					LOG.error("Could not create UIWindow", e);
+				}
+			}
+		});
+		midiHandler = new MidiHandler(this, 0);
 	}
 
 
@@ -151,6 +168,10 @@ public class Session {
 	public void setNotesList(List<Note> notesList) {
 		this.notesList = notesList;
 	}
+	
+	public UIWindow getWindow() {
+		return window;
+	}
 
 
 
@@ -175,6 +196,13 @@ public class Session {
 		ObjectMapper mapper = new ObjectMapper();
 		StorageContainer data = mapper.readValue(file, StorageContainer.class);
 		LOG.info("Loaded file {}", file.getPath());
+		applyStorageData(data);
+		emitLoopUpdated();
+		emitSettingsUpdated();
+		getMidiHandler().sendAllNotesOff();
+	}
+	
+	private void applyStorageData(StorageContainer data) {
 		clearPattern();
 		for (Note n: data.getNotes()) {
 			getNotesList().add(n);
@@ -184,9 +212,9 @@ public class Session {
 		setLengthQuarters(data.getLength());
 		setMidiChannelIn(data.getMidiChannelIn());
 		setMidiChannelOut(data.getMidiChannelOut());
-		emitLoopUpdated();
-		emitSettingsUpdated();
-		getMidiHandler().sendAllNotesOff();
+		Map<String, Integer> wpos = data.getWindowPos();
+		Rectangle windowBounds = new Rectangle(wpos.get("x"), wpos.get("y"), wpos.get("w"), wpos.get("h"));
+		window.setScreenPosition(windowBounds);
 	}
 
 	public void clearNote(Note note) {
