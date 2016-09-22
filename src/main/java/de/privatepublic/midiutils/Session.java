@@ -212,6 +212,8 @@ public class Session {
 		setLengthQuarters(data.getLength());
 		setMidiChannelIn(data.getMidiChannelIn());
 		setMidiChannelOut(data.getMidiChannelOut());
+		setMidiInputOn(data.isMidiChannelInActive());
+		setMidiOutputOn(data.isMidiChannelOutActive());
 		Map<String, Integer> wpos = data.getWindowPos();
 		Rectangle windowBounds = new Rectangle(wpos.get("x"), wpos.get("y"), wpos.get("w"), wpos.get("h"));
 		window.setScreenPosition(windowBounds);

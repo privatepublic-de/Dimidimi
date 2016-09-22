@@ -13,6 +13,8 @@ public class StorageContainer {
 	private int length;
 	private int midiChannelIn;
 	private int midiChannelOut;
+	private boolean midiChannelInActive;
+	private boolean midiChannelOutActive;
 	private Map<String, Integer> windowPos;
 	
 	public StorageContainer() {
@@ -27,6 +29,8 @@ public class StorageContainer {
 		this.length = session.getLengthQuarters();
 		this.midiChannelIn = session.getMidiChannelIn();
 		this.midiChannelOut = session.getMidiChannelOut();
+		this.midiChannelInActive = session.isMidiInputOn();
+		this.midiChannelOutActive = session.isMidiOutputOn();
 		this.windowPos = new HashMap<String, Integer>();
 		Rectangle bounds = session.getWindow().getScreenPosition();
 		windowPos.put("x", bounds.x);
@@ -85,6 +89,26 @@ public class StorageContainer {
 
 	public void setMidiChannelOut(int midiChannelOut) {
 		this.midiChannelOut = midiChannelOut;
+	}
+
+
+	public boolean isMidiChannelInActive() {
+		return midiChannelInActive;
+	}
+
+
+	public void setMidiChannelInActive(boolean midiChannelInActive) {
+		this.midiChannelInActive = midiChannelInActive;
+	}
+
+
+	public boolean isMidiChannelOutActive() {
+		return midiChannelOutActive;
+	}
+
+
+	public void setMidiChannelOutActive(boolean midiChannelOutActive) {
+		this.midiChannelOutActive = midiChannelOutActive;
 	}
 
 
