@@ -107,7 +107,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		frmDimidimi.setVisible(true);
 		// this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
 		session.registerAsReceiver(this);
-		settingsUpdated();
+		session.emitSettingsUpdated();
+		session.emitLoopUpdated();
 		LOG.info("User interface built.");
 	}
 

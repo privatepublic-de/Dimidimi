@@ -50,8 +50,10 @@ public class Session {
 			public void run() {
 				try {
 					window = new UIWindow(Session.this);
-					new PerformanceHandler(Session.this);
 					applyStorageData(data);
+					emitLoopUpdated();
+					emitSettingsUpdated();
+					new PerformanceHandler(Session.this);
 				} catch (Exception e) {
 					LOG.error("Could not create UIWindow", e);
 				}
