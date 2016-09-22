@@ -19,7 +19,8 @@ public class Prefs {
 	public static final String MIDI_OUT_DEVICES = "midioutdev";
 	public static final String MIDI_IN_CHANNEL = "midiinch";
 	public static final String MIDI_OUT_CHANNEL = "midioutch";
-	public static final String FILE_LAST_USED_NAME = "lastfile";
+	public static final String FILE_LOOP_LAST_USED_NAME = "lastfile";
+	public static final String FILE_SESSION_LAST_USED_NAME = "lastsession";
 	public static final String MIDI_CLOCK_INCREMENT = "clockinc";
 	
 	public static void put(String key, String val) {

@@ -16,6 +16,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import javax.swing.GroupLayout;
@@ -24,7 +25,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -43,7 +43,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.filechooser.FileFilter;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -128,18 +127,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 		setIcon(frmDimidimi);
 		
-		JMenuBar menuBar = new JMenuBar();
-		JMenu menu = new JMenu("Session");
-		JMenuItem menuItem = new JMenuItem("Load...");
-		menu.add(menuItem);
-		menu.addSeparator();
-		menuItem = new JMenuItem("Save");
-		menu.add(menuItem);
-		menuItem = new JMenuItem("Save as...");
-		menu.add(menuItem);
-		menuBar.add(menu);
-		
-		frmDimidimi.setJMenuBar(menuBar);
+		frmDimidimi.setJMenuBar(buildMenu());
 		
 		JPanel panelLoop = new JPanel();
 		panelLoop.setBackground(Color.WHITE);
@@ -277,56 +265,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		
 		btnSave.addActionListener(new ActionListener() {
-			@SuppressWarnings("serial")
 			public void actionPerformed(ActionEvent arg0) {
-				String recentFile = Prefs.get(Prefs.FILE_LAST_USED_NAME, null);
-		        JFileChooser chooser = new JFileChooser() {
-					@Override
-		            public void approveSelection(){
-		                File f = getSelectedFile();
-		                if(f.exists()){
-		                    int result = JOptionPane.showConfirmDialog(this, "Overwrite existing file?", "File exists", JOptionPane.YES_NO_CANCEL_OPTION);
-		                    switch(result){
-		                        case JOptionPane.YES_OPTION:
-		                            super.approveSelection();
-		                            return;
-		                        case JOptionPane.NO_OPTION:
-		                            return;
-		                        case JOptionPane.CLOSED_OPTION:
-		                            return;
-		                        case JOptionPane.CANCEL_OPTION:
-		                            cancelSelection();
-		                            return;
-		                    }
-		                }
-		                super.approveSelection();
-		            }        
-		        };
-		        chooser.setAcceptAllFileFilterUsed(false);
-		        chooser.setDialogType(JFileChooser.SAVE_DIALOG);
-		        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		        chooser.addChoosableFileFilter(new FileFilter() {
-					@Override
-					public String getDescription() { return "diMIDImi Loop (*.diMIDImi)"; }
-					@Override
-					public boolean accept(File f) {	return (f.isDirectory() || f.getName().toLowerCase().endsWith(".dimidimi"));}
-				});
-		        
-		        if (recentFile!=null) {
-		        	chooser.setSelectedFile(new File(recentFile));
-		        	chooser.setCurrentDirectory(new File(recentFile).getParentFile());
-		        }
-		        
-		        chooser.setFileFilter(chooser.getChoosableFileFilters()[0]);
-		        
-		        chooser.setMultiSelectionEnabled(false);
-		        chooser.setDialogTitle("Save Loop");
-		        int retvalue = chooser.showDialog(null, "Save Loop");
-		        if (retvalue==JFileChooser.APPROVE_OPTION) {
-		        	File selectedFile = chooser.getSelectedFile();
-		        	if (!"dimidimi".equals(FilenameUtils.getExtension(selectedFile.getName()))) {
-		        		selectedFile = new File(selectedFile.getPath()+".dimidimi");
-		        	}
+		        File selectedFile = GUIUtils.saveDialog("Save Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
+		        if (selectedFile!=null) {
 		        	try {
 		        		session.saveLoop(selectedFile);
 		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
@@ -335,34 +276,16 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		        		JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e.getMessage());
 		        		LOG.error("Could not write file", e);
 		        	}
-		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
+		        	Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
 		        }
 			}
 		});
 		
 		btnLoad.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				String recentPath = Prefs.get(Prefs.FILE_LAST_USED_NAME, null);
-		        JFileChooser chooser = new JFileChooser();
-		        chooser.setDialogType(JFileChooser.OPEN_DIALOG);
-		        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		        chooser.setMultiSelectionEnabled(false);
-		        chooser.setAcceptAllFileFilterUsed(false);
-		        chooser.addChoosableFileFilter(new FileFilter() {
-					@Override
-					public String getDescription() { return "diMIDImi Loop (*.diMIDImi)"; }
-					@Override
-					public boolean accept(File f) {	return f.isDirectory() || (f.getName().toLowerCase().endsWith(".dimidimi"));}
-				});
-		        chooser.setDialogTitle("Load Loop");
-		        if (recentPath!=null) {
-		        	chooser.setSelectedFile(new File(recentPath));
-		        	chooser.setCurrentDirectory(new File(recentPath).getParentFile());
-		        }
-		        int retvalue = chooser.showDialog(null, "Load Loop");
-		        if (retvalue==JFileChooser.APPROVE_OPTION) {
-		        	File selectedFile = chooser.getSelectedFile();
-		        	Prefs.put(Prefs.FILE_LAST_USED_NAME, selectedFile.getPath());
+		        File selectedFile = GUIUtils.loadDialog("Load Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
+		        if (selectedFile!=null) {
+		        	Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
 		        	try {
 		        		session.loadLoop(selectedFile);
 		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
@@ -614,7 +537,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 	}
 	
-	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void setIcon(JFrame frame) {
 		frame.setIconImage(Toolkit.getDefaultToolkit().getImage(UIWindow.class.getResource("/icon.png")));
@@ -627,6 +549,52 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		} catch (Exception e) {
 			// fail silently
 		}
+	}
+	
+	private JMenuBar buildMenu() {
+		JMenuBar menuBar = new JMenuBar();
+		JMenu menu = new JMenu("Session");
+		JMenuItem menuItem = new JMenuItem("Load...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = GUIUtils.loadDialog("Load Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
+				if (selectedFile!=null) {
+					try {
+						DiMIDImi.loadSession(selectedFile);
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(frmDimidimi, "Could not load file\n"+e1.getMessage());
+		        		LOG.error("Could not load file", e1);
+					}
+				}
+			}
+		});
+		menu.add(menuItem);
+		menu.addSeparator();
+//		menuItem = new JMenuItem("Save");
+//		menu.add(menuItem);
+		menuItem = new JMenuItem("Save as...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = GUIUtils.saveDialog("Save Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
+				if (selectedFile!=null) {
+					try {
+						DiMIDImi.saveSession(selectedFile);
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
+		        		LOG.error("Could not write file", e1);
+					}
+				}
+			}
+		});
+		menu.add(menuItem);
+		menuBar.add(menu);
+		return menuBar;
+	}
+	
+	public void closeWindow() {
+		frmDimidimi.dispatchEvent(new WindowEvent(frmDimidimi, WindowEvent.WINDOW_CLOSING));
 	}
 	
 	public Rectangle getScreenPosition() {
@@ -677,4 +645,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	@Override
 	public void noteOff(int notenumber, int pos) {
 	}
+	
+	
 }
