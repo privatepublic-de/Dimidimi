@@ -73,6 +73,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JComboBox<String> comboQuantize;
 	private JComboBox<String> comboBoxTranspose;
 	private JCheckBox chckbxclockinc;
+	private JCheckBox checkBoxMidiOut;
+	private JCheckBox checkBoxMidiIn;
 	private JLabel lblDimidimiLooper;
 	JPanel panelActive;
 	private Session session;
@@ -189,35 +191,35 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		JLabel lblLength2 = new JLabel("¼s");
 		sl_panel.putConstraint(SpringLayout.NORTH, lblLength2, 11, SpringLayout.NORTH, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, lblLength2, 111, SpringLayout.WEST, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, lblLength2, 0, SpringLayout.EAST, textFieldLength);
 		panel.add(lblLength2);
 		
 		JButton btnApply = new JButton("Apply");
 		sl_panel.putConstraint(SpringLayout.NORTH, btnApply, 5, SpringLayout.NORTH, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 133, SpringLayout.WEST, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 0, SpringLayout.EAST, lblLength2);
 		panel.add(btnApply);
 		btnApply.setEnabled(false);
 		
 		JLabel lblQuantizeTo = new JLabel("Quantize");
 		sl_panel.putConstraint(SpringLayout.NORTH, lblQuantizeTo, 11, SpringLayout.NORTH, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, lblQuantizeTo, 218, SpringLayout.WEST, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, lblQuantizeTo, 0, SpringLayout.EAST, btnApply);
 		panel.add(lblQuantizeTo);
 		
 		comboQuantize = new JComboBox(QUANTIZE);
 		sl_panel.putConstraint(SpringLayout.NORTH, comboQuantize, 6, SpringLayout.NORTH, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 279, SpringLayout.WEST, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 0, SpringLayout.EAST, lblQuantizeTo);
 		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboQuantize);
 		comboQuantize.setMaximumRowCount(12);
 		
 		JLabel lblTranspose = new JLabel("Transpose");
 		sl_panel.putConstraint(SpringLayout.NORTH, lblTranspose, 11, SpringLayout.NORTH, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 420, SpringLayout.WEST, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 0, SpringLayout.EAST, comboQuantize);
 		panel.add(lblTranspose);
 		
 		comboBoxTranspose = new JComboBox(TRANSPOSE);
 		sl_panel.putConstraint(SpringLayout.NORTH, comboBoxTranspose, 6, SpringLayout.NORTH, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 490, SpringLayout.WEST, panel);
+		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 0, SpringLayout.EAST, lblTranspose);
 		comboBoxTranspose.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboBoxTranspose);
 		comboBoxTranspose.setMaximumRowCount(27);
@@ -259,6 +261,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.add(buttonNewSession);
 		buttonNewSession.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				session.setMidiInputOn(false);
+				settingsUpdated();
 				DiMIDImi.createSession();
 			}
 		});
@@ -423,7 +427,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(chckbxclockinc);
 		panelMidi.add(lblIn);
 		
-		JCheckBox checkBoxMidiIn = new JCheckBox("");
+		checkBoxMidiIn = new JCheckBox("");
 		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -28, SpringLayout.EAST, checkBoxMidiIn);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, checkBoxMidiIn, 10, SpringLayout.NORTH, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, checkBoxMidiIn, 3, SpringLayout.WEST, comboMidiIn);
@@ -439,7 +443,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(comboMidiIn);
 		panelMidi.add(lblOut);
 		
-		JCheckBox checkBoxMidiOut = new JCheckBox("");
+		checkBoxMidiOut = new JCheckBox("");
 		sl_panelMidi.putConstraint(SpringLayout.EAST, checkBoxMidiOut, 3, SpringLayout.WEST, comboMidiOut);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, lblOut, 0, SpringLayout.WEST, checkBoxMidiOut);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, checkBoxMidiOut, 10, SpringLayout.NORTH, panelMidi);
@@ -566,6 +570,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 						JOptionPane.showMessageDialog(frmDimidimi, "Could not load file\n"+e1.getMessage());
 		        		LOG.error("Could not load file", e1);
 					}
+		        	Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
 				}
 			}
 		});
@@ -585,6 +590,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
 		        		LOG.error("Could not write file", e1);
 					}
+					Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
 				}
 			}
 		});
@@ -635,6 +641,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
 		chckbxclockinc.setSelected(session.getClockIncrement()==1);
+		checkBoxMidiIn.setSelected(session.isMidiInputOn());
+		checkBoxMidiOut.setSelected(session.isMidiOutputOn());
 		frmDimidimi.repaint();
 	}
 
