@@ -33,7 +33,7 @@ public class Session {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					new UIWindow(Session.this);
+					window = new UIWindow(Session.this);
 					new PerformanceHandler(Session.this);
 				} catch (Exception e) {
 					LOG.error("Could not create UIWindow", e);
@@ -286,6 +286,7 @@ public class Session {
 	private boolean midiOutputOn = true;
 	private int quantizationIndex = 0;
 	private int transposeIndex = 13;
+	private UIWindow window;
 	private List<Note> notesList = new CopyOnWriteArrayList<Note>();
 
 	private List<LoopUpdateReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<LoopUpdateReceiver>();

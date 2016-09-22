@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -26,6 +27,9 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -34,7 +38,6 @@ import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -53,8 +56,6 @@ import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
-import javax.swing.border.MatteBorder;
-import javax.swing.border.BevelBorder;
 
 public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
@@ -83,7 +84,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	public UIWindow(Session session) {
 		this.session = session;
 		try {
-			// Set cross-platform Java L&F (also called "Metal")
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+            System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Test");
 			UIManager.setLookAndFeel(
 					UIManager.getSystemLookAndFeelClassName());
 		} 
@@ -124,6 +126,19 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		setIcon(frmDimidimi);
+		
+		JMenuBar menuBar = new JMenuBar();
+		JMenu menu = new JMenu("Session");
+		JMenuItem menuItem = new JMenuItem("Load...");
+		menu.add(menuItem);
+		menu.addSeparator();
+		menuItem = new JMenuItem("Save");
+		menu.add(menuItem);
+		menuItem = new JMenuItem("Save as...");
+		menu.add(menuItem);
+		menuBar.add(menu);
+		
+		frmDimidimi.setJMenuBar(menuBar);
 		
 		JPanel panelLoop = new JPanel();
 		panelLoop.setBackground(Color.WHITE);
@@ -476,7 +491,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		sl_panelMidi.putConstraint(SpringLayout.SOUTH, panelActive, -10, SpringLayout.SOUTH, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, panelActive, 20, SpringLayout.WEST, panelMidi);
 		panelActive.setToolTipText("Indicates active MIDI clock");
-		panelActive.setBorder(new LineBorder(UIManager.getColor("windowBorder")));
+		panelActive.setBorder(null);
 		panelActive.setPreferredSize(new Dimension(16, 16));
 		panelActive.setBackground(Theme.colorClockOff);
 		panelMidi.add(panelActive);
