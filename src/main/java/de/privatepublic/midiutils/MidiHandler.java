@@ -244,15 +244,28 @@ public class MidiHandler {
 	
 	
 	public void sendAllNotesOffMidi(int channel) {
-		for (int i=0;i<128;i++) {
-			try {
-				ShortMessage message = new ShortMessage();
-				message.setMessage(ShortMessage.NOTE_OFF, channel, i, 0);
-				sendMessage(message);
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
-			}
+//		for (int i=0;i<128;i++) {
+//			try {
+//				ShortMessage message = new ShortMessage();
+//				message.setMessage(ShortMessage.NOTE_OFF, channel, i, 0);
+//				sendMessage(message);
+//			} catch (InvalidMidiDataException e) {
+//				e.printStackTrace();
+//			}
+//		}
+		
+		try {
+			ShortMessage message = new ShortMessage();
+			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 123, 0);
+			sendMessage(message);
+			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 120, 0);
+			sendMessage(message);
+			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 121, 0);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
+		
 	}
 	
 	public int getPos() {
