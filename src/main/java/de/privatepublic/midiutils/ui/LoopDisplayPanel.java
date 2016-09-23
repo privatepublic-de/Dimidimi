@@ -15,12 +15,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.font.TextAttribute;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -62,8 +65,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private int highestNote = 96-bufferSemis;
 	private int lowestNote = 12+bufferSemis;
 	
+	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
+	
 	public LoopDisplayPanel(Session session) {
 		super();
+		textAttributes.put(TextAttribute.TRACKING, -0.1f);
 		this.session = session;
 		addMouseListener(new MouseListener() {
 			
@@ -117,9 +123,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 
 			@Override
 			public void mouseMoved(MouseEvent e) {
-//				if (!listsAreSynced) {
-//					return;
-//				}
 				Note hitNoteBefore = hitNote;
 				int mx = e.getX();
 				int my = e.getY();
@@ -174,6 +177,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		}
 	}
 	
+	
 	@Override
 	public void paint(Graphics go) {
 		Graphics2D g = (Graphics2D)go;
@@ -185,17 +189,17 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		noteHeight = height*(1f/displayNoteCount);
 		g.setColor(Theme.colorBackground);
 		g.fillRect(0, 0, width, height);
-		
-		String text = String.valueOf(session.getMidiChannelOut()+1);
+		// draw midi out channel text
+		String channelText = "#"+(session.getMidiChannelOut()+1);
 		g.setColor(Theme.colorMidiOutBig);
-		g.setFont(Theme.fontMidiBig);
 		float fontSize = 20.0f;
-	    Font font = g.getFont().deriveFont(fontSize);
+	    Font font = Theme.fontMidiBig.deriveFont(fontSize);
 	    int fheight = g.getFontMetrics(font).getHeight();
 	    fontSize = (height / fheight ) * fontSize;
-	    g.setFont(g.getFont().deriveFont(fontSize));
-	    int fwidth = g.getFontMetrics(g.getFont()).stringWidth(text);
-	    g.drawString(text, width-fwidth, height);
+	    textAttributes.put(TextAttribute.SIZE, fontSize);
+	    g.setFont(Theme.fontMidiBig.deriveFont(textAttributes));
+	    int fwidth = g.getFontMetrics(g.getFont()).stringWidth(channelText);
+	    g.drawString(channelText, width-fwidth, height);
 	    g.setFont(Theme.fontNotes);
 		
 		// draw grid
@@ -244,7 +248,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		g.fillRect((int)(playheadx-tickwidth/2), 0, (int)tickwidth, height);
 
 		// draw notes
-		//g.setStroke(new BasicStroke(tickwidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 		Note selectedNoteRun = selectedNote;
 		if (selectedNoteRun==null) {
 			selectedNoteRun = hitNote;
