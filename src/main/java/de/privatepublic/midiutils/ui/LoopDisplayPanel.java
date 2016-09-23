@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -178,13 +179,24 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		Graphics2D g = (Graphics2D)go;
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-		g.setFont(Theme.fontNotes);
 		int width = getWidth();
 		int height = getHeight();
 		int displayNoteCount = highestNote-lowestNote + 2*bufferSemis;
 		noteHeight = height*(1f/displayNoteCount);
 		g.setColor(Theme.colorBackground);
 		g.fillRect(0, 0, width, height);
+		
+		String text = String.valueOf(session.getMidiChannelOut()+1);
+		g.setColor(Theme.colorMidiOutBig);
+		g.setFont(Theme.fontMidiBig);
+		float fontSize = 20.0f;
+	    Font font = g.getFont().deriveFont(fontSize);
+	    int fheight = g.getFontMetrics(font).getHeight();
+	    fontSize = (height / fheight ) * fontSize;
+	    g.setFont(g.getFont().deriveFont(fontSize));
+	    int fwidth = g.getFontMetrics(g.getFont()).stringWidth(text);
+	    g.drawString(text, width-fwidth, height);
+	    g.setFont(Theme.fontNotes);
 		
 		// draw grid
 		g.setColor(Theme.colorOctaves);

@@ -73,6 +73,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private LoopDisplayPanel loopDisplayPanel;
 	private JComboBox<String> comboQuantize;
 	private JComboBox<String> comboBoxTranspose;
+	private JComboBox comboMidiIn;
+	private JComboBox comboMidiOut;
 	private JCheckBox checkBoxMidiOut;
 	private JCheckBox checkBoxMidiIn;
 	private JLabel lblDimidimiLooper;
@@ -317,14 +319,14 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		JLabel lblIn = new JLabel("Channel:  In");
 		
-		JComboBox comboMidiIn = new JComboBox(MIDI_CHANNELS);
+		comboMidiIn = new JComboBox(MIDI_CHANNELS);
 		comboMidiIn.setMaximumRowCount(16);
 		
 		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
 		
 		JLabel lblOut = new JLabel("Out");
 		
-		JComboBox comboMidiOut = new JComboBox(MIDI_CHANNELS);
+		comboMidiOut = new JComboBox(MIDI_CHANNELS);
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
@@ -629,6 +631,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		checkBoxClockInc.setSelected(session.getClockIncrement()==1);
 		checkBoxMidiIn.setSelected(session.isMidiInputOn());
 		checkBoxMidiOut.setSelected(session.isMidiOutputOn());
+		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
+		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
 		frmDimidimi.repaint();
 	}
 

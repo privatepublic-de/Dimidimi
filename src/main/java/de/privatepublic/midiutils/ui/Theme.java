@@ -12,6 +12,7 @@ public class Theme {
 	
 	
 	static final Font fontNotes = new Font(Font.SANS_SERIF, Font.BOLD, 12); 
+	static final Font fontMidiBig = new Font(Font.SANS_SERIF, Font.BOLD, 12); 
 	
 //	static final Color colorBackground = Color.WHITE;
 //	static final Color colorGrid = Color.LIGHT_GRAY;
@@ -46,6 +47,8 @@ public class Theme {
 	
 	static final Color colorClockOn = Color.getHSBColor(.58f, .8f, 1f);
 	static final Color colorClockOff = SystemColor.window;
+	
+	static final Color colorMidiOutBig = colorGrid;
 	
 	
 	static final float noteColorSaturation = .6f;
