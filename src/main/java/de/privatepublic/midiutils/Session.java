@@ -35,6 +35,7 @@ public class Session {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					midiHandler = new MidiHandler(Session.this, pos);
 					window = new UIWindow(Session.this);
 					new PerformanceHandler(Session.this);
 				} catch (Exception e) {
@@ -42,7 +43,6 @@ public class Session {
 				}
 			}
 		});
-		midiHandler = new MidiHandler(this, pos);
 	}
 	
 	public Session(StorageContainer data) {
@@ -111,6 +111,7 @@ public class Session {
 		this.midiChannelOut = midiChannelOut;
 		getMidiHandler().sendAllNotesOff(oldOut);
 		Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
+		emitRefreshLoopDisplay();
 	}
 
 

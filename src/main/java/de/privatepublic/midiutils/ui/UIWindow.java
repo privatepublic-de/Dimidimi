@@ -73,8 +73,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private LoopDisplayPanel loopDisplayPanel;
 	private JComboBox<String> comboQuantize;
 	private JComboBox<String> comboBoxTranspose;
-	private JComboBox comboMidiIn;
-	private JComboBox comboMidiOut;
+	private JComboBox<String> comboMidiIn;
+	private JComboBox<String> comboMidiOut;
 	private JCheckBox checkBoxMidiOut;
 	private JCheckBox checkBoxMidiIn;
 	private JLabel lblDimidimiLooper;
