@@ -24,6 +24,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -72,10 +73,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private LoopDisplayPanel loopDisplayPanel;
 	private JComboBox<String> comboQuantize;
 	private JComboBox<String> comboBoxTranspose;
-	private JCheckBox chckbxclockinc;
 	private JCheckBox checkBoxMidiOut;
 	private JCheckBox checkBoxMidiIn;
 	private JLabel lblDimidimiLooper;
+	private JCheckBoxMenuItem checkBoxClockInc;
 	JPanel panelActive;
 	private Session session;
 
@@ -120,7 +121,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		frmDimidimi = new JFrame();
 		frmDimidimi.setTitle(APP_TITLE);
 		frmDimidimi.setBounds(100, 100, 1028, 524);
-		frmDimidimi.setMinimumSize(new Dimension(1028, 300));
+		frmDimidimi.setMinimumSize(new Dimension(720, 300));
 		frmDimidimi.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frmDimidimi.addWindowListener(new WindowAdapter() {
 			@Override
@@ -180,6 +181,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.add(lblNumberOfQuarters);
 		
 		textFieldLength = new JTextField();
+		textFieldLength.setToolTipText("Loop length in quarter notes");
 		sl_panel.putConstraint(SpringLayout.NORTH, textFieldLength, 5, SpringLayout.NORTH, panel);
 		sl_panel.putConstraint(SpringLayout.WEST, textFieldLength, 56, SpringLayout.WEST, panel);
 		textFieldLength.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -190,14 +192,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		textFieldLength.setColumns(3);
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
 		
-		JLabel lblLength2 = new JLabel("¼s");
-		sl_panel.putConstraint(SpringLayout.NORTH, lblLength2, 11, SpringLayout.NORTH, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, lblLength2, 0, SpringLayout.EAST, textFieldLength);
-		panel.add(lblLength2);
-		
 		JButton btnApply = new JButton("Apply");
 		sl_panel.putConstraint(SpringLayout.NORTH, btnApply, 5, SpringLayout.NORTH, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 0, SpringLayout.EAST, lblLength2);
+		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 0, SpringLayout.EAST, textFieldLength);
 		panel.add(btnApply);
 		btnApply.setEnabled(false);
 		
@@ -226,35 +223,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboBoxTranspose.setMaximumRowCount(27);
 		comboBoxTranspose.setSelectedIndex(13);
 		
-		JButton btnDouble = new JButton("x2");
-		sl_panel.putConstraint(SpringLayout.NORTH, btnDouble, 5, SpringLayout.NORTH, panel);
-		btnDouble.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		panel.add(btnDouble);
-		
 		JButton btnClear = new JButton("Clear");
-		sl_panel.putConstraint(SpringLayout.WEST, btnDouble, -94, SpringLayout.WEST, btnClear);
-		sl_panel.putConstraint(SpringLayout.EAST, btnDouble, -5, SpringLayout.WEST, btnClear);
 		sl_panel.putConstraint(SpringLayout.NORTH, btnClear, 5, SpringLayout.NORTH, panel);
 		btnClear.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panel.add(btnClear);
 		
-		JButton btnLoad = new JButton("Load...");
-		sl_panel.putConstraint(SpringLayout.WEST, btnClear, -81, SpringLayout.WEST, btnLoad);
-		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -5, SpringLayout.WEST, btnLoad);
-		sl_panel.putConstraint(SpringLayout.NORTH, btnLoad, 5, SpringLayout.NORTH, panel);
-		btnLoad.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		panel.add(btnLoad);
-		
-		JButton btnSave = new JButton("Save...");
-		sl_panel.putConstraint(SpringLayout.WEST, btnLoad, -91, SpringLayout.WEST, btnSave);
-		sl_panel.putConstraint(SpringLayout.EAST, btnLoad, -5, SpringLayout.WEST, btnSave);
-		sl_panel.putConstraint(SpringLayout.NORTH, btnSave, 5, SpringLayout.NORTH, panel);
-		btnSave.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		panel.add(btnSave);
-		
 		JButton buttonNewSession = new JButton("+");
-		sl_panel.putConstraint(SpringLayout.WEST, btnSave, -90, SpringLayout.WEST, buttonNewSession);
-		sl_panel.putConstraint(SpringLayout.EAST, btnSave, -6, SpringLayout.WEST, buttonNewSession);
+		sl_panel.putConstraint(SpringLayout.EAST, btnClear, 0, SpringLayout.WEST, buttonNewSession);
 		sl_panel.putConstraint(SpringLayout.NORTH, buttonNewSession, -5, SpringLayout.NORTH, lblNumberOfQuarters);
 		sl_panel.putConstraint(SpringLayout.WEST, buttonNewSession, -83, SpringLayout.EAST, panel);
 		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, -8, SpringLayout.EAST, panel);
@@ -268,53 +243,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		
-		
-		btnSave.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-		        File selectedFile = GUIUtils.saveDialog("Save Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
-		        if (selectedFile!=null) {
-		        	try {
-		        		session.saveLoop(selectedFile);
-		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
-		        	}
-		        	catch(Exception e) {
-		        		JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e.getMessage());
-		        		LOG.error("Could not write file", e);
-		        	}
-		        	Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
-		        }
-			}
-		});
-		
-		btnLoad.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-		        File selectedFile = GUIUtils.loadDialog("Load Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
-		        if (selectedFile!=null) {
-		        	Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
-		        	try {
-		        		session.loadLoop(selectedFile);
-		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
-					} catch (Exception e) {
-						LOG.error("Error loading file", e);
-						JOptionPane.showMessageDialog(frmDimidimi,
-							    "Error loading file!",
-							    "Load Loop",
-							    JOptionPane.ERROR_MESSAGE);
-					}
-		            
-		        }
-			}
-		});
-		
 		btnClear.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				session.clearPattern();;
-			}
-		});
-		btnDouble.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				session.doublePattern();
 			}
 		});
 		((JLabel)comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
@@ -395,22 +327,11 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		JComboBox comboMidiOut = new JComboBox(MIDI_CHANNELS);
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
-		
-		chckbxclockinc = new JCheckBox("48ppq");
-		chckbxclockinc.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				boolean selected = e.getStateChange()==ItemEvent.SELECTED;
-				int inc = selected?1:2;
-				session.setClockIncrement(inc);
-			}
-		});
 		SpringLayout sl_panelMidi = new SpringLayout();
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, comboMidiOut, 10, SpringLayout.NORTH, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, lblOut, 14, SpringLayout.NORTH, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, comboMidiIn, 10, SpringLayout.NORTH, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, lblIn, 14, SpringLayout.NORTH, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.NORTH, chckbxclockinc, 10, SpringLayout.NORTH, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, chckbxclockinc, -12, SpringLayout.WEST, lblIn);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -6, SpringLayout.WEST, lblOut);
 		panelMidi.setLayout(sl_panelMidi);
 		
@@ -424,8 +345,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelActive.setPreferredSize(new Dimension(16, 16));
 		panelActive.setBackground(Theme.colorClockOff);
 		panelMidi.add(panelActive);
-		chckbxclockinc.setToolTipText("Toggle between 24 or 48 ppq midi clock");
-		panelMidi.add(chckbxclockinc);
 		panelMidi.add(lblIn);
 		
 		checkBoxMidiIn = new JCheckBox("");
@@ -459,59 +378,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(checkBoxMidiOut);
 		panelMidi.add(comboMidiOut);
 		
-		JButton btnSelectInputDevices = new JButton("Devices...");
-		sl_panelMidi.putConstraint(SpringLayout.NORTH, btnSelectInputDevices, 9, SpringLayout.NORTH, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, -16, SpringLayout.WEST, btnSelectInputDevices);
-		panelMidi.add(btnSelectInputDevices);
-		btnSelectInputDevices.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-				CheckboxList listinput = new CheckboxList("Activate Input Devices");
-				JCheckBox[] inboxes = new JCheckBox[session.getMidiHandler().getInputDevices().size()];
-				for (int i = 0; i < inboxes.length; i++) {
-					MidiDeviceWrapper dev = session.getMidiHandler().getInputDevices().get(i);
-					JCheckBox cbox = new JCheckBox(dev.toString());
-					cbox.setSelected(dev.isActiveForInput());
-					inboxes[i] = cbox;
-				}
-				listinput.setListData(inboxes);
-				
-				CheckboxList listoutput = new CheckboxList("Activate Output Devices");
-				JCheckBox[] outboxes = new JCheckBox[session.getMidiHandler().getOutputDevices().size()];
-				for (int i = 0; i < outboxes.length; i++) {
-					MidiDeviceWrapper dev = session.getMidiHandler().getOutputDevices().get(i);
-					JCheckBox cbox = new JCheckBox(dev.toString());
-					cbox.setSelected(dev.isActiveForOutput());
-					outboxes[i] = cbox;
-				}
-				listoutput.setListData(outboxes);
-				
-				JPanel p = new JPanel(new BorderLayout());
-
-				p.add(listinput,BorderLayout.WEST);
-				p.add(listoutput,BorderLayout.EAST);
-				
-				int result = JOptionPane.showOptionDialog(frmDimidimi, p, "Select MIDI Devices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
-				if (result==JOptionPane.OK_OPTION) {
-					for (int i = 0; i < inboxes.length; i++) {
-						MidiDeviceWrapper dev = session.getMidiHandler().getInputDevices().get(i);
-						dev.setActiveForInput(inboxes[i].isSelected());
-					}
-					session.getMidiHandler().storeSelectedInDevices();
-					
-					for (int i = 0; i < outboxes.length; i++) {
-						MidiDeviceWrapper dev = session.getMidiHandler().getOutputDevices().get(i);
-						dev.setActiveForOutput(outboxes[i].isSelected());
-					}
-					session.getMidiHandler().storeSelectedOutDevices();
-				}
-				session.emitRefreshLoopDisplay();
-			}});
-		
 		JButton btnNotesOff = new JButton("Panic");
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, 0, SpringLayout.WEST, btnNotesOff);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, btnNotesOff, 9, SpringLayout.NORTH, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, btnSelectInputDevices, -16, SpringLayout.WEST, btnNotesOff);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, btnNotesOff, -10, SpringLayout.EAST, panelMidi);
 		btnNotesOff.setToolTipText("Turns off all playing or stuck MIDI notes.");
 		panelMidi.add(btnNotesOff);
@@ -597,6 +466,122 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 		menu.add(menuItem);
 		menuBar.add(menu);
+		
+		menu = new JMenu("Loop");
+		menuItem = new JMenuItem("Load...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = GUIUtils.loadDialog("Load Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
+		        if (selectedFile!=null) {
+		        	Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
+		        	try {
+		        		session.loadLoop(selectedFile);
+		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
+					} catch (Exception e1) {
+						LOG.error("Error loading file", e1);
+						JOptionPane.showMessageDialog(frmDimidimi,
+							    "Error loading file!",
+							    "Load Loop",
+							    JOptionPane.ERROR_MESSAGE);
+					}
+		            
+		        }
+			}
+		});
+		menu.add(menuItem);
+		menu.addSeparator();
+		menuItem = new JMenuItem("Save...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = GUIUtils.saveDialog("Save Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
+		        if (selectedFile!=null) {
+		        	try {
+		        		session.saveLoop(selectedFile);
+		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
+		        	}
+		        	catch(Exception e1) {
+		        		JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
+		        		LOG.error("Could not write file", e1);
+		        	}
+		        	Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
+		        }
+			}
+		});
+		menu.add(menuItem);
+		menu.addSeparator();
+		menuItem = new JMenuItem("Double");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.doublePattern();
+			}
+		});
+		menu.add(menuItem);
+		menuBar.add(menu);
+		
+		menu = new JMenu("MIDI");
+		menuItem = new JMenuItem("Select Devices...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				CheckboxList listinput = new CheckboxList("Activate Input Devices");
+				JCheckBox[] inboxes = new JCheckBox[session.getMidiHandler().getInputDevices().size()];
+				for (int i = 0; i < inboxes.length; i++) {
+					MidiDeviceWrapper dev = session.getMidiHandler().getInputDevices().get(i);
+					JCheckBox cbox = new JCheckBox(dev.toString());
+					cbox.setSelected(dev.isActiveForInput());
+					inboxes[i] = cbox;
+				}
+				listinput.setListData(inboxes);
+				
+				CheckboxList listoutput = new CheckboxList("Activate Output Devices");
+				JCheckBox[] outboxes = new JCheckBox[session.getMidiHandler().getOutputDevices().size()];
+				for (int i = 0; i < outboxes.length; i++) {
+					MidiDeviceWrapper dev = session.getMidiHandler().getOutputDevices().get(i);
+					JCheckBox cbox = new JCheckBox(dev.toString());
+					cbox.setSelected(dev.isActiveForOutput());
+					outboxes[i] = cbox;
+				}
+				listoutput.setListData(outboxes);
+				
+				JPanel p = new JPanel(new BorderLayout());
+
+				p.add(listinput,BorderLayout.WEST);
+				p.add(listoutput,BorderLayout.EAST);
+				
+				int result = JOptionPane.showOptionDialog(frmDimidimi, p, "Select MIDI Devices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+				if (result==JOptionPane.OK_OPTION) {
+					for (int i = 0; i < inboxes.length; i++) {
+						MidiDeviceWrapper dev = session.getMidiHandler().getInputDevices().get(i);
+						dev.setActiveForInput(inboxes[i].isSelected());
+					}
+					session.getMidiHandler().storeSelectedInDevices();
+					
+					for (int i = 0; i < outboxes.length; i++) {
+						MidiDeviceWrapper dev = session.getMidiHandler().getOutputDevices().get(i);
+						dev.setActiveForOutput(outboxes[i].isSelected());
+					}
+					session.getMidiHandler().storeSelectedOutDevices();
+				}
+				session.emitRefreshLoopDisplay();
+			}
+		});
+		menu.add(menuItem);
+		menu.addSeparator();
+		checkBoxClockInc = new JCheckBoxMenuItem("48ppq");
+		checkBoxClockInc.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				boolean selected = e.getStateChange()==ItemEvent.SELECTED;
+				int inc = selected?1:2;
+				session.setClockIncrement(inc);
+			}
+		});
+		menu.add(checkBoxClockInc);
+		menuBar.add(menu);
+		
 		return menuBar;
 	}
 	
@@ -641,7 +626,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboQuantize.setSelectedIndex(session.getQuantizationIndex());
 		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		chckbxclockinc.setSelected(session.getClockIncrement()==1);
+		checkBoxClockInc.setSelected(session.getClockIncrement()==1);
 		checkBoxMidiIn.setSelected(session.isMidiInputOn());
 		checkBoxMidiOut.setSelected(session.isMidiOutputOn());
 		frmDimidimi.repaint();
