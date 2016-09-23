@@ -38,7 +38,6 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -64,10 +63,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private static final String APP_TITLE = "dimidimi Looper";
 	
 	private static final String[] MIDI_CHANNELS = new String[]{"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"};
-	private static final String[] QUANTIZE = new String[]{"none","1/2","1/4","1/8","1/16","1/32","1/4 triplets", "1/8 triplets", "1/16 triplets"};
+	private static final String[] QUANTIZE = new String[]{"none","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
 	private static final String[] TRANSPOSE = new String[]{"+24", "+12","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","0","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-24"};
 	
-//	private boolean active;
 	private JFrame frmDimidimi;
 	private JTextField textFieldLength;
 	private LoopDisplayPanel loopDisplayPanel;
@@ -79,12 +77,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JCheckBox checkBoxMidiIn;
 	private JLabel lblDimidimiLooper;
 	private JCheckBoxMenuItem checkBoxClockInc;
-	JPanel panelActive;
+	private JPanel panelActive;
 	private Session session;
 
-	/**
-	 * Create the application.
-	 */
 	public UIWindow(Session session) {
 		this.session = session;
 		try {
@@ -93,31 +88,29 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			UIManager.setLookAndFeel(
 					UIManager.getSystemLookAndFeelClassName());
 		} 
-		catch (UnsupportedLookAndFeelException e) {
-			// handle exception
+		catch (Exception e) {
+			LOG.warn("Could not set look and feel", e);
 		}
-		catch (ClassNotFoundException e) {
-			// handle exception
-		}
-		catch (InstantiationException e) {
-			// handle exception
-		}
-		catch (IllegalAccessException e) {
-			// handle exception
-		}
-
 		initialize();
 		frmDimidimi.setVisible(true);
-		// this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
 		session.registerAsReceiver(this);
 		session.emitSettingsUpdated();
 		session.emitLoopUpdated();
 		LOG.info("User interface built.");
 	}
+	
+	public void closeWindow() {
+		frmDimidimi.dispatchEvent(new WindowEvent(frmDimidimi, WindowEvent.WINDOW_CLOSING));
+	}
+	
+	public Rectangle getScreenPosition() {
+		return frmDimidimi.getBounds();
+	}
+	
+	public void setScreenPosition(Rectangle r) {
+		frmDimidimi.setBounds(r);
+	}
 
-	/**
-	 * Initialize the contents of the frame.
-	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initialize() {
 		frmDimidimi = new JFrame();
@@ -587,16 +580,20 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		return menuBar;
 	}
 	
-	public void closeWindow() {
-		frmDimidimi.dispatchEvent(new WindowEvent(frmDimidimi, WindowEvent.WINDOW_CLOSING));
-	}
 	
-	public Rectangle getScreenPosition() {
-		return frmDimidimi.getBounds();
-	}
+	// events
 	
-	public void setScreenPosition(Rectangle r) {
-		frmDimidimi.setBounds(r);
+	@Override
+	public void settingsUpdated() {
+		comboQuantize.setSelectedIndex(session.getQuantizationIndex());
+		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
+		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
+		checkBoxClockInc.setSelected(session.getClockIncrement()==1);
+		checkBoxMidiIn.setSelected(session.isMidiInputOn());
+		checkBoxMidiOut.setSelected(session.isMidiOutputOn());
+		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
+		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
+		frmDimidimi.repaint();
 	}
 	
 	@Override
@@ -620,20 +617,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		else {
 			panelActive.setBackground(Theme.colorClockOff);
 		}
-	}
-
-	@Override
-	public void settingsUpdated() {
-		// update quantization, length, transpose
-		comboQuantize.setSelectedIndex(session.getQuantizationIndex());
-		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
-		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		checkBoxClockInc.setSelected(session.getClockIncrement()==1);
-		checkBoxMidiIn.setSelected(session.isMidiInputOn());
-		checkBoxMidiOut.setSelected(session.isMidiOutputOn());
-		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
-		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
-		frmDimidimi.repaint();
 	}
 
 	@Override
