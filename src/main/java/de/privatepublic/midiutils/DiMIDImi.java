@@ -52,6 +52,7 @@ public class DiMIDImi {
 	
 	public static void removeSession(Session session) {
 		SESSIONS.remove(session);
+		session.destroy();
 		LOG.info("Removed session {}", session.hashCode());
 		if (SESSIONS.size()==0) {
 			System.exit(0);

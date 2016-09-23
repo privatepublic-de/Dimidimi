@@ -243,7 +243,15 @@ public class Session {
 	}
 
 
-
+	public void destroy() {
+		midiHandler.sendAllNotesOffMidi();
+		notesList.clear();
+		loopUpdateReceivers.clear();
+		performanceReceivers.clear();
+		settingsUpdateReceivers.clear();
+		midiHandler = null;
+		window = null;
+	}
 
 
 
@@ -327,6 +335,5 @@ public class Session {
 	private List<SettingsUpdateReceiver> settingsUpdateReceivers = new CopyOnWriteArrayList<SettingsUpdateReceiver>();
 
 	public static final int TICK_COUNT_BASE = 48;
-
 
 }
