@@ -76,7 +76,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JCheckBox checkBoxMidiOut;
 	private JCheckBox checkBoxMidiIn;
 	private JLabel lblDimidimiLooper;
-	private JCheckBoxMenuItem checkBoxClockInc;
+	private JCheckBoxMenuItem menuItemClockInc;
+	private JCheckBoxMenuItem menuItemTheme;
 	private JPanel panelActive;
 	private Session session;
 
@@ -338,7 +339,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelActive.setToolTipText("Indicates active MIDI clock");
 		panelActive.setBorder(null);
 		panelActive.setPreferredSize(new Dimension(16, 16));
-		panelActive.setBackground(Theme.colorClockOff);
+		panelActive.setBackground(Theme.CURRENT.getColorClockOff());
 		panelMidi.add(panelActive);
 		panelMidi.add(lblIn);
 		
@@ -460,6 +461,17 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		menu.addSeparator();
+		
+		menuItemTheme = new JCheckBoxMenuItem("Dark Display Theme");
+		menuItemTheme.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
+				DiMIDImi.updateSettingsOnAllSessions();
+			}
+		});
+		menu.add(menuItemTheme);
 		menuBar.add(menu);
 		
 		menu = new JMenu("Loop");
@@ -565,8 +577,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 		menu.add(menuItem);
 		menu.addSeparator();
-		checkBoxClockInc = new JCheckBoxMenuItem("48ppq");
-		checkBoxClockInc.addItemListener(new ItemListener() {
+		menuItemClockInc = new JCheckBoxMenuItem("48ppq");
+		menuItemClockInc.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				boolean selected = e.getStateChange()==ItemEvent.SELECTED;
@@ -574,7 +586,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				session.setClockIncrement(inc);
 			}
 		});
-		menu.add(checkBoxClockInc);
+		menu.add(menuItemClockInc);
 		menuBar.add(menu);
 		
 		return menuBar;
@@ -588,11 +600,19 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboQuantize.setSelectedIndex(session.getQuantizationIndex());
 		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		checkBoxClockInc.setSelected(session.getClockIncrement()==1);
+		menuItemClockInc.setSelected(session.getClockIncrement()==1);
 		checkBoxMidiIn.setSelected(session.isMidiInputOn());
 		checkBoxMidiOut.setSelected(session.isMidiOutputOn());
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
+		if (Prefs.get(Prefs.THEME, 0)==0) {
+			Theme.CURRENT = Theme.BRIGHT;
+			menuItemTheme.setSelected(false);
+		}
+		else {
+			Theme.CURRENT = Theme.DARK;
+			menuItemTheme.setSelected(true);
+		}
 		frmDimidimi.repaint();
 	}
 	
@@ -601,10 +621,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		loopDisplayPanel.updateLoopPosition(pos);
 		if (MidiHandler.ACTIVE) {
 			if (pos%Session.TICK_COUNT_BASE<Session.TICK_COUNT_BASE/2) {
-				panelActive.setBackground(Theme.colorClockOn);
+				panelActive.setBackground(Theme.CURRENT.getColorClockOn());
 			}
 			else {
-				panelActive.setBackground(Theme.colorClockOff);
+				panelActive.setBackground(Theme.CURRENT.getColorClockOff());
 			}
 		}
 	}
@@ -612,10 +632,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	@Override
 	public void receiveActive(boolean active, int pos) {
 		if (active) {
-			panelActive.setBackground(Theme.colorClockOn);
+			panelActive.setBackground(Theme.CURRENT.getColorClockOn());
 		}
 		else {
-			panelActive.setBackground(Theme.colorClockOff);
+			panelActive.setBackground(Theme.CURRENT.getColorClockOff());
 		}
 	}
 

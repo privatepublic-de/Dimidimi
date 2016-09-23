@@ -22,6 +22,7 @@ public class Prefs {
 	public static final String FILE_LOOP_LAST_USED_NAME = "lastfile";
 	public static final String FILE_SESSION_LAST_USED_NAME = "lastsession";
 	public static final String MIDI_CLOCK_INCREMENT = "clockinc";
+	public static final String THEME = "theme";
 	
 	public static void put(String key, String val) {
 		PREFS.put(key, val);

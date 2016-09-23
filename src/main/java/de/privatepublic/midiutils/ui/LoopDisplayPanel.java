@@ -187,26 +187,26 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		int height = getHeight();
 		int displayNoteCount = highestNote-lowestNote + 2*bufferSemis;
 		noteHeight = height*(1f/displayNoteCount);
-		g.setColor(Theme.colorBackground);
+		g.setColor(Theme.CURRENT.getColorBackground());
 		g.fillRect(0, 0, width, height);
 		// draw midi out channel text
 		String channelText = "#"+(session.getMidiChannelOut()+1);
-		g.setColor(Theme.colorMidiOutBig);
+		g.setColor(Theme.CURRENT.getColorMidiOutBig());
 		float fontSize = 20.0f;
-	    Font font = Theme.fontMidiBig.deriveFont(fontSize);
+	    Font font = Theme.CURRENT.getFontMidiBig().deriveFont(fontSize);
 	    int fheight = g.getFontMetrics(font).getHeight();
 	    fontSize = (height / fheight ) * fontSize;
 	    textAttributes.put(TextAttribute.SIZE, fontSize);
-	    g.setFont(Theme.fontMidiBig.deriveFont(textAttributes));
+	    g.setFont(Theme.CURRENT.getFontMidiBig().deriveFont(textAttributes));
 	    int fwidth = g.getFontMetrics(g.getFont()).stringWidth(channelText);
 	    g.drawString(channelText, width-fwidth, height);
-	    g.setFont(Theme.fontNotes);
+	    g.setFont(Theme.CURRENT.getFontNotes());
 		
 		// draw grid
-		g.setColor(Theme.colorOctaves);
+		g.setColor(Theme.CURRENT.getColorOctaves());
 		for (int i=0;i<11;i++) {
 			float colorhue = (96-i*12)/96f;
-			g.setColor(Color.getHSBColor(colorhue, Theme.octaveColorSaturation, Theme.octaveColorBrightness));
+			g.setColor(Color.getHSBColor(colorhue, Theme.CURRENT.getOctaveColorSaturation(), Theme.CURRENT.getOctaveColorBrightness()));
 			int y = (int)(((highestNote+bufferSemis)-i*12)*noteHeight);
 			g.drawLine(0, y, width, y);
 		}
@@ -220,20 +220,20 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		for (int i=0;i<session.getLengthQuarters()*4;i++) {
 			int xpos = (int)(i*sixthwidth);
 			if (i/4 == activeQuarter) {
-				g.setColor(Theme.colorActiveQuarter);
+				g.setColor(Theme.CURRENT.getColorActiveQuarter());
 				g.fillRect(xpos, height-height/30, Math.round(sixthwidth), height);
 				g.fillRect(xpos, 0, Math.round(sixthwidth), height/30);
 			}
-			g.setColor(Theme.colorGrid);
+			g.setColor(Theme.CURRENT.getColorGrid());
 			g.drawLine(xpos, 0, xpos, height);
 			if (i%4==0) { 
 				// highlight quarters
-				g.setColor(Theme.colorGridIntense);
+				g.setColor(Theme.CURRENT.getColorGridIntense());
 				g.drawLine(xpos+1, 0, xpos+1, height);
 			}
 			if ((is3based && i%12==0) || (!is3based && i%16==0) && i>0) {
 				// highlight first beat
-				g.setColor(Theme.colorGridIntense);
+				g.setColor(Theme.CURRENT.getColorGridIntense());
 				g.drawLine(xpos+3, 0, xpos+3, height);
 				g.drawLine(xpos-1, 0, xpos-1, height);
 				g.drawLine(xpos-3, 0, xpos-3, height);
@@ -242,7 +242,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		}
 		
 		// draw playhead
-		g.setColor(Theme.colorPlayhead);
+		g.setColor(Theme.CURRENT.getColorPlayhead());
 		float playheadx = width*((float)pos/session.getMaxTicks());
 		tickwidth = width*(1f/session.getMaxTicks());
 		g.fillRect((int)(playheadx-tickwidth/2), 0, (int)tickwidth, height);
@@ -254,9 +254,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		}
 		for (Note note:session.getNotesList()) {
 			float colorhue = (96-note.getTransformedNoteNumber(session.getTransposeIndex()))/96f; 
-			Color noteColor = Color.getHSBColor(colorhue, Theme.noteColorSaturation, Theme.noteColorBrightness);
+			Color noteColor = Color.getHSBColor(colorhue, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
 			if (note.isPlayed()) {
-				g.setColor(Theme.colorPlayedNote);
+				g.setColor(Theme.CURRENT.getColorPlayedNote());
 			}
 			else {
 				g.setColor(noteColor);
@@ -271,7 +271,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 
 			if (noteendx>=notestartx) {
 				if (note==selectedNoteRun) {
-					g.setColor(Theme.colorSelectedNoteOutline);
+					g.setColor(Theme.CURRENT.getColorSelectedNoteOutline());
 					g.setStroke(new BasicStroke(veloHeight*2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 					g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
 					g.setColor(noteColor);
@@ -281,7 +281,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			}
 			else {
 				if (note==selectedNoteRun) {
-					g.setColor(Theme.colorSelectedNoteOutline);
+					g.setColor(Theme.CURRENT.getColorSelectedNoteOutline());
 					g.setStroke(new BasicStroke(veloHeight*2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 					g.drawLine((int)0, (int)notey, (int)noteendx, (int)notey);
 					g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
@@ -302,7 +302,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				}
 				g.setColor(noteColor);
 				g.fill(new RoundRectangle2D.Float(notestartx-1, (float)(y-fm.getAscent()), (float)rect.getWidth()+2, (float)rect.getHeight(), 7, 7));
-				g.setColor(Theme.colorSelectedNoteText);
+				g.setColor(Theme.CURRENT.getColorSelectedNoteText());
 				g.drawString(notetext, notestartx, y);
 			}
 
