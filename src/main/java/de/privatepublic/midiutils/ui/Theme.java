@@ -17,7 +17,7 @@ public class Theme {
 			Color.decode("#494949") /*colorPlayedNote*/, 
 			Color.decode("#444444") /*colorOctaves*/, 
 			new Color(.6f, .6f, .6f, .6f) /*colorSelectedNoteOutline*/, 
-			Color.WHITE /*colorSelectedNoteText*/, 
+			Color.BLACK /*colorSelectedNoteText*/, 
 			Color.getHSBColor(.58f, .8f, 1f) /*colorClockOn*/, 
 			SystemColor.window /*colorClockOff*/, 
 			Color.decode("#444444") /*colorMidiOutBig*/, 

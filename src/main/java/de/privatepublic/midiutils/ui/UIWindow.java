@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -34,6 +35,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
@@ -80,6 +82,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JCheckBoxMenuItem menuItemTheme;
 	private JPanel panelActive;
 	private Session session;
+	private String titleExtension = "";
 
 	public UIWindow(Session session) {
 		this.session = session;
@@ -94,6 +97,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		}
 		initialize();
 		frmDimidimi.setVisible(true);
+		
 		session.registerAsReceiver(this);
 		session.emitSettingsUpdated();
 		session.emitLoopUpdated();
@@ -111,11 +115,15 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	public void setScreenPosition(Rectangle r) {
 		frmDimidimi.setBounds(r);
 	}
+	
+	private String getWindowTitle() {
+		return APP_TITLE+" - "+titleExtension+" (MIDI out #"+(session.getMidiChannelOut()+1)+")"; 
+	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initialize() {
 		frmDimidimi = new JFrame();
-		frmDimidimi.setTitle(APP_TITLE);
+		frmDimidimi.setTitle(getWindowTitle());
 		frmDimidimi.setBounds(100, 100, 1028, 524);
 		frmDimidimi.setMinimumSize(new Dimension(720, 300));
 		frmDimidimi.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -384,7 +392,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		btnNotesOff.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.getMidiHandler().sendAllNotesOff();
+				session.getMidiHandler().sendAllNotesOffMidi();
 			}});
 		panelLoop.setLayout(new BorderLayout(0, 0));
 		loopDisplayPanel = new LoopDisplayPanel(session);
@@ -442,8 +450,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 		menu.add(menuItem);
 		menu.addSeparator();
-//		menuItem = new JMenuItem("Save");
-//		menu.add(menuItem);
 		menuItem = new JMenuItem("Save as...");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
@@ -484,7 +490,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		        	Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
 		        	try {
 		        		session.loadLoop(selectedFile);
-		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
+		        		titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
+		        		frmDimidimi.setTitle(getWindowTitle());
 					} catch (Exception e1) {
 						LOG.error("Error loading file", e1);
 						JOptionPane.showMessageDialog(frmDimidimi,
@@ -506,7 +513,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		        if (selectedFile!=null) {
 		        	try {
 		        		session.saveLoop(selectedFile);
-		        		frmDimidimi.setTitle(APP_TITLE+" - "+FilenameUtils.getBaseName(selectedFile.getName()));
+		        		titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
+		        		frmDimidimi.setTitle(getWindowTitle());
 		        	}
 		        	catch(Exception e1) {
 		        		JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
@@ -589,6 +597,28 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menu.add(menuItemClockInc);
 		menuBar.add(menu);
 		
+		menu = new JMenu("Window");
+		menuItem = new JMenuItem("Arrange Windows");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DiMIDImi.arrangeSessionWindows();
+			}
+		});
+		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Close");
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				closeWindow();
+			}
+		});
+		menu.add(menuItem);
+		
+		menuBar.add(menu);
+		
 		return menuBar;
 	}
 	
@@ -613,6 +643,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			Theme.CURRENT = Theme.DARK;
 			menuItemTheme.setSelected(true);
 		}
+		frmDimidimi.setTitle(getWindowTitle());
 		frmDimidimi.repaint();
 	}
 	

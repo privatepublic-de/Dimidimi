@@ -109,7 +109,7 @@ public class Session {
 	public void setMidiChannelOut(int midiChannelOut) {
 		int oldOut = midiChannelOut;
 		this.midiChannelOut = midiChannelOut;
-		getMidiHandler().sendAllNotesOff(oldOut);
+		getMidiHandler().sendAllNotesOffMidi(oldOut);
 		Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
 		emitRefreshLoopDisplay();
 	}
@@ -137,7 +137,7 @@ public class Session {
 
 	public void setMidiOutputOn(boolean midiOutputOn) {
 		if (this.midiOutputOn!=midiOutputOn && !midiOutputOn) {
-			getMidiHandler().sendAllNotesOff();
+			getMidiHandler().sendAllNotesOffMidi();
 		}
 		this.midiOutputOn = midiOutputOn;
 	}
@@ -181,7 +181,7 @@ public class Session {
 
 	public void clearPattern() {
 		for (Note dc:getNotesList()) {
-			getMidiHandler().sendNoteOff(dc.getTransformedNoteNumber(getTransposeIndex()));
+			getMidiHandler().sendNoteOffMidi(dc.getTransformedNoteNumber(getTransposeIndex()));
 		}
 		getNotesList().clear();
 		emitLoopUpdated();
@@ -202,7 +202,7 @@ public class Session {
 		applyStorageData(data);
 		emitLoopUpdated();
 		emitSettingsUpdated();
-		getMidiHandler().sendAllNotesOff();
+		getMidiHandler().sendAllNotesOffMidi();
 	}
 	
 	private void applyStorageData(StorageContainer data) {
@@ -224,7 +224,7 @@ public class Session {
 
 	public void clearNote(Note note) {
 		getNotesList().remove(note);
-		getMidiHandler().sendNoteOff(note.getTransformedNoteNumber(getTransposeIndex()));
+		getMidiHandler().sendNoteOffMidi(note.getTransformedNoteNumber(getTransposeIndex()));
 		emitLoopUpdated();
 	}
 

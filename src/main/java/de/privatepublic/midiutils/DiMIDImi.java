@@ -1,5 +1,7 @@
 package de.privatepublic.midiutils;
 
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -79,6 +81,38 @@ public class DiMIDImi {
 			session.getWindow().closeWindow();
 		}
 		LOG.info("Loaded session {}", file.getPath());
+	}
+
+	public static void arrangeSessionWindows() {
+		Rectangle rect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+		int width = rect.width;
+		int height = rect.height;
+		
+		LOG.info("Arranging windows in {}x{}", width, height);		
+		int minwidth = 740;
+		int minheight = 300; // TODO constants for uiwindow, too
+		int maxcols = width / minwidth;
+		int maxrows = height / minheight;
+		int number = SESSIONS.size();
+		if (maxcols*maxrows<number) {
+			
+		}
+		int wwidth = width/maxcols;
+		int wheight = height/maxrows;
+		int row = 0;
+		int col = 0;
+		int rowiteration = 0;
+		for (Session session: SESSIONS) {
+			Rectangle pos = new Rectangle(rect.x+20*rowiteration+col*wwidth, rect.y+20*rowiteration+row*wheight, wwidth-20, wheight-20);
+			session.getWindow().setScreenPosition(pos);
+			col = (col+1)%maxcols;
+			if (col==0) {
+				row = (row+1)%maxrows;
+				if (row==0) {
+					rowiteration++;
+				}
+			}
+		}
 	}
 	
 }

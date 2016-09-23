@@ -23,18 +23,11 @@ public class MidiHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(MidiHandler.class);
 	
 	public static boolean ACTIVE = false;
-	
 	private ArrayList<MidiDeviceWrapper> outputDeviceList = new ArrayList<MidiDeviceWrapper>();
 	private ArrayList<MidiDeviceWrapper> inputDeviceList = new ArrayList<MidiDeviceWrapper>();
-//	private int settingsChannelIn = 5 -1;
-//	private int settingsChannelOut = 3 -1;
-//	private int settingsNumberQuarters = 8;
-//	
-//	private boolean receiveNotes = true;
-//	private boolean sendNotes = true;
-	
+	private int pos;
+	private ShortMessage resetPositionMessage = new ShortMessage();
 	private Session session;
-	
 	
 	public MidiHandler(Session session, int pos) {
 		
@@ -43,11 +36,6 @@ public class MidiHandler {
 		
 		List<String> prefInIds = Prefs.getPrefIdentifierList(Prefs.MIDI_IN_DEVICES);
 		List<String> prefOutIds = Prefs.getPrefIdentifierList(Prefs.MIDI_OUT_DEVICES);
-		
-//		settingsChannelIn  = Prefs.get(Prefs.MIDI_IN_CHANNEL, settingsChannelIn);
-//		settingsChannelOut  = Prefs.get(Prefs.MIDI_OUT_CHANNEL, settingsChannelOut);
-//		
-//		setPPQDiv(Prefs.get(Prefs.MIDI_48PPQ, 2));
 		
 		MidiDevice device;
 		MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
@@ -132,9 +120,6 @@ public class MidiHandler {
 		Prefs.putPrefIdentfierList(Prefs.MIDI_IN_DEVICES, list);
 	}
 
-	private int pos;
-	ShortMessage resetPositionMessage = new ShortMessage();
-	
 	public List<MidiDeviceWrapper> getOutputDevices() {
 		return outputDeviceList;
 	}
@@ -161,7 +146,7 @@ public class MidiHandler {
 				session.emitActive(false, pos);
 				pos = 0;
 				sendMessage(resetPositionMessage);
-				sendAllNotesOff();
+				sendAllNotesOffMidi();
 				break;
 			case ShortMessage.START:
 				LOG.info("Received START");
@@ -211,15 +196,15 @@ public class MidiHandler {
 
 	private void noteOn(int noteNumber, int velocity) {
 		session.emitNoteOn(noteNumber, velocity, pos);
-		sendNoteOn(noteNumber, velocity);
+		sendNoteOnMidi(noteNumber, velocity);
 	}
 
 	private void noteOff(int noteNumber) {
 		session.emitNoteOff(noteNumber, pos);
-		sendNoteOff(noteNumber);
+		sendNoteOffMidi(noteNumber);
 	}
 
-	public void sendNoteOn(int noteNumber, int velocity) {
+	public void sendNoteOnMidi(int noteNumber, int velocity) {
 		if (session.isMidiOutputOn()) {
 			try {
 				ShortMessage message = new ShortMessage();
@@ -231,7 +216,7 @@ public class MidiHandler {
 		}
 	}
 
-	public void sendNoteOff(int noteNumber) {
+	public void sendNoteOffMidi(int noteNumber) {
 		if (session.isMidiOutputOn()) {
 			try {
 				ShortMessage message = new ShortMessage();
@@ -252,12 +237,12 @@ public class MidiHandler {
 	}
 	
 	
-	public void sendAllNotesOff() {
-		sendAllNotesOff(session.getMidiChannelOut());
+	public void sendAllNotesOffMidi() {
+		sendAllNotesOffMidi(session.getMidiChannelOut());
 	}
 	
 	
-	public void sendAllNotesOff(int channel) {
+	public void sendAllNotesOffMidi(int channel) {
 		for (int i=0;i<128;i++) {
 			try {
 				ShortMessage message = new ShortMessage();
@@ -272,70 +257,6 @@ public class MidiHandler {
 	public int getPos() {
 		return pos;
 	}
-	
-//	public int getMaxTicks() {
-//		return getNumberQuarters() * 24;
-//	}
-//	
-//	public int getNumberQuarters() {
-//		return settingsNumberQuarters;
-//	}
-	
-//	public int getMidiChannelOut() {
-//		return settingsChannelOut;
-//	}
-//	
-//	public int getMidiChannelIn() {
-//		return settingsChannelIn;
-//	}
-	
-//	// 2 = 48ppq input 1 = 24ppq input
-//	public void setPPQDiv(int ppq48div) {
-//		ppqdiv = ppq48div;
-//	}
-//	
-//	public int getPPQDiv() {
-//		return ppqdiv;
-//	}
-
-	
-//	public void setMidiChannelIn(int midiChannel) {
-//		settingsChannelIn = midiChannel;
-//		Prefs.put(Prefs.MIDI_IN_CHANNEL, settingsChannelIn);
-//	}
-	
-//	public void setMidiChannelOut(int midiChannel) {
-//		int oldOut = settingsChannelOut;
-//		settingsChannelOut = midiChannel;
-//		sendAllNotesOff(oldOut);
-//		Prefs.put(Prefs.MIDI_OUT_CHANNEL, settingsChannelOut);
-//	}
-	
-	
-//	public boolean isReceiveNotes() {
-//		return receiveNotes;
-//	}
-//
-//	public void setReceiveNotes(boolean receiveNotes) {
-//		this.receiveNotes = receiveNotes;
-//	}
-//
-//	public boolean isSendNotes() {
-//		return sendNotes;
-//	}
-//
-//	public void setSendNotes(boolean sendNotes) {
-//		if (this.sendNotes!=sendNotes && !sendNotes) {
-//			sendAllNotesOff();
-//		}
-//		this.sendNotes = sendNotes;
-//	}
-//
-//	public void updateLength(int numberQuarters) {
-//		settingsNumberQuarters = numberQuarters;
-//	}
-	
-	
 	
 
 }

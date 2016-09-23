@@ -1,17 +1,11 @@
 package de.privatepublic.midiutils;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 
 public class PerformanceHandler implements PerformanceReceiver { 
 	
-	private static final Logger LOG = LoggerFactory.getLogger(PerformanceHandler.class);
-	
 	private Note[] lastStarted = new Note[128];
-//	private boolean recordActive = false;
 	private Session session;
 	
 	public PerformanceHandler(Session session) {
@@ -22,9 +16,9 @@ public class PerformanceHandler implements PerformanceReceiver {
 	@Override
 	public void noteOn(int noteNumber, int velocity, int pos) {
 		if (MidiHandler.ACTIVE) {
-			Note dc = new Note(noteNumber, velocity, pos);
-			lastStarted[noteNumber] = dc;
-			session.getNotesList().add(dc);
+			Note note = new Note(noteNumber, velocity, pos);
+			lastStarted[noteNumber] = note;
+			session.getNotesList().add(note);
 			session.emitLoopUpdated();
 		}
 	}
@@ -42,21 +36,19 @@ public class PerformanceHandler implements PerformanceReceiver {
 	
 	@Override
 	public void receiveClock(int pos) {
-		
-			for (Note dc:session.getNotesList()) {
-				if (!dc.isCompleted()) {
+			for (Note note:session.getNotesList()) {
+				if (!note.isCompleted()) {
 					continue;
 				}
-				if (pos==dc.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex())) {
-					dc.setPlayed(true);
-					session.getMidiHandler().sendNoteOn(dc.getTransformedNoteNumber(session.getTransposeIndex()), dc.getVelocity());
+				if (pos==note.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex())) {
+					note.setPlayed(true);
+					session.getMidiHandler().sendNoteOnMidi(note.getTransformedNoteNumber(session.getTransposeIndex()), note.getVelocity());
 				}
-				if (pos==dc.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex())) {
-					session.getMidiHandler().sendNoteOff(dc.getTransformedNoteNumber(session.getTransposeIndex()));
-					dc.setPlayed(false);
+				if (pos==note.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex())) {
+					session.getMidiHandler().sendNoteOffMidi(note.getTransformedNoteNumber(session.getTransposeIndex()));
+					note.setPlayed(false);
 				}
 			}
-		
 	}
 
 
