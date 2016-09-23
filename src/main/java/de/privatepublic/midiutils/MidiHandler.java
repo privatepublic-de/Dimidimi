@@ -63,7 +63,7 @@ public class MidiHandler {
 						}
 					}
 					device.open();
-					LOG.info("Output device {}", infos[i].getDescription());
+//					LOG.info("Output device {}", infos[i].getDescription());
 				}
 				if (device.getMaxTransmitters()!=0) {
 					// input device
@@ -78,7 +78,7 @@ public class MidiHandler {
 					Receiver receiver = new MIDIReceiver(dev);
 					trans.setReceiver(receiver);
 					device.open();
-					LOG.info("Input device {}", infos[i].getDescription());
+//					LOG.info("Input device {}", infos[i].getDescription());
 				}
 				
 			} catch (MidiUnavailableException e) {
@@ -97,6 +97,7 @@ public class MidiHandler {
 				return o1.getInfo().getVendor().compareTo(o2.getInfo().getVendor());
 			}
 		});
+		LOG.info("Available MIDI devices: {} in, {} out", inputDeviceList.size(), outputDeviceList.size());
 		session.emitSettingsUpdated();
 	}
 	

@@ -259,7 +259,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				session.setTransposeIndex(comboBoxTranspose.getSelectedIndex());
-				LOG.info("Transpose: {}", comboBoxTranspose.getSelectedItem());
 				session.emitRefreshLoopDisplay();
 			}});
 		
@@ -267,7 +266,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				session.setQuantizationIndex(comboQuantize.getSelectedIndex());
-				LOG.info("Quantization: {}", comboQuantize.getSelectedItem());
 				session.emitRefreshLoopDisplay();
 			}});
 		
@@ -359,7 +357,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		checkBoxMidiIn.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				session.setMidiInputOn(checkBoxMidiIn.isSelected());
-				LOG.info("Receive Notes {}", session.isMidiInputOn());
 			}
 		});
 		checkBoxMidiIn.setToolTipText("Receive Notes from selected Channel");
@@ -375,7 +372,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		checkBoxMidiOut.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				session.setMidiOutputOn(checkBoxMidiOut.isSelected());
-				LOG.info("Send Notes {}", session.isMidiOutputOn());
 			}
 		});
 		checkBoxMidiOut.setToolTipText("Output Notes on selcted Channel");
