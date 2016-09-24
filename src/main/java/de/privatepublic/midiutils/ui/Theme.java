@@ -20,7 +20,7 @@ public class Theme {
 			Color.BLACK /*colorSelectedNoteText*/, 
 			Color.getHSBColor(.58f, .8f, 1f) /*colorClockOn*/, 
 			SystemColor.window /*colorClockOff*/, 
-			Color.decode("#444444") /*colorMidiOutBig*/, 
+			Color.decode("#333333") /*colorMidiOutBig*/, 
 			.6f /*noteColorSaturation*/, 
 			1f /*noteColorBrightness*/, 
 			.6f /*octaveColorSaturation*/, 
