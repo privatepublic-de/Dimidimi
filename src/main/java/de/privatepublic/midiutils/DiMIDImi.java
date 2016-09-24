@@ -94,21 +94,41 @@ public class DiMIDImi {
 		int minheight = 300; // TODO constants for uiwindow, too
 		int maxcols = width / minwidth;
 		int maxrows = height / minheight;
+		int numcols = maxcols;
+		int numrows = maxrows;
 		int number = SESSIONS.size();
-		if (maxcols*maxrows<number) {
-			
+		switch(number) {
+		case 1:
+			// maximize single window
+			numcols = 1;
+			numrows = 1;
+			break;
+		case 2:
+			numcols = Math.min(2, maxcols);
+			numrows = 1;
+			break;
+		case 3:
+		case 4:
+			numcols = Math.min(2, maxcols);
+			numrows = Math.min(2, maxrows);
+			break;
+		case 5:
+		case 6:
+			numcols = Math.min(3, maxcols);
+			numrows = Math.min(2, maxrows);
+			break;
 		}
-		int wwidth = width/maxcols;
-		int wheight = height/maxrows;
+		int wwidth = width/numcols;
+		int wheight = height/numrows;
 		int row = 0;
 		int col = 0;
 		int rowiteration = 0;
 		for (Session session: SESSIONS) {
 			Rectangle pos = new Rectangle(rect.x+20*rowiteration+col*wwidth, rect.y+20*rowiteration+row*wheight, wwidth-20, wheight-20);
 			session.getWindow().setScreenPosition(pos);
-			col = (col+1)%maxcols;
+			col = (col+1)%numcols;
 			if (col==0) {
-				row = (row+1)%maxrows;
+				row = (row+1)%numrows;
 				if (row==0) {
 					rowiteration++;
 				}
