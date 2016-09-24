@@ -397,17 +397,19 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		loopDisplayPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		frmDimidimi.getContentPane().setLayout(groupLayout);
 		
-		ActionListener settingChanged = new ActionListener() {
+		
+		comboMidiIn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int midiIn = comboMidiIn.getSelectedIndex();
-				int midiOut = comboMidiOut.getSelectedIndex();
 				session.setMidiChannelIn(midiIn);
+			}});
+		comboMidiOut.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int midiOut = comboMidiOut.getSelectedIndex();
 				session.setMidiChannelOut(midiOut);
-			}};
-		
-		comboMidiIn.addActionListener(settingChanged);
-		comboMidiOut.addActionListener(settingChanged);
+			}});
 		
 	}
 	
@@ -477,6 +479,20 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuBar.add(menu);
 		
 		menu = new JMenu("Loop");
+		menuItem = new JMenuItem("New");
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.setMidiInputOn(false);
+				settingsUpdated();
+				DiMIDImi.createSession();
+			}
+		});
+		menu.add(menuItem);
+		
+		
+		menu.addSeparator();
 		menuItem = new JMenuItem("Load...");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
@@ -595,6 +611,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		menu = new JMenu("Window");
 		menuItem = new JMenuItem("Arrange Windows");
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK+Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -614,7 +631,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menu.add(menuItem);
 		
 		menuBar.add(menu);
-		
 		return menuBar;
 	}
 	
@@ -640,7 +656,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			menuItemTheme.setSelected(true);
 		}
 		frmDimidimi.setTitle(getWindowTitle());
-		frmDimidimi.repaint();
+		//frmDimidimi.repaint();
 	}
 	
 	@Override
