@@ -97,7 +97,7 @@ public class DiMIDImi {
 		int height = rect.height;
 		
 		LOG.info("Arranging windows in {}x{}", width, height);		
-		int minwidth = 740;
+		int minwidth = 680;
 		int minheight = 300; // TODO constants for uiwindow, too
 		int maxcols = width / minwidth;
 		int maxrows = height / minheight;

@@ -180,7 +180,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.setLayout(sl_panel);
 		
 		JLabel lblNumberOfQuarters = new JLabel("Length");
-		sl_panel.putConstraint(SpringLayout.NORTH, lblNumberOfQuarters, 11, SpringLayout.NORTH, panel);
+		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblNumberOfQuarters, 0, SpringLayout.VERTICAL_CENTER, panel);
 		sl_panel.putConstraint(SpringLayout.WEST, lblNumberOfQuarters, 8, SpringLayout.WEST, panel);
 		panel.add(lblNumberOfQuarters);
 		
