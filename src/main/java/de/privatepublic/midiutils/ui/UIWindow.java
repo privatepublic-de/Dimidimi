@@ -204,7 +204,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		JLabel lblQuantizeTo = new JLabel("Quantize");
 		sl_panel.putConstraint(SpringLayout.NORTH, lblQuantizeTo, 11, SpringLayout.NORTH, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, lblQuantizeTo, 0, SpringLayout.EAST, btnApply);
+		sl_panel.putConstraint(SpringLayout.WEST, lblQuantizeTo, 8, SpringLayout.EAST, btnApply);
 		panel.add(lblQuantizeTo);
 		
 		comboQuantize = new JComboBox(QUANTIZE);
@@ -216,7 +216,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		JLabel lblTranspose = new JLabel("Transpose");
 		sl_panel.putConstraint(SpringLayout.NORTH, lblTranspose, 11, SpringLayout.NORTH, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 0, SpringLayout.EAST, comboQuantize);
+		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 8, SpringLayout.EAST, comboQuantize);
 		panel.add(lblTranspose);
 		
 		comboBoxTranspose = new JComboBox(TRANSPOSE);
@@ -233,7 +233,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.add(btnClear);
 		
 		JButton buttonNewSession = new JButton("+");
-		sl_panel.putConstraint(SpringLayout.EAST, btnClear, 0, SpringLayout.WEST, buttonNewSession);
+		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -8, SpringLayout.WEST, buttonNewSession);
 		sl_panel.putConstraint(SpringLayout.NORTH, buttonNewSession, -5, SpringLayout.NORTH, lblNumberOfQuarters);
 		sl_panel.putConstraint(SpringLayout.WEST, buttonNewSession, -83, SpringLayout.EAST, panel);
 		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, -8, SpringLayout.EAST, panel);
@@ -330,11 +330,11 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -12, SpringLayout.WEST, lblOut);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, comboMidiOut, 10, SpringLayout.NORTH, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, lblOut, 14, SpringLayout.NORTH, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, comboMidiIn, 10, SpringLayout.NORTH, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, lblIn, 14, SpringLayout.NORTH, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -6, SpringLayout.WEST, lblOut);
 		panelMidi.setLayout(sl_panelMidi);
 		
 		panelActive = new JPanel();
@@ -379,7 +379,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(comboMidiOut);
 		
 		JButton btnNotesOff = new JButton("Panic");
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, 0, SpringLayout.WEST, btnNotesOff);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, -8, SpringLayout.WEST, btnNotesOff);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, btnNotesOff, 9, SpringLayout.NORTH, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, btnNotesOff, -10, SpringLayout.EAST, panelMidi);
 		btnNotesOff.setToolTipText("Turns off all playing or stuck MIDI notes.");
@@ -465,17 +465,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
-		menu.addSeparator();
-		
-		menuItemTheme = new JCheckBoxMenuItem("Dark Display Theme");
-		menuItemTheme.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
-				DiMIDImi.updateSettingsOnAllSessions();
-			}
-		});
-		menu.add(menuItemTheme);
 		menuBar.add(menu);
 		
 		menu = new JMenu("Loop");
@@ -610,6 +599,17 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuBar.add(menu);
 		
 		menu = new JMenu("Window");
+		menuItemTheme = new JCheckBoxMenuItem("Dark Theme");
+		menuItemTheme.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
+				DiMIDImi.updateSettingsOnAllSessions();
+			}
+		});
+		menu.add(menuItemTheme);
+		menu.addSeparator();		
+		
 		menuItem = new JMenuItem("Arrange Windows");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK+Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
@@ -619,6 +619,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		menu.addSeparator();
 		
 		menuItem = new JMenuItem("Close");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -626,6 +627,16 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				closeWindow();
+			}
+		});
+		menu.add(menuItem);
+		
+		menu.addSeparator();
+		menuItem = new JMenuItem("Close All (Exit)");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DiMIDImi.removeAllSessions();
 			}
 		});
 		menu.add(menuItem);

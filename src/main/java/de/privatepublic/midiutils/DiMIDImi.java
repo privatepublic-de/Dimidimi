@@ -59,6 +59,13 @@ public class DiMIDImi {
 		}
 	}
 	
+	public static void removeAllSessions() {
+		LOG.info("Removing all sessions");
+		for (Session session: SESSIONS) {
+			session.getWindow().closeWindow();
+		}
+	}
+	
 	public static void saveSession(File file) throws JsonGenerationException, JsonMappingException, IOException {
 		List<StorageContainer> dataList = new ArrayList<StorageContainer>();
 		for (Session session: SESSIONS) {

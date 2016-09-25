@@ -267,8 +267,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			float noteendx = notepos.x2;
 			float veloHeight = Math.max(note.getVelocity()/127f * noteHeight*2, noteHeight/3f);
 
-			int lineCap = (note==selectedNoteRun)?BasicStroke.CAP_BUTT:BasicStroke.CAP_ROUND;
-
 			if (noteendx>=notestartx) {
 				if (note==selectedNoteRun) {
 					g.setColor(Theme.CURRENT.getColorSelectedNoteOutline());
@@ -276,7 +274,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
 					g.setColor(noteColor);
 				}
-				g.setStroke(new BasicStroke(veloHeight, lineCap, BasicStroke.JOIN_MITER));
+				g.setStroke(new BasicStroke(veloHeight, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
 				g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
 			}
 			else {
@@ -287,7 +285,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
 					g.setColor(noteColor);
 				}
-				g.setStroke(new BasicStroke(veloHeight, lineCap, BasicStroke.JOIN_MITER));
+				g.setStroke(new BasicStroke(veloHeight, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
 				g.drawLine((int)0, (int)notey, (int)noteendx, (int)notey);
 				g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
 			}
