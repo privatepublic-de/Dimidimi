@@ -153,13 +153,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-						.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
-						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
-						.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
+						.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 992, Short.MAX_VALUE)
+						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 992, Short.MAX_VALUE)
+						.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
 							.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE)))
+							.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, 777, Short.MAX_VALUE)))
 					.addContainerGap())
 		);
 		groupLayout.setVerticalGroup(
@@ -167,28 +167,26 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addGroup(groupLayout.createSequentialGroup()
-							.addComponent(panelMidi, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+						.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(panelTitle, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE)
+					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 353, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap())
+					.addGap(6))
 		);
 		SpringLayout sl_panel = new SpringLayout();
 		panel.setLayout(sl_panel);
 		
 		JLabel lblNumberOfQuarters = new JLabel("Length");
+		sl_panel.putConstraint(SpringLayout.WEST, lblNumberOfQuarters, 0, SpringLayout.WEST, panel);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblNumberOfQuarters, 0, SpringLayout.VERTICAL_CENTER, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, lblNumberOfQuarters, 8, SpringLayout.WEST, panel);
 		panel.add(lblNumberOfQuarters);
 		
 		textFieldLength = new JTextField();
+		sl_panel.putConstraint(SpringLayout.WEST, textFieldLength, 6, SpringLayout.EAST, lblNumberOfQuarters);
 		textFieldLength.setToolTipText("Loop length in quarter notes");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, textFieldLength, 0, SpringLayout.VERTICAL_CENTER, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, textFieldLength, 56, SpringLayout.WEST, panel);
 		textFieldLength.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(textFieldLength);
 		textFieldLength.setHorizontalAlignment(SwingConstants.CENTER);
@@ -198,31 +196,31 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
 		
 		JButton btnApply = new JButton("Apply");
+		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 6, SpringLayout.EAST, textFieldLength);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, btnApply, 0, SpringLayout.VERTICAL_CENTER, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 0, SpringLayout.EAST, textFieldLength);
 		panel.add(btnApply);
 		btnApply.setEnabled(false);
 		
 		JLabel lblQuantizeTo = new JLabel("Quantize");
+		sl_panel.putConstraint(SpringLayout.WEST, lblQuantizeTo, 12, SpringLayout.EAST, btnApply);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblQuantizeTo, 0, SpringLayout.VERTICAL_CENTER, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, lblQuantizeTo, 8, SpringLayout.EAST, btnApply);
 		panel.add(lblQuantizeTo);
 		
 		comboQuantize = new JComboBox(QUANTIZE);
+		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, lblQuantizeTo);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 0, SpringLayout.EAST, lblQuantizeTo);
 		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboQuantize);
 		comboQuantize.setMaximumRowCount(12);
 		
 		JLabel lblTranspose = new JLabel("Transpose");
+		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 12, SpringLayout.EAST, comboQuantize);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 8, SpringLayout.EAST, comboQuantize);
 		panel.add(lblTranspose);
 		
 		comboBoxTranspose = new JComboBox(TRANSPOSE);
+		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 6, SpringLayout.EAST, lblTranspose);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboBoxTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 0, SpringLayout.EAST, lblTranspose);
 		comboBoxTranspose.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboBoxTranspose);
 		comboBoxTranspose.setMaximumRowCount(27);
@@ -233,9 +231,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.add(btnClear);
 		
 		JButton buttonNewSession = new JButton("+");
-		sl_panel.putConstraint(SpringLayout.EAST, btnClear, 0, SpringLayout.WEST, buttonNewSession);
+		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -6, SpringLayout.WEST, buttonNewSession);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewSession, 0, SpringLayout.VERTICAL_CENTER, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, buttonNewSession, -83, SpringLayout.EAST, panel);
 		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, -8, SpringLayout.EAST, panel);
 		buttonNewSession.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panel.add(buttonNewSession);
@@ -315,7 +312,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelTitle.add(lblDimidimiLooper);
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
 		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-32.png")));
-		groupLayout.setAutoCreateContainerGaps(true);
 		
 		JLabel lblIn = new JLabel("Channel:  In");
 		
