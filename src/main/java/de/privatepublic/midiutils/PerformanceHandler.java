@@ -76,8 +76,17 @@ public class PerformanceHandler implements PerformanceReceiver {
 
 	private Note findOverlappingNote(Note note, int pos) {
 		for (Note ln: session.getNotesList()) {
-			if (ln!=note && ln.getNoteNumber()==note.getNoteNumber() && ln.getPosStart()==pos) {
-				return ln;
+			if (ln!=note && ln.getNoteNumber()==note.getNoteNumber()) {
+				if (ln.getPosStart()<ln.getPosEnd()) {
+					if (ln.getPosStart()<=pos && ln.getPosEnd()>pos) {
+						return ln;
+					}
+				}
+				else {
+					if (ln.getPosStart()<=pos && ln.getPosEnd()>0) {
+						return ln;
+					}
+				}
 			}
 		}
 		return null;
