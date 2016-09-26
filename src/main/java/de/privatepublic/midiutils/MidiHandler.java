@@ -143,11 +143,11 @@ public class MidiHandler {
 			switch(status) {
 			case ShortMessage.STOP:
 				LOG.info("Received STOP - Setting song position zero");
+				sendAllNotesOffMidi();
 				ACTIVE = false;
 				session.emitActive(false, pos);
 				pos = 0;
 				sendMessage(resetPositionMessage);
-				sendAllNotesOffMidi();
 				break;
 			case ShortMessage.START:
 				LOG.info("Received START");
@@ -161,8 +161,7 @@ public class MidiHandler {
 				break;
 			case ShortMessage.TIMING_CLOCK:
 				session.emitClock(pos);
-				pos += session.getClockIncrement();
-				pos = pos%session.getMaxTicks();
+				pos = ++pos%session.getMaxTicks();
 				break;
 			}
 			if (message instanceof ShortMessage && device.isActiveForInput() && session.isMidiInputOn()) {
@@ -244,18 +243,15 @@ public class MidiHandler {
 	
 	
 	public void sendAllNotesOffMidi(int channel) {
-//		for (int i=0;i<128;i++) {
-//			try {
-//				ShortMessage message = new ShortMessage();
-//				message.setMessage(ShortMessage.NOTE_OFF, channel, i, 0);
-//				sendMessage(message);
-//			} catch (InvalidMidiDataException e) {
-//				e.printStackTrace();
-//			}
-//		}
-		
+		ShortMessage message = new ShortMessage();		
 		try {
-			ShortMessage message = new ShortMessage();
+			for (Note note: session.getNotesList()) {
+				if (note.isPlayed()) {
+					note.setPlayed(false);
+					message.setMessage(ShortMessage.NOTE_OFF, channel, note.getTransformedNoteNumber(session.getTransposeIndex()), 0);
+					sendMessage(message);
+				}
+			}
 			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 123, 0);
 			sendMessage(message);
 			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 120, 0);

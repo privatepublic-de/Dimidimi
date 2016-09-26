@@ -80,7 +80,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JCheckBox checkBoxMidiOut;
 	private JCheckBox checkBoxMidiIn;
 	private JLabel lblDimidimiLooper;
-	private JCheckBoxMenuItem menuItemClockInc;
 	private JCheckBoxMenuItem menuItemTheme;
 	private Session session;
 	private String titleExtension = "";
@@ -578,17 +577,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
-		menu.addSeparator();
-		menuItemClockInc = new JCheckBoxMenuItem("48ppq MIDI clock");
-		menuItemClockInc.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				boolean selected = e.getStateChange()==ItemEvent.SELECTED;
-				int inc = selected?1:2;
-				session.setClockIncrement(inc);
-			}
-		});
-		menu.add(menuItemClockInc);
 		menuBar.add(menu);
 		
 		menu = new JMenu("Window");
@@ -646,7 +634,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboQuantize.setSelectedIndex(session.getQuantizationIndex());
 		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		menuItemClockInc.setSelected(session.getClockIncrement()==1);
 		checkBoxMidiIn.setSelected(session.isMidiInputOn());
 		checkBoxMidiOut.setSelected(session.isMidiOutputOn());
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());

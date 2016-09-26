@@ -27,8 +27,6 @@ public class Session {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Session.class);
 	
-	private static int CLOCK_INCREMENT = Prefs.get(Prefs.MIDI_CLOCK_INCREMENT, 2);
-	
 	public Session(int pos) {
 		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
 		midiChannelOut = Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1);
@@ -62,18 +60,6 @@ public class Session {
 		midiHandler = new MidiHandler(this, 0);
 	}
 
-
-	public int getClockIncrement() {
-		return CLOCK_INCREMENT;
-	}
-
-	public void setClockIncrement(int steps) {
-		if (steps != CLOCK_INCREMENT) {
-			CLOCK_INCREMENT = steps;
-			Prefs.put(Prefs.MIDI_CLOCK_INCREMENT, steps);
-			DiMIDImi.updateSettingsOnAllSessions();
-		}
-	}
 
 	public int getLengthQuarters() {
 		return lengthQuarters;
@@ -334,6 +320,6 @@ public class Session {
 	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
 	private List<SettingsUpdateReceiver> settingsUpdateReceivers = new CopyOnWriteArrayList<SettingsUpdateReceiver>();
 
-	public static final int TICK_COUNT_BASE = 48;
+	public static final int TICK_COUNT_BASE = 24;
 
 }
