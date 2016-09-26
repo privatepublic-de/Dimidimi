@@ -19,6 +19,10 @@ public class PerformanceHandler implements PerformanceReceiver {
 			Note note = new Note(noteNumber, velocity, pos);
 			lastStarted[noteNumber] = note;
 			session.getNotesList().add(note);
+			Note overlap = findOverlappingNote(note, pos);
+			if (overlap!=null) {
+				session.getNotesList().remove(overlap);
+			}
 			session.emitLoopUpdated();
 		}
 	}
@@ -38,6 +42,11 @@ public class PerformanceHandler implements PerformanceReceiver {
 	public void receiveClock(int pos) {
 			for (Note note:session.getNotesList()) {
 				if (!note.isCompleted()) {
+					Note overlap = findOverlappingNote(note, pos);
+					if (overlap!=null) {
+						session.getNotesList().remove(overlap);
+					}
+					session.emitLoopUpdated();
 					continue;
 				}
 				if (pos==note.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex())) {
@@ -65,6 +74,14 @@ public class PerformanceHandler implements PerformanceReceiver {
 		}
 	}
 
+	private Note findOverlappingNote(Note note, int pos) {
+		for (Note ln: session.getNotesList()) {
+			if (ln!=note && ln.getNoteNumber()==note.getNoteNumber() && ln.getPosStart()==pos) {
+				return ln;
+			}
+		}
+		return null;
+	}
 	
 	
 }
