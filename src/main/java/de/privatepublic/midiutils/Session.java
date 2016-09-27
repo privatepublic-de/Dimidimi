@@ -204,8 +204,10 @@ public class Session {
 		setMidiInputOn(data.isMidiChannelInActive());
 		setMidiOutputOn(data.isMidiChannelOutActive());
 		Map<String, Integer> wpos = data.getWindowPos();
-		Rectangle windowBounds = new Rectangle(wpos.get("x"), wpos.get("y"), wpos.get("w"), wpos.get("h"));
-		window.setScreenPosition(windowBounds);
+		if (wpos!=null) {
+			Rectangle windowBounds = new Rectangle(wpos.get("x"), wpos.get("y"), wpos.get("w"), wpos.get("h"));
+			window.setScreenPosition(windowBounds);
+		}
 	}
 
 	public void clearNote(Note note) {

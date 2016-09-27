@@ -19,6 +19,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -45,6 +46,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -423,6 +426,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				if (selectedFile!=null) {
 					try {
 						DiMIDImi.loadSession(selectedFile);
+						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
 					} catch (IOException e1) {
 						JOptionPane.showMessageDialog(frmDimidimi, "Could not load file\n"+e1.getMessage());
 		        		LOG.error("Could not load file", e1);
@@ -432,6 +436,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		JMenu recentSub = new JMenu("Recent Sessions");
+		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_SESSION_LIST));
+		menu.add(recentSub);
+		
 		menu.addSeparator();
 		menuItem = new JMenuItem("Save as...");
 		menuItem.addActionListener(new ActionListener() {
@@ -441,6 +449,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				if (selectedFile!=null) {
 					try {
 						DiMIDImi.saveSession(selectedFile);
+						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
 					} catch (IOException e1) {
 						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
 		        		LOG.error("Could not write file", e1);
@@ -465,6 +474,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 		menu.add(menuItem);
 		
+		menu.addSeparator();
 		menuItem = new JMenuItem("Load...");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
@@ -474,6 +484,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		        	Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
 		        	try {
 		        		session.loadLoop(selectedFile);
+		        		Prefs.pushToList(Prefs.RECENT_LOOP_LIST, selectedFile.getPath());
 		        		titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
 		        		frmDimidimi.setTitle(getWindowTitle());
 					} catch (Exception e1) {
@@ -488,6 +499,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		recentSub = new JMenu("Recent Loops");
+		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_LOOP_LIST));
+		menu.add(recentSub);
 		menu.addSeparator();
 		menuItem = new JMenuItem("Save...");
 		menuItem.addActionListener(new ActionListener() {
@@ -497,6 +511,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		        if (selectedFile!=null) {
 		        	try {
 		        		session.saveLoop(selectedFile);
+		        		Prefs.pushToList(Prefs.RECENT_LOOP_LIST, selectedFile.getPath());
 		        		titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
 		        		frmDimidimi.setTitle(getWindowTitle());
 		        	}
@@ -626,6 +641,36 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		return menuBar;
 	}
 	
+	private class RecentMenuListener implements MenuListener {
+
+		private String listKey;
+		
+		public RecentMenuListener(String listKey) {
+			this.listKey = listKey;
+		}
+		
+		@Override
+		public void menuSelected(MenuEvent e) {
+			JMenu menu = (JMenu) e.getSource();
+			menu.removeAll();
+			List<String> list = Prefs.getList(listKey);
+			for (String entry:list) {
+				JMenuItem item = new JMenuItem(entry);
+				menu.add(item);
+			}
+		}
+
+		@Override
+		public void menuDeselected(MenuEvent e) {
+			
+		}
+
+		@Override
+		public void menuCanceled(MenuEvent e) {
+			
+		}
+		
+	}
 	
 	// events
 	
