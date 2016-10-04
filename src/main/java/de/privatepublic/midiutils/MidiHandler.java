@@ -183,6 +183,13 @@ public class MidiHandler {
 					case ShortMessage.NOTE_OFF:
 						noteOff(data1);
 						break;
+					case ShortMessage.CONTROL_CHANGE:
+						session.emitCC(data1, data2, pos);
+						break;
+					case ShortMessage.PITCH_BEND:
+						int val = ((data1 & 0x7f) + ((data2 & 0x7f)<<7)) - 0x2000;
+						session.emitPitchBend(val, pos);
+						break;
 					}
 				}
 			}
@@ -227,6 +234,32 @@ public class MidiHandler {
 			}
 		}
 	}
+	
+	public void sendCC(int val) {
+		if (session.isMidiOutputOn()) {
+			try {
+				ShortMessage message = new ShortMessage();
+				message.setMessage(ShortMessage.CONTROL_CHANGE, session.getMidiChannelOut(), 1, val);
+				sendMessage(message);
+			} catch (InvalidMidiDataException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void sendPitchBend(int val) {
+		if (session.isMidiOutputOn()) {
+			try {
+				ShortMessage message = new ShortMessage();
+				val = Math.min(val + 0x2000, 0x3fff);
+				message.setMessage(ShortMessage.PITCH_BEND, session.getMidiChannelOut(), val & 0x7f, (val>>7) & 0x7f);
+				sendMessage(message);
+			} catch (InvalidMidiDataException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 
 	private void sendMessage(MidiMessage msg) {
 		for (MidiDeviceWrapper d:outputDeviceList) {
@@ -257,6 +290,10 @@ public class MidiHandler {
 			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 120, 0);
 			sendMessage(message);
 			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 121, 0);
+			sendMessage(message);
+			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 1, 0);
+			sendMessage(message);
+			message.setMessage(ShortMessage.PITCH_BEND, channel, 0, 0x40);
 			sendMessage(message);
 		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();

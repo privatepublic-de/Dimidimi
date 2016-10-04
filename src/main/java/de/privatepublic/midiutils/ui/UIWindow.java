@@ -297,7 +297,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			private void checkInput() {
 				try {
 					int value = Integer.parseInt(textFieldLength.getText());
-					if (value>0 && value!=session.getLengthQuarters()){
+					if (value>0 && value!=session.getLengthQuarters() && value<Session.MAX_NUMBER_OF_QUARTERS){
 						btnApply.setEnabled(true);	 
 					}
 					else {
@@ -710,6 +710,18 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	@Override
 	public void noteOff(int notenumber, int pos) {
+	}
+
+	@Override
+	public void receiveCC(int cc, int val, int pos) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void receivePitchBend(int val, int pos) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

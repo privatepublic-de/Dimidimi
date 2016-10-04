@@ -23,7 +23,7 @@ import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.ui.UIWindow;
 
-public class Session {
+public class Session implements PerformanceReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Session.class);
 	
@@ -35,7 +35,8 @@ public class Session {
 				try {
 					midiHandler = new MidiHandler(Session.this, pos);
 					window = new UIWindow(Session.this);
-					new PerformanceHandler(Session.this);
+					// new PerformanceHandler(Session.this);
+					registerAsReceiver(Session.this);
 				} catch (Exception e) {
 					LOG.error("Could not create UIWindow", e);
 				}
@@ -51,7 +52,8 @@ public class Session {
 					applyStorageData(data);
 					emitLoopUpdated();
 					emitSettingsUpdated();
-					new PerformanceHandler(Session.this);
+					// new PerformanceHandler(Session.this);
+					registerAsReceiver(Session.this);
 				} catch (Exception e) {
 					LOG.error("Could not create UIWindow", e);
 				}
@@ -158,6 +160,14 @@ public class Session {
 		this.notesList = notesList;
 	}
 	
+	public int[] getCcList() {
+		return ccList;
+	}
+
+	public int[] getPitchBendList() {
+		return pitchBendList;
+	}
+
 	public UIWindow getWindow() {
 		return window;
 	}
@@ -170,6 +180,12 @@ public class Session {
 			getMidiHandler().sendNoteOffMidi(dc.getTransformedNoteNumber(getTransposeIndex()));
 		}
 		getNotesList().clear();
+		for (int i=0;i<MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE;++i) {
+			ccList[i] = 0;
+			pitchBendList[i] = 0;
+		}
+		getMidiHandler().sendPitchBend(0);
+		getMidiHandler().sendCC(0);
 		emitLoopUpdated();
 	}
 
@@ -285,6 +301,19 @@ public class Session {
 			receiver.noteOff(notenumber, pos);;
 		}
 	}
+	
+	public void emitCC(int cc, int val, int pos) {
+		for (PerformanceReceiver receiver: performanceReceivers) {
+			receiver.receiveCC(cc, val, pos);
+		}
+	}
+	
+	public void emitPitchBend(int val, int pos) {
+		for (PerformanceReceiver receiver: performanceReceivers) {
+			receiver.receivePitchBend(val, pos);
+		}
+	}
+	
 
 	public void emitClock(int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
@@ -304,6 +333,120 @@ public class Session {
 		}
 	}
 
+	
+	
+	@Override
+	public void noteOn(int noteNumber, int velocity, int pos) {
+		if (MidiHandler.ACTIVE) {
+			Note note = new Note(noteNumber, velocity, pos);
+			lastStarted[noteNumber] = note;
+			getNotesList().add(note);
+			Note overlap = findOverlappingNote(note, pos);
+			if (overlap!=null) {
+				getNotesList().remove(overlap);
+			}
+			emitLoopUpdated();
+		}
+	}
+	
+	@Override
+	public void noteOff(int notenumber, int pos) {
+		if (MidiHandler.ACTIVE) {
+			Note reference = lastStarted[notenumber];
+			if (reference!=null) {
+				reference.setPosEnd(pos);
+			}
+			emitLoopUpdated();
+		}
+	}
+	
+	@Override
+	public void receiveClock(int pos) {
+		if (pos==0) {
+			overrideCC = overridePitchBend = false;
+		}
+		if (overridePitchBend) {
+			pitchBendList[pos] = currentPitchBend;	
+		}
+		if (overrideCC) {
+			ccList[pos] = currentCC;
+		}
+		int prevpos = (pos+getMaxTicks()-1)%getMaxTicks();
+		if (pitchBendList[pos]!=pitchBendList[prevpos]) {
+			getMidiHandler().sendPitchBend(pitchBendList[pos]);
+		}
+		if (ccList[pos]!=ccList[prevpos]) {
+			getMidiHandler().sendCC(ccList[pos]);
+		}
+		for (Note note:getNotesList()) {
+			if (!note.isCompleted()) {
+				Note overlap = findOverlappingNote(note, pos);
+				if (overlap!=null) {
+					getNotesList().remove(overlap);
+				}
+				emitLoopUpdated();
+				continue;
+			}
+			if (pos==note.getTransformedPosStart(getMaxTicks(), getQuantizationIndex())) {
+				note.setPlayed(true);
+				getMidiHandler().sendNoteOnMidi(note.getTransformedNoteNumber(getTransposeIndex()), note.getVelocity());
+			}
+			if (pos==note.getTransformedPosEnd(getMaxTicks(), getQuantizationIndex())) {
+				getMidiHandler().sendNoteOffMidi(note.getTransformedNoteNumber(getTransposeIndex()));
+				note.setPlayed(false);
+			}
+		}
+	}
+
+
+	@Override
+	public void receiveActive(boolean active, int pos) {
+		if (!active) {
+			// find still uncompleted notes
+			for (Note nr:getNotesList()) {
+				if (!nr.isCompleted()) {
+					nr.setPosEnd(pos);
+				}
+			}
+			
+		}
+	}
+
+	private Note findOverlappingNote(Note note, int pos) {
+		for (Note ln:getNotesList()) {
+			if (ln!=note && ln.getNoteNumber()==note.getNoteNumber()) {
+				if (ln.getPosStart()<ln.getPosEnd()) {
+					if (ln.getPosStart()<=pos && ln.getPosEnd()>pos) {
+						return ln;
+					}
+				}
+				else {
+					if (ln.getPosStart()<=pos && ln.getPosEnd()>0) {
+						return ln;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void receiveCC(int cc, int val, int pos) {
+		if (cc==1) {
+			currentCC = val;
+			ccList[pos] = val;
+			overrideCC = true;
+		}
+	}
+
+	@Override
+	public void receivePitchBend(int val, int pos) {
+		currentPitchBend = val;
+		pitchBendList[pos] = val;
+		overridePitchBend = true;
+	}
+	
+	
 
 
 	private int lengthQuarters = 8;
@@ -316,12 +459,21 @@ public class Session {
 	private int quantizationIndex = 0;
 	private int transposeIndex = 13;
 	private UIWindow window;
+	private int currentCC = 0;
+	private int currentPitchBend = 0;
 	private List<Note> notesList = new CopyOnWriteArrayList<Note>();
+	private boolean overrideCC = false;
+	private boolean overridePitchBend = false;
+	private int[] ccList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
+	private int[] pitchBendList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
 
 	private List<LoopUpdateReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<LoopUpdateReceiver>();
 	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
 	private List<SettingsUpdateReceiver> settingsUpdateReceivers = new CopyOnWriteArrayList<SettingsUpdateReceiver>();
 
+	private Note[] lastStarted = new Note[128];
+	
 	public static final int TICK_COUNT_BASE = 24;
+	public static final int MAX_NUMBER_OF_QUARTERS = 64;
 
 }
