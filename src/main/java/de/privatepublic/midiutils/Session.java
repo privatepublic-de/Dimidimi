@@ -188,6 +188,20 @@ public class Session implements PerformanceReceiver {
 		getMidiHandler().sendCC(0);
 		emitLoopUpdated();
 	}
+	
+	public void clearModWheel() {
+		for (int i=0;i<MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE;++i) {
+			ccList[i] = 0;
+		}
+		getMidiHandler().sendCC(0);
+	}
+	
+	public void clearPitchBend() {
+		for (int i=0;i<MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE;++i) {
+			pitchBendList[i] = 0;
+		}
+		getMidiHandler().sendPitchBend(0);
+	}
 
 
 	public void saveLoop(File file) throws JsonGenerationException, JsonMappingException, IOException {

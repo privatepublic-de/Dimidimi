@@ -297,7 +297,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			private void checkInput() {
 				try {
 					int value = Integer.parseInt(textFieldLength.getText());
-					if (value>0 && value!=session.getLengthQuarters() && value<Session.MAX_NUMBER_OF_QUARTERS){
+					if (value>0 && value!=session.getLengthQuarters() && value<=Session.MAX_NUMBER_OF_QUARTERS){
 						btnApply.setEnabled(true);	 
 					}
 					else {
@@ -530,10 +530,29 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.clearPattern();;
+				session.clearPattern();
 			}
 		});
 		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Clear Mod Wheel");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.clearModWheel();
+			}
+		});
+		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Clear Pitch Bend");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.clearPitchBend();
+			}
+		});
+		menu.add(menuItem);
+		
 		menuItem = new JMenuItem("Double");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
