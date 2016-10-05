@@ -50,6 +50,7 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -424,20 +425,22 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				File selectedFile = GUIUtils.loadDialog("Load Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
 				if (selectedFile!=null) {
-					try {
-						DiMIDImi.loadSession(selectedFile);
-						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
-					} catch (IOException e1) {
-						JOptionPane.showMessageDialog(frmDimidimi, "Could not load file\n"+e1.getMessage());
-		        		LOG.error("Could not load file", e1);
-					}
-		        	Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
+					GUIUtils.loadSession(selectedFile, frmDimidimi);
 				}
 			}
 		});
 		menu.add(menuItem);
 		JMenu recentSub = new JMenu("Recent Sessions");
-		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_SESSION_LIST));
+		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_SESSION_LIST, new RecentMenuActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				super.actionPerformed(e);
+				String filename = Prefs.getList(Prefs.RECENT_SESSION_LIST).get(selectedIndex);
+				if (!Prefs.LIST_ENTRY_EMPTY_MARKER.equals(filename)) {
+					GUIUtils.loadSession(new File(filename), frmDimidimi);
+				}
+			}
+		}));
 		menu.add(recentSub);
 		
 		menu.addSeparator();
@@ -481,26 +484,30 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				File selectedFile = GUIUtils.loadDialog("Load Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
 		        if (selectedFile!=null) {
-		        	Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
-		        	try {
-		        		session.loadLoop(selectedFile);
-		        		Prefs.pushToList(Prefs.RECENT_LOOP_LIST, selectedFile.getPath());
-		        		titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
+		        	String s = GUIUtils.loadLoop(selectedFile, session, frmDimidimi);
+		        	if (s!=null) {
+		        		titleExtension = s;
 		        		frmDimidimi.setTitle(getWindowTitle());
-					} catch (Exception e1) {
-						LOG.error("Error loading file", e1);
-						JOptionPane.showMessageDialog(frmDimidimi,
-							    "Error loading file!",
-							    "Load Loop",
-							    JOptionPane.ERROR_MESSAGE);
-					}
-		            
+		        	}
 		        }
 			}
 		});
 		menu.add(menuItem);
 		recentSub = new JMenu("Recent Loops");
-		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_LOOP_LIST));
+		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_LOOP_LIST, new RecentMenuActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				super.actionPerformed(e);
+				String filename = Prefs.getList(Prefs.RECENT_LOOP_LIST).get(selectedIndex);
+				if (!Prefs.LIST_ENTRY_EMPTY_MARKER.equals(filename)) {
+					String s = GUIUtils.loadLoop(new File(filename), session, frmDimidimi);
+		        	if (s!=null) {
+		        		titleExtension = s;
+		        		frmDimidimi.setTitle(getWindowTitle());
+		        	}
+				}
+			}
+		}));
 		menu.add(recentSub);
 		menu.addSeparator();
 		menuItem = new JMenuItem("Save...");
@@ -663,9 +670,11 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private class RecentMenuListener implements MenuListener {
 
 		private String listKey;
+		private ActionListener listener;
 		
-		public RecentMenuListener(String listKey) {
+		public RecentMenuListener(String listKey, ActionListener listener) {
 			this.listKey = listKey;
+			this.listener = listener;
 		}
 		
 		@Override
@@ -674,21 +683,31 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			menu.removeAll();
 			List<String> list = Prefs.getList(listKey);
 			for (String entry:list) {
-				JMenuItem item = new JMenuItem(entry);
+				JMenuItem item = new JMenuItem(StringUtils.abbreviate(entry, entry.length(), 80));
+				item.addActionListener(listener);
 				menu.add(item);
 			}
 		}
 
 		@Override
 		public void menuDeselected(MenuEvent e) {
-			
 		}
 
 		@Override
 		public void menuCanceled(MenuEvent e) {
-			
 		}
 		
+	}
+	
+	private class RecentMenuActionListener implements ActionListener {
+		
+		protected int selectedIndex = 0;
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			JMenuItem menuItem = (JMenuItem)e.getSource();
+			selectedIndex = menuItem.getParent().getComponentZOrder(menuItem);
+		}
 	}
 	
 	// events
@@ -733,14 +752,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	@Override
 	public void receiveCC(int cc, int val, int pos) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void receivePitchBend(int val, int pos) {
-		// TODO Auto-generated method stub
-		
 	}
 	
 	

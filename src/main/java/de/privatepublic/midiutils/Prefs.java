@@ -26,7 +26,7 @@ public class Prefs {
 	public static final String RECENT_LOOP_LIST="recentloops";
 	
 	private static int MAX_RECENT_FILE_COUNT = 10;
-	private static String EMPTY_MARKER = "(empty)";
+	public static String LIST_ENTRY_EMPTY_MARKER = "(--empty--)";
 	
 	public static void put(String key, String val) {
 		PREFS.put(key, val);
@@ -77,7 +77,7 @@ public class Prefs {
 		list.add(0, value);
 		for (int i=0;i<MAX_RECENT_FILE_COUNT;i++) {
 			if (i>=list.size() || list.get(i)==null) {
-				put(listKey+i, EMPTY_MARKER);
+				put(listKey+i, LIST_ENTRY_EMPTY_MARKER);
 			}
 			else {
 				put(listKey+i, list.get(i));
@@ -90,7 +90,7 @@ public class Prefs {
 		for (int i=0;i<MAX_RECENT_FILE_COUNT;i++) {
 			result[i] = get(listKey+i, null);
 			if (result[i]==null) {
-				result[i] = EMPTY_MARKER;
+				result[i] = LIST_ENTRY_EMPTY_MARKER;
 			}
 		}
 		return new ArrayList<String>(Arrays.asList(result));

@@ -233,6 +233,8 @@ public class Session implements PerformanceReceiver {
 		setMidiChannelOut(data.getMidiChannelOut());
 		setMidiInputOn(data.isMidiChannelInActive());
 		setMidiOutputOn(data.isMidiChannelOutActive());
+		data.copyList(data.getPitchBend(), pitchBendList);
+		data.copyList(data.getModWheel(), ccList);
 		Map<String, Integer> wpos = data.getWindowPos();
 		if (wpos!=null) {
 			Rectangle windowBounds = new Rectangle(wpos.get("x"), wpos.get("y"), wpos.get("w"), wpos.get("h"));

@@ -1,17 +1,24 @@
 package de.privatepublic.midiutils.ui;
 
+import java.awt.Component;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.Prefs;
+import de.privatepublic.midiutils.Session;
 
 public class GUIUtils {
 
+	private static final Logger LOG = LoggerFactory.getLogger(GUIUtils.class);
 	
 	public static File loadDialog(String dialogTitle, FileFilter fileFilter, String prefsKeyRecentFile) {
 		String recentPath = Prefs.get(prefsKeyRecentFile, null);
@@ -81,6 +88,34 @@ public class GUIUtils {
         	return selectedFile;
         }
         return null;
+	}
+	
+	public static void loadSession(File selectedFile, Component frmDimidimi) {
+		try {
+			DiMIDImi.loadSession(selectedFile);
+			Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
+		} catch (IOException e1) {
+			JOptionPane.showMessageDialog(frmDimidimi, "Could not load file\n"+e1.getMessage());
+    		LOG.error("Could not load file", e1);
+		}
+    	Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
+	}
+	
+	public static String loadLoop(File selectedFile, Session session, Component frmDimidimi) {
+		Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
+    	try {
+    		session.loadLoop(selectedFile);
+    		Prefs.pushToList(Prefs.RECENT_LOOP_LIST, selectedFile.getPath());
+    		String titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
+    		return titleExtension;
+		} catch (Exception e1) {
+			LOG.error("Error loading file", e1);
+			JOptionPane.showMessageDialog(frmDimidimi,
+				    "Error loading file!",
+				    "Load Loop",
+				    JOptionPane.ERROR_MESSAGE);
+		}
+    	return null;
 	}
 	
 	private static abstract class FileFilterExtension extends FileFilter {
