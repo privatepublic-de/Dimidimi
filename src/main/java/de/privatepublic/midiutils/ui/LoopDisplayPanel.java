@@ -201,8 +201,30 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    int fwidth = g.getFontMetrics(g.getFont()).stringWidth(channelText);
 	    g.drawString(channelText, width-fwidth, height);
 	    g.setFont(Theme.CURRENT.getFontNotes());
+	    
+	    // draw pitchbend and mod
+	    g.setStroke(new BasicStroke(3));
+	    tickwidth = (float)width/session.getMaxTicks();
+	    final int centery = height/2;//-0x2000/129;
+	    g.setColor(Theme.CURRENT.getColorPitchBend());
+	    g.drawLine(0, centery, width, centery);
+	    for (int i=0;i<session.getLengthQuarters()*Session.TICK_COUNT_BASE;++i) {
+	    	int xpos = Math.round(i*tickwidth);
+	    	int mod = session.getCcList()[i];
+	    	int pb = (-session.getPitchBendList()[i])/129;
+	    	g.setColor(Theme.CURRENT.getColorPitchBend());
+	    	if (pb<0) {
+	    		g.fillRect(xpos, centery+pb, Math.round(tickwidth)+1, Math.abs(pb));
+	    	}
+	    	else {
+	    		g.fillRect(xpos, centery, Math.round(tickwidth)+1, pb);
+	    	}
+	    	g.setColor(Theme.CURRENT.getColorModWheel());
+	    	g.drawLine(xpos, height-mod, xpos, height);
+	    }
 		
 		// draw grid
+	    g.setStroke(new BasicStroke(2));
 		g.setColor(Theme.CURRENT.getColorOctaves());
 		for (int i=0;i<11;i++) {
 			float colorhue = (96-i*12)/96f;
@@ -238,27 +260,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.drawLine(xpos-1, 0, xpos-1, height);
 				g.drawLine(xpos-3, 0, xpos-3, height);
 			}
-		}
-		
-		// draw pitchbend and mod
-		g.setStroke(new BasicStroke(2));
-		tickwidth = width*(1f/session.getMaxTicks());
-		final int centery = height/2;//-0x2000/129;
-		g.setColor(Theme.CURRENT.getColorGrid());
-		g.drawLine(0, centery, width, centery);
-		for (int i=0;i<session.getLengthQuarters()*Session.TICK_COUNT_BASE;++i) {
-			int xpos = (int)(i*tickwidth);
-			int mod = session.getCcList()[i];
-			int pb = (-session.getPitchBendList()[i])/129;
-			g.setColor(Theme.CURRENT.getColorGrid());
-			if (pb<0) {
-				g.fillRect(xpos, centery+pb, Math.round(tickwidth), Math.abs(pb));
-			}
-			else {
-				g.fillRect(xpos, centery, Math.round(tickwidth), pb);
-			}
-			g.setColor(Theme.CURRENT.getColorGridIntense());
-			g.drawLine(xpos, height-mod, xpos, height);
 		}
 		
 		// draw playhead
