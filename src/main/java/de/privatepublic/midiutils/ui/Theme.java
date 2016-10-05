@@ -21,6 +21,8 @@ public class Theme {
 			Color.getHSBColor(.58f, .8f, 1f) /*colorClockOn*/, 
 			SystemColor.window /*colorClockOff*/, 
 			Color.decode("#333333") /*colorMidiOutBig*/, 
+			Color.decode("#336") /*colorModWheel*/, 
+			Color.decode("#633") /*colorPitchBend*/,
 			.6f /*noteColorSaturation*/, 
 			1f /*noteColorBrightness*/, 
 			.6f /*octaveColorSaturation*/, 
@@ -42,6 +44,8 @@ public class Theme {
 			Color.getHSBColor(.58f, .8f, 1f) /*colorClockOn*/, 
 			SystemColor.window /*colorClockOff*/, 
 			Color.decode("#eeeeee") /*colorMidiOutBig*/, 
+			Color.decode("#eeeeee") /*colorModWheel*/, 
+			Color.decode("#eeeeee") /*colorPitchBend*/, 
 			.9f /*noteColorSaturation*/, 
 			.7f /*noteColorBrightness*/, 
 			.9f /*octaveColorSaturation*/, 
@@ -68,11 +72,14 @@ public class Theme {
 	private float noteColorBrightness = 1f;
 	private float octaveColorSaturation = .6f;
 	private float octaveColorBrightness = .5f;
+	private Color colorModWheel = Color.WHITE;
+	private Color colorPitchBend = Color.GREEN;
 	
 	public Theme(Font fontNotes, Font fontMidiBig, Color colorBackground, Color colorGrid,
 			Color colorGridIntense, Color colorActiveQuarter, Color colorPlayhead, Color colorPlayedNote,
 			Color colorOctaves, Color colorSelectedNoteOutline, Color colorSelectedNoteText, Color colorClockOn, Color colorClockOff,
-			Color colorMidiOutBig, float noteColorSaturation, float noteColorBrightness, float octaveColorSaturation,
+			Color colorMidiOutBig, 
+			Color colorModWheel, Color colorPitchBend, float noteColorSaturation, float noteColorBrightness, float octaveColorSaturation,
 			float octaveColorBrightness) {
 		this.fontNotes = fontNotes;
 		this.fontMidiBig = fontMidiBig;
@@ -88,6 +95,8 @@ public class Theme {
 		this.colorClockOn = colorClockOn;
 		this.colorClockOff = colorClockOff;
 		this.colorMidiOutBig = colorMidiOutBig;
+		this.colorModWheel = colorModWheel;
+		this.colorPitchBend = colorPitchBend;
 		this.noteColorSaturation = noteColorSaturation;
 		this.noteColorBrightness = noteColorBrightness;
 		this.octaveColorSaturation = octaveColorSaturation;
@@ -134,6 +143,12 @@ public class Theme {
 	}
 	public Color getColorMidiOutBig() {
 		return colorMidiOutBig;
+	}
+	public Color getColorModWheel() {
+		return colorModWheel;
+	}
+	public Color getColorPitchBend() {
+		return colorPitchBend;
 	}
 	public float getNoteColorSaturation() {
 		return noteColorSaturation;
