@@ -3,7 +3,6 @@ package de.privatepublic.midiutils.ui;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JLabel;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -319,7 +317,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			if (noteendx>=notestartx) {
 				if (note==selectedNoteRun) {
 					g.setColor(Theme.CURRENT.getColorSelectedNoteOutline());
-					g.setStroke(new BasicStroke(veloHeight*2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+					g.setStroke(new BasicStroke(veloHeight+noteHeight/2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 					g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
 					g.setColor(noteColor);
 				}
@@ -329,7 +327,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			else {
 				if (note==selectedNoteRun) {
 					g.setColor(Theme.CURRENT.getColorSelectedNoteOutline());
-					g.setStroke(new BasicStroke(veloHeight*2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+					g.setStroke(new BasicStroke(veloHeight+noteHeight/2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 					g.drawLine((int)0, (int)notey, (int)noteendx, (int)notey);
 					g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
 					g.setColor(noteColor);
@@ -415,7 +413,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					hitNote = null;
 				}
 			});
-	        JMenu velocity = new JMenu("Velocity");
+//	        JMenu velocity = new JMenu("Velocity");
 	        JSlider veloslider = new JSlider();
 	        veloslider.setOrientation(SwingConstants.VERTICAL);
 	        veloslider.setMaximum(127);
@@ -439,35 +437,36 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					session.emitRefreshLoopDisplay();;
 				}
 			});
-	        velocity.add(veloslider);
+//	        velocity.add(veloslider);
 	        
-	        JMenu length = new JMenu("Length");
-	        JSlider lengthslider = new JSlider();
-	        lengthslider.setPreferredSize(new Dimension(session.getMaxTicks(), 48));
-	        lengthslider.setOrientation(SwingConstants.HORIZONTAL);
-	        lengthslider.setMajorTickSpacing(Session.TICK_COUNT_BASE);
-	        lengthslider.setMinorTickSpacing(Session.TICK_COUNT_BASE/4);
-	        lengthslider.setPaintTicks(true);
-	        lengthslider.setMaximum(session.getMaxTicks()-1);
-	        lengthslider.setMinimum(1);
-	        int len;
-			if (selectedNote.getPosEnd()>selectedNote.getPosStart()) {
-				len = selectedNote.getPosEnd()-selectedNote.getPosStart();
-			}
-			else {
-				len = selectedNote.getPosEnd()+(selectedNote.getPosStart()-session.getMaxTicks());
-			}
-	        lengthslider.setValue(len);
-	        lengthslider.addChangeListener(new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-					selectedNote.setPosEnd((selectedNote.getPosStart()+lengthslider.getValue())%session.getMaxTicks());
-					session.emitRefreshLoopDisplay();
-				}
-			});
-	        length.add(lengthslider);
-	        add(velocity);
-	        add(length);
+//	        JMenu length = new JMenu("Length");
+//	        JSlider lengthslider = new JSlider();
+//	        lengthslider.setPreferredSize(new Dimension(session.getMaxTicks(), 48));
+//	        lengthslider.setOrientation(SwingConstants.HORIZONTAL);
+//	        lengthslider.setMajorTickSpacing(Session.TICK_COUNT_BASE);
+//	        lengthslider.setMinorTickSpacing(Session.TICK_COUNT_BASE/4);
+//	        lengthslider.setPaintTicks(true);
+//	        lengthslider.setMaximum(session.getMaxTicks()-1);
+//	        lengthslider.setMinimum(1);
+//	        int len;
+//			if (selectedNote.getPosEnd()>selectedNote.getPosStart()) {
+//				len = selectedNote.getPosEnd()-selectedNote.getPosStart();
+//			}
+//			else {
+//				len = selectedNote.getPosEnd()+(selectedNote.getPosStart()-session.getMaxTicks());
+//			}
+//	        lengthslider.setValue(len);
+//	        lengthslider.addChangeListener(new ChangeListener() {
+//				@Override
+//				public void stateChanged(ChangeEvent e) {
+//					selectedNote.setPosEnd((selectedNote.getPosStart()+lengthslider.getValue())%session.getMaxTicks());
+//					session.emitRefreshLoopDisplay();
+//				}
+//			});
+//	        length.add(lengthslider);
+//	        add(velocity);
+	        add(veloslider);
+//	        add(length);
 	        addSeparator();
 	        add(delete);
 	    }
