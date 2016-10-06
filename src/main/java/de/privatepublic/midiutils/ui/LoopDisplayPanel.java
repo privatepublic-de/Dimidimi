@@ -87,14 +87,14 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			public void mousePressed(MouseEvent e) {
 				selectedNote = hitNote;				
 				if (e.isPopupTrigger()) {
-					if (selectedNote!=null && selectedNote.isCompleted()) {
+					if (selectedNote!=null) {
 						openPopUp(e);
 					}
 				}
 				else {
 					dragStart = e.getPoint();
 					Note storeStartDataNote = null;
-					if (selectedNote!=null && selectedNote.isCompleted()) {
+					if (selectedNote!=null) {
 						storeStartDataNote = selectedNote;
 					}
 					if (resizeNote!=null) {
@@ -138,22 +138,24 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				hitNote = null;
 				Note potentialResizeNote = null;
 				for (Note note:session.getNotesList()) {
-					Line2D.Float noteline = getNotePosition(note);
-					if (noteline.getX1()<=noteline.getX2()) {
-						if (mx<=noteline.getX2() && mx>=noteline.getX1() && Math.abs(my-noteline.getY1())<noteHeight) {
-							hitNote = note;
-							break;
+					if (note.isCompleted()) {
+						Line2D.Float noteline = getNotePosition(note);
+						if (noteline.getX1()<=noteline.getX2()) {
+							if (mx<=noteline.getX2() && mx>=noteline.getX1() && Math.abs(my-noteline.getY1())<noteHeight) {
+								hitNote = note;
+								break;
+							}
 						}
-					}
-					else {
-						if ((mx<=noteline.getX2() || mx>=noteline.getX1()) && Math.abs(my-noteline.getY1())<noteHeight) {
-							hitNote = note;
-							break;
+						else {
+							if ((mx<=noteline.getX2() || mx>=noteline.getX1()) && Math.abs(my-noteline.getY1())<noteHeight) {
+								hitNote = note;
+								break;
+							}
 						}
-					}
-					// find length resizable hit
-					if (mx<noteline.getX2()+tickwidth && mx>noteline.getX2() && Math.abs(my-noteline.getY1())<noteHeight) {
-						potentialResizeNote = note;
+						// find length resizable hit
+						if (mx<noteline.getX2()+tickwidth && mx>noteline.getX2() && Math.abs(my-noteline.getY1())<noteHeight) {
+							potentialResizeNote = note;
+						}
 					}
 				}
 				if (hitNote!=null) {
@@ -175,7 +177,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				if (selectedNote!=null && selectedNote.isCompleted()) {
+				if (selectedNote!=null) {
 					int distY = dragStart.y-e.getY();
 					int distX = e.getX()-dragStart.x;
 					
@@ -355,7 +357,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			Line2D.Float npos = getNotePosition(resizeNote);
 			g.setColor(Color.RED);
 			g.setStroke(new BasicStroke(tickwidth));
-			g.drawLine((int)npos.x2, (int)(npos.y2 - noteHeight/2), (int)npos.x2, (int)(npos.y2 + noteHeight/2));
+			g.drawLine((int)npos.x2, 0, (int)npos.x2, height);
 		}
 	}
 	
