@@ -53,6 +53,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	
 	private Note hitNote;
 	private Note selectedNote;
+	private Note resizeNote;
 	private Point dragStart;
 	
 	private int dragStartNoteNumber;
@@ -92,10 +93,17 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				}
 				else {
 					dragStart = e.getPoint();
+					Note storeStartDataNote = null;
 					if (selectedNote!=null && selectedNote.isCompleted()) {
-						dragStartNoteNumber = selectedNote.getNoteNumber();
-						dragStartPosStart = selectedNote.getPosStart();
-						dragStartPosEnd = selectedNote.getPosEnd();
+						storeStartDataNote = selectedNote;
+					}
+					if (resizeNote!=null) {
+						storeStartDataNote = resizeNote;
+					}
+					if (storeStartDataNote!=null) {
+						dragStartNoteNumber = storeStartDataNote.getNoteNumber();
+						dragStartPosStart = storeStartDataNote.getPosStart();
+						dragStartPosEnd = storeStartDataNote.getPosEnd();
 					}
 				}
 				repaint();
@@ -124,9 +132,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				Note hitNoteBefore = hitNote;
+				Note resizeNoteBefore = resizeNote;
 				int mx = e.getX();
 				int my = e.getY();
 				hitNote = null;
+				Note potentialResizeNote = null;
 				for (Note note:session.getNotesList()) {
 					Line2D.Float noteline = getNotePosition(note);
 					if (noteline.getX1()<=noteline.getX2()) {
@@ -141,15 +151,24 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 							break;
 						}
 					}
+					// find length resizable hit
+					if (mx<noteline.getX2()+tickwidth && mx>noteline.getX2() && Math.abs(my-noteline.getY1())<noteHeight) {
+						potentialResizeNote = note;
+					}
 				}
 				if (hitNote!=null) {
-					Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR); 
-					setCursor(cursor);
+					setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				}
 				else {
-					setCursor(Cursor.getDefaultCursor());
+					if (potentialResizeNote!=null) {
+						setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+					}
+					else {
+						setCursor(Cursor.getDefaultCursor());						
+					}
 				}
-				if (hitNote!=hitNoteBefore) {
+				resizeNote = potentialResizeNote;
+				if (hitNote!=hitNoteBefore || resizeNote!=resizeNoteBefore) {
 					repaint();
 				}
 			}
@@ -163,12 +182,19 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					int noteOffset = (int)(distY/noteHeight);
 					selectedNote.setNoteNumber(dragStartNoteNumber+noteOffset);
 					
-					float tickwidth = getWidth()/(float)session.getMaxTicks();
 					int ticksOffset = (int)(distX/tickwidth);
 					selectedNote.setPosStart((dragStartPosStart+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
 					selectedNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
 					
 					repaint();
+				}
+				else {
+					if (resizeNote!=null) {
+						int distX = e.getX()-dragStart.x;
+						int ticksOffset = (int)(distX/tickwidth);
+						resizeNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+						repaint();
+					}
 				}
 			}
 		});
@@ -224,7 +250,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    }
 		
 		// draw grid
-	    g.setStroke(new BasicStroke(2));
+	    g.setStroke(new BasicStroke(1));
 		g.setColor(Theme.CURRENT.getColorOctaves());
 		for (int i=0;i<11;i++) {
 			float colorhue = (96-i*12)/96f;
@@ -324,7 +350,12 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.setColor(Theme.CURRENT.getColorSelectedNoteText());
 				g.drawString(notetext, notestartx, y);
 			}
-
+		}
+		if (resizeNote!=null) {
+			Line2D.Float npos = getNotePosition(resizeNote);
+			g.setColor(Color.RED);
+			g.setStroke(new BasicStroke(tickwidth));
+			g.drawLine((int)npos.x2, (int)(npos.y2 - noteHeight/2), (int)npos.x2, (int)(npos.y2 + noteHeight/2));
 		}
 	}
 	
