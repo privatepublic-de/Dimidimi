@@ -15,6 +15,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
@@ -61,9 +63,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	
 	private float noteHeight;
 	private float tickwidth;
-	private static final int bufferSemis = 5;
-	private int highestNote = 96-bufferSemis;
-	private int lowestNote = 12+bufferSemis;
+	private static final int MARGIN_SEMIS = 1;
+	private int highestNote = 96-MARGIN_SEMIS;
+	private int lowestNote = 12+MARGIN_SEMIS;
 	
 	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
 	
@@ -127,7 +129,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 		});
 		addMouseMotionListener(new MouseMotionListener() {
-
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				Note hitNoteBefore = hitNote;
@@ -170,7 +171,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				}
 				resizeNote = potentialResizeNote;
 				if (hitNote!=hitNoteBefore || resizeNote!=resizeNoteBefore) {
-					repaint();
+					refreshLoopDisplay();
 				}
 			}
 			
@@ -186,19 +187,35 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					int ticksOffset = (int)(distX/tickwidth);
 					selectedNote.setPosStart((dragStartPosStart+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
 					selectedNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
-					
-					repaint();
+					refreshLoopDisplay();
 				}
 				else {
 					if (resizeNote!=null) {
 						int distX = e.getX()-dragStart.x;
 						int ticksOffset = (int)(distX/tickwidth);
 						resizeNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
-						repaint();
+						refreshLoopDisplay();
 					}
 				}
 			}
 		});
+		addMouseWheelListener(new MouseWheelListener() {
+			@Override
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				int wheelinc = e.getWheelRotation();
+				Note note = selectedNote;
+				if (note==null) {
+					note = hitNote;
+				}
+				if (note!=null) {
+					int vel = note.getVelocity();
+					vel = Math.min(Math.max(vel-wheelinc, 0), 127);
+					note.setVelocity(vel);
+					refreshLoopDisplay();
+				}
+			}
+		});
+		
 		if (session!=null) {
 			session.registerAsReceiver(this);
 		}
@@ -212,7 +229,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 		int width = getWidth();
 		int height = getHeight();
-		int displayNoteCount = highestNote-lowestNote + 2*bufferSemis;
+		int displayNoteCount = highestNote-lowestNote + 2*MARGIN_SEMIS;
 		noteHeight = height*(1f/displayNoteCount);
 		g.setColor(Theme.CURRENT.getColorBackground());
 		g.fillRect(0, 0, width, height);
@@ -256,7 +273,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		for (int i=0;i<11;i++) {
 			float colorhue = (96-i*12)/96f;
 			g.setColor(Color.getHSBColor(colorhue, Theme.CURRENT.getOctaveColorSaturation(), Theme.CURRENT.getOctaveColorBrightness()));
-			int y = (int)(((highestNote+bufferSemis)-i*12)*noteHeight);
+			int y = (int)(((highestNote+MARGIN_SEMIS)-i*12)*noteHeight);
 			g.drawLine(0, y, width, y);
 		}
 		if (session==null) {
@@ -369,7 +386,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	}
 	
 	private Line2D.Float getNotePosition(Note note) {
-		int no = (highestNote+bufferSemis)-note.getTransformedNoteNumber(session.getTransposeIndex());
+		int no = (highestNote+MARGIN_SEMIS)-note.getTransformedNoteNumber(session.getTransposeIndex());
 		float notey = no*noteHeight;
 		float notestartx = note.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex())*tickwidth;
 		float noteendx = note.isCompleted()?note.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex())*tickwidth:pos*tickwidth;
@@ -401,8 +418,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			maxNote = Math.max(dc.getTransformedNoteNumber(session.getTransposeIndex()), maxNote);
 		}
 		if (session.getNotesList().size()==0) {
-			minNote = 12 + bufferSemis;
-			maxNote = 96+12 - bufferSemis;
+			minNote = 12 + MARGIN_SEMIS;
+			maxNote = 96+12 - MARGIN_SEMIS;
 		}
 		highestNote = maxNote;
 		lowestNote = minNote;
