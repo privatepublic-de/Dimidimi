@@ -337,6 +337,14 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
 			}
 			
+			if (note==selectedNoteRun) {
+				g.setColor(Color.RED);
+				g.setStroke(new BasicStroke(1));
+				g.drawLine(0, (int)notey, width, (int)notey);
+				g.drawLine((int)notestartx, 0, (int)notestartx, height);
+				g.drawLine((int)noteendx, 0, (int)noteendx, height);
+			}
+			
 			if (selectedNoteRun!=null) {
 				String notetext = note.getNoteName(session.getTransposeIndex());
 				FontMetrics fm = g.getFontMetrics();
