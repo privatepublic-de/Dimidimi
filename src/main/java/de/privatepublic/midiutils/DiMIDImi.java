@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -83,7 +84,7 @@ public class DiMIDImi {
 	public static void loadSession(File file) throws JsonParseException, JsonMappingException, IOException {
 		List<Session> sessionsToClose = new ArrayList<Session>(SESSIONS);
 		ObjectMapper mapper = new ObjectMapper();
-		List<StorageContainer> list = mapper.readValue(file, mapper.getTypeFactory().constructCollectionType(List.class, StorageContainer.class));
+		List<StorageContainer> list = Arrays.asList(mapper.readValue(file, StorageContainer[].class));
 		for (StorageContainer data:list) {
 			createSession(data);
 		}
@@ -113,8 +114,8 @@ public class DiMIDImi {
 			numrows = 1;
 			break;
 		case 2:
-			numcols = Math.min(2, maxcols);
-			numrows = 1;
+			numcols = 1;
+			numrows = Math.min(2, maxcols);
 			break;
 		case 3:
 		case 4:
@@ -123,8 +124,8 @@ public class DiMIDImi {
 			break;
 		case 5:
 		case 6:
-			numcols = Math.min(3, maxcols);
-			numrows = Math.min(2, maxrows);
+			numcols = Math.min(2, maxcols);
+			numrows = Math.min(3, maxrows);
 			break;
 		}
 		int wwidth = width/numcols;
