@@ -9,6 +9,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -229,7 +230,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    g.setFont(Theme.CURRENT.getFontNotes());
 	    
 	    // draw pitchbend and mod
-	    g.setStroke(new BasicStroke(3));
+	    g.setStroke(STROKE_3);
 	    tickwidth = (float)width/session.getMaxTicks();
 	    final int centery = height/2;//-0x2000/129;
 	    g.setColor(Theme.CURRENT.getColorPitchBend());
@@ -250,7 +251,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    }
 		
 		// draw grid
-	    g.setStroke(new BasicStroke(1));
+	    g.setStroke(STROKE_1);
 		g.setColor(Theme.CURRENT.getColorOctaves());
 		for (int i=0;i<11;i++) {
 			float colorhue = (96-i*12)/96f;
@@ -339,7 +340,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 			if (note==selectedNoteRun) {
 				g.setColor(Color.RED);
-				g.setStroke(new BasicStroke(1));
+				g.setStroke(STROKE_1);
 				g.drawLine(0, (int)notey, width, (int)notey);
 				g.drawLine((int)notestartx, 0, (int)notestartx, height);
 				g.drawLine((int)noteendx, 0, (int)noteendx, height);
@@ -421,19 +422,12 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					hitNote = null;
 				}
 			});
-//	        JMenu velocity = new JMenu("Velocity");
 	        JSlider veloslider = new JSlider();
 	        veloslider.setOrientation(SwingConstants.VERTICAL);
 	        veloslider.setMaximum(127);
 	        veloslider.setMinimum(1);
 	        veloslider.setValue(selectedNote.getVelocity());
-	        Dictionary<Integer, JLabel> labels = new Hashtable<Integer, JLabel>(); // TODO static
-	        labels.put(1, new JLabel("1"));
-	        labels.put(32, new JLabel("32"));
-	        labels.put(64, new JLabel("64"));
-	        labels.put(96, new JLabel("96"));
-	        labels.put(127, new JLabel("127")); 
-	        veloslider.setLabelTable(labels);
+	        veloslider.setLabelTable(VELOCITY_LABELS);
 	        veloslider.setMajorTickSpacing(32);
 	        veloslider.setMinorTickSpacing(8);
 	        veloslider.setPaintTicks(true);
@@ -445,40 +439,23 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					session.emitRefreshLoopDisplay();;
 				}
 			});
-//	        velocity.add(veloslider);
-	        
-//	        JMenu length = new JMenu("Length");
-//	        JSlider lengthslider = new JSlider();
-//	        lengthslider.setPreferredSize(new Dimension(session.getMaxTicks(), 48));
-//	        lengthslider.setOrientation(SwingConstants.HORIZONTAL);
-//	        lengthslider.setMajorTickSpacing(Session.TICK_COUNT_BASE);
-//	        lengthslider.setMinorTickSpacing(Session.TICK_COUNT_BASE/4);
-//	        lengthslider.setPaintTicks(true);
-//	        lengthslider.setMaximum(session.getMaxTicks()-1);
-//	        lengthslider.setMinimum(1);
-//	        int len;
-//			if (selectedNote.getPosEnd()>selectedNote.getPosStart()) {
-//				len = selectedNote.getPosEnd()-selectedNote.getPosStart();
-//			}
-//			else {
-//				len = selectedNote.getPosEnd()+(selectedNote.getPosStart()-session.getMaxTicks());
-//			}
-//	        lengthslider.setValue(len);
-//	        lengthslider.addChangeListener(new ChangeListener() {
-//				@Override
-//				public void stateChanged(ChangeEvent e) {
-//					selectedNote.setPosEnd((selectedNote.getPosStart()+lengthslider.getValue())%session.getMaxTicks());
-//					session.emitRefreshLoopDisplay();
-//				}
-//			});
-//	        length.add(lengthslider);
-//	        add(velocity);
 	        add(veloslider);
-//	        add(length);
 	        addSeparator();
 	        add(delete);
 	    }
 	}
 	
+	private static final Dictionary<Integer, JLabel> VELOCITY_LABELS = new Hashtable<Integer, JLabel>();
+	
+	static {
+        VELOCITY_LABELS.put(1, new JLabel("1"));
+        VELOCITY_LABELS.put(32, new JLabel("32"));
+        VELOCITY_LABELS.put(64, new JLabel("64"));
+        VELOCITY_LABELS.put(96, new JLabel("96"));
+        VELOCITY_LABELS.put(127, new JLabel("127")); 
+	}
+	
+	private static final Stroke STROKE_1 = new BasicStroke(1);
+	private static final Stroke STROKE_3 = new BasicStroke(3);
 	
 }
