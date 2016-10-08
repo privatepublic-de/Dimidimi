@@ -55,8 +55,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private Note hitNote;
 	private Note selectedNote;
 	private Note resizeNote;
+	private boolean isDragging;
 	private Point dragStart;
-	
 	private int dragStartNoteNumber;
 	private int dragStartPosStart;
 	private int dragStartPosEnd;
@@ -77,6 +77,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 			@Override
 			public void mouseReleased(MouseEvent e) {
+				isDragging = false;
 				if (e.isPopupTrigger()) {
 					if (selectedNote!=null && selectedNote.isCompleted()) {
 						openPopUp(e);
@@ -86,6 +87,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 			@Override
 			public void mousePressed(MouseEvent e) {
+				isDragging = true;
 				selectedNote = hitNote;				
 				if (e.isPopupTrigger()) {
 					if (selectedNote!=null) {
@@ -112,6 +114,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 			@Override
 			public void mouseExited(MouseEvent e) {
+				if (!isDragging) {
+					hitNote = null;
+				}
 			}
 			
 			@Override
