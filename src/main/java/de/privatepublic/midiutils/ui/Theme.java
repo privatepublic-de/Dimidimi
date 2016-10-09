@@ -21,9 +21,9 @@ public class Theme {
 			Color.getHSBColor(.58f, .8f, 1f) /*colorClockOn*/, 
 			SystemColor.window /*colorClockOff*/, 
 			Color.decode("#333333") /*colorMidiOutBig*/,
-			new Color(.06f, .26f, .34f, .6f), /*colorModWheel*/
+			new Color(.06f, .26f, .34f, .7f), /*colorModWheel*/
 			//Color.decode("#114455") /*colorModWheel*/, 
-			new Color(.34f, .06f, .06f, .6f) /*colorPitchBend*/,
+			new Color(.34f, .06f, .06f, .7f) /*colorPitchBend*/,
 			//Color.decode("#551111") /*colorPitchBend*/,
 			.6f /*noteColorSaturation*/, 
 			1f /*noteColorBrightness*/, 
