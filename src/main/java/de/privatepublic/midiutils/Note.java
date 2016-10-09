@@ -114,10 +114,13 @@ public class Note {
 		return NOTE_NAMES[getTransformedNoteNumber(transposeIndex)%12]+(getTransformedNoteNumber(transposeIndex)/12-1);
 	}
 	
-	
 	@Override
 	public String toString() {
 		return "<NoteRun #"+noteNumber+", "+velocity+">";
+	}
+	
+	public static String getConcreteNoteName(int number) { // TODO Name
+		return NOTE_NAMES[number%12];
 	}
 	
 	private static final int[] Q_STEPS = new int[]{ 0, 48, 24, 12, 6, 3, 48/3, 24/3, 12/3};

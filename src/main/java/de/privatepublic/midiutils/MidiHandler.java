@@ -285,15 +285,15 @@ public class MidiHandler {
 					sendMessage(message);
 				}
 			}
+			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 1, 0);
+			sendMessage(message);
+			message.setMessage(ShortMessage.PITCH_BEND, channel, 0, 0x40);
+			sendMessage(message);
 			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 123, 0);
 			sendMessage(message);
 			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 120, 0);
 			sendMessage(message);
 			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 121, 0);
-			sendMessage(message);
-			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 1, 0);
-			sendMessage(message);
-			message.setMessage(ShortMessage.PITCH_BEND, channel, 0, 0x40);
 			sendMessage(message);
 		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();

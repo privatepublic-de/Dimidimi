@@ -7,7 +7,7 @@ import java.awt.SystemColor;
 public class Theme {
 	
 	public static final Theme DARK = new Theme(
-			new Font(Font.SANS_SERIF, Font.BOLD, 12) /*fontNotes*/, 
+			new Font(Font.SANS_SERIF, Font.PLAIN, 12) /*fontNotes*/, 
 			new Font(Font.SANS_SERIF, Font.BOLD, 12)/*fontMidiBig*/, 
 			Color.decode("#222222") /*colorBackground*/, 
 			Color.decode("#444444") /*colorGrid*/, 
@@ -17,20 +17,23 @@ public class Theme {
 			Color.decode("#494949") /*colorPlayedNote*/, 
 			Color.decode("#444444") /*colorOctaves*/, 
 			new Color(.6f, .6f, .6f, .6f) /*colorSelectedNoteOutline*/, 
-			Color.BLACK /*colorSelectedNoteText*/, 
+			Color.WHITE /*colorSelectedNoteText*/, 
 			Color.getHSBColor(.58f, .8f, 1f) /*colorClockOn*/, 
 			SystemColor.window /*colorClockOff*/, 
-			Color.decode("#333333") /*colorMidiOutBig*/, 
-			Color.decode("#114455") /*colorModWheel*/, 
-			Color.decode("#551111") /*colorPitchBend*/,
+			Color.decode("#333333") /*colorMidiOutBig*/,
+			new Color(.06f, .26f, .34f, .6f), /*colorModWheel*/
+			//Color.decode("#114455") /*colorModWheel*/, 
+			new Color(.34f, .06f, .06f, .6f) /*colorPitchBend*/,
+			//Color.decode("#551111") /*colorPitchBend*/,
 			.6f /*noteColorSaturation*/, 
 			1f /*noteColorBrightness*/, 
-			.6f /*octaveColorSaturation*/, 
+			.8f, /*noteLightColorBrightnessFactor*/
+			.6f, /*octaveColorSaturation*/ 
 			.5f/*octaveColorBrightness*/
 		);
 	
 	public static final Theme BRIGHT = new Theme(
-			new Font(Font.SANS_SERIF, Font.BOLD, 12) /*fontNotes*/, 
+			new Font(Font.SANS_SERIF, Font.PLAIN, 12) /*fontNotes*/, 
 			new Font(Font.SANS_SERIF, Font.BOLD, 12)/*fontMidiBig*/, 
 			Color.WHITE /*colorBackground*/, 
 			Color.decode("#eeeeee") /*colorGrid*/, 
@@ -40,15 +43,16 @@ public class Theme {
 			Color.ORANGE /*colorPlayedNote*/, 
 			Color.decode("#dddddd") /*colorOctaves*/, 
 			new Color(.7f, .7f, .7f, .6f) /*colorSelectedNoteOutline*/, 
-			Color.WHITE /*colorSelectedNoteText*/, 
+			Color.BLACK /*colorSelectedNoteText*/, 
 			Color.getHSBColor(.58f, .8f, 1f) /*colorClockOn*/, 
 			SystemColor.window /*colorClockOff*/, 
 			Color.decode("#eeeeee") /*colorMidiOutBig*/, 
 			Color.decode("#D4F4FF") /*colorModWheel*/, 
 			Color.decode("#D99E9F") /*colorPitchBend*/, 
-			.9f /*noteColorSaturation*/, 
-			.7f /*noteColorBrightness*/, 
-			.9f /*octaveColorSaturation*/, 
+			.8f /*noteColorSaturation*/, 
+			.8f /*noteColorBrightness*/, 
+			.8f, /*noteLightColorBrightnessFactor*/
+			.9f, /*octaveColorSaturation*/ 
 			.6f/*octaveColorBrightness*/
 		);
 	
@@ -74,12 +78,15 @@ public class Theme {
 	private float octaveColorBrightness = .5f;
 	private Color colorModWheel = Color.WHITE;
 	private Color colorPitchBend = Color.GREEN;
+	private float noteLightColorBrightnessFactor = .6f;
 	
 	public Theme(Font fontNotes, Font fontMidiBig, Color colorBackground, Color colorGrid,
 			Color colorGridIntense, Color colorActiveQuarter, Color colorPlayhead, Color colorPlayedNote,
 			Color colorOctaves, Color colorSelectedNoteOutline, Color colorSelectedNoteText, Color colorClockOn, Color colorClockOff,
 			Color colorMidiOutBig, 
-			Color colorModWheel, Color colorPitchBend, float noteColorSaturation, float noteColorBrightness, float octaveColorSaturation,
+			Color colorModWheel, Color colorPitchBend, float noteColorSaturation, float noteColorBrightness,
+			float noteLightColorBrightnessFactor,
+			float octaveColorSaturation,
 			float octaveColorBrightness) {
 		this.fontNotes = fontNotes;
 		this.fontMidiBig = fontMidiBig;
@@ -99,6 +106,7 @@ public class Theme {
 		this.colorPitchBend = colorPitchBend;
 		this.noteColorSaturation = noteColorSaturation;
 		this.noteColorBrightness = noteColorBrightness;
+		this.noteLightColorBrightnessFactor = noteLightColorBrightnessFactor;
 		this.octaveColorSaturation = octaveColorSaturation;
 		this.octaveColorBrightness = octaveColorBrightness;
 	}
@@ -155,6 +163,9 @@ public class Theme {
 	}
 	public float getNoteColorBrightness() {
 		return noteColorBrightness;
+	}
+	public float getNoteLightColorBrightnessFactor() {
+		return noteLightColorBrightnessFactor;
 	}
 	public float getOctaveColorSaturation() {
 		return octaveColorSaturation;

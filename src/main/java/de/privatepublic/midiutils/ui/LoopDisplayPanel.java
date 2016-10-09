@@ -8,6 +8,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.event.ActionEvent;
@@ -18,9 +19,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.font.TextAttribute;
-import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -144,21 +143,17 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				Note potentialResizeNote = null;
 				for (Note note:session.getNotesList()) {
 					if (note.isCompleted()) {
-						Line2D.Float noteline = getNotePosition(note);
-						if (noteline.getX1()<=noteline.getX2()) {
-							if (mx<=noteline.getX2() && mx>=noteline.getX1() && Math.abs(my-noteline.getY1())<noteHeight) {
-								hitNote = note;
-								break;
-							}
-						}
-						else {
-							if ((mx<=noteline.getX2() || mx>=noteline.getX1()) && Math.abs(my-noteline.getY1())<noteHeight) {
+						Rectangle[] rects = getNotePositionsRect(note);
+						int posy = Math.round(rects[0].y+noteHeight/2);
+						for (Rectangle rect:rects) {
+							if (mx<=rect.x+rect.width && mx>=rect.x && Math.abs(my-posy)<noteHeight) {
 								hitNote = note;
 								break;
 							}
 						}
 						// find length resizable hit
-						if (mx<noteline.getX2()+tickwidth && mx>noteline.getX2() && Math.abs(my-noteline.getY1())<noteHeight) {
+						int rightx = rects[rects.length-1].x+rects[rects.length-1].width;
+						if (mx<rightx+tickwidth && mx>rightx && Math.abs(my-posy)<noteHeight) {
 							potentialResizeNote = note;
 						}
 					}
@@ -251,27 +246,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    g.drawString(channelText, width-fwidth, height);
 	    g.setFont(Theme.CURRENT.getFontNotes());
 	    
-	    // draw pitchbend and mod
-	    g.setStroke(STROKE_3);
-	    tickwidth = (float)width/session.getMaxTicks();
-	    final int centery = height/2;//-0x2000/129;
-	    g.setColor(Theme.CURRENT.getColorPitchBend());
-	    g.drawLine(0, centery, width, centery);
-	    for (int i=0;i<session.getLengthQuarters()*Session.TICK_COUNT_BASE;++i) {
-	    	int xpos = Math.round(i*tickwidth);
-	    	int mod = session.getCcList()[i];
-	    	int pb = (-session.getPitchBendList()[i])/129;
-	    	g.setColor(Theme.CURRENT.getColorPitchBend());
-	    	if (pb<0) {
-	    		g.fillRect(xpos, centery+pb, Math.round(tickwidth)+1, Math.abs(pb));
-	    	}
-	    	else {
-	    		g.fillRect(xpos, centery, Math.round(tickwidth)+1, pb);
-	    	}
-	    	g.setColor(Theme.CURRENT.getColorModWheel());
-	    	g.drawLine(xpos, height-mod, xpos, height);
-	    }
-		
 		// draw grid
 	    g.setStroke(STROKE_1);
 		g.setColor(Theme.CURRENT.getColorOctaves());
@@ -322,81 +296,136 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		if (selectedNoteRun==null) {
 			selectedNoteRun = hitNote;
 		}
+		int halfheight = Math.round(noteHeight/2);
+		int quartheight = halfheight/2;
 		for (Note note:session.getNotesList()) {
 			float colorhue = (96-note.getTransformedNoteNumber(session.getTransposeIndex()))/96f; 
 			Color noteColor = Color.getHSBColor(colorhue, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
+			Color noteColorLight = Color.getHSBColor(colorhue, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+			
+			g.setStroke(STROKE_1);
+			
 			if (note.isPlayed()) {
-				g.setColor(Theme.CURRENT.getColorPlayedNote());
-			}
-			else {
-				g.setColor(noteColor);
-			}
-			Line2D.Float notepos = getNotePosition(note);
-			float notey = notepos.y1;
-			float notestartx = notepos.x1;
-			float noteendx = notepos.x2;
-			float veloHeight = Math.max(note.getVelocity()/127f * noteHeight*2, noteHeight/3f);
-
-			if (noteendx>=notestartx) {
-				if (note==selectedNoteRun) {
-					g.setColor(Theme.CURRENT.getColorSelectedNoteOutline());
-					g.setStroke(new BasicStroke(veloHeight+noteHeight/2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
-					g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
-					g.setColor(noteColor);
-				}
-				g.setStroke(new BasicStroke(veloHeight, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
-				g.drawLine((int)notestartx, (int)notey, (int)noteendx, (int)notey);
-			}
-			else {
-				if (note==selectedNoteRun) {
-					g.setColor(Theme.CURRENT.getColorSelectedNoteOutline());
-					g.setStroke(new BasicStroke(veloHeight+noteHeight/2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
-					g.drawLine((int)0, (int)notey, (int)noteendx, (int)notey);
-					g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
-					g.setColor(noteColor);
-				}
-				g.setStroke(new BasicStroke(veloHeight, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
-				g.drawLine((int)0, (int)notey, (int)noteendx, (int)notey);
-				g.drawLine((int)notestartx, (int)notey, (int)width, (int)notey);
+				noteColor = Theme.CURRENT.getColorPlayedNote();
+				noteColorLight = noteColor;
 			}
 			
+			Rectangle[] rects = getNotePositionsRect(note);
+			
+			for (Rectangle rect: rects) {
+				if (note==selectedNoteRun) {
+					g.setColor(Theme.CURRENT.getColorSelectedNoteOutline());
+					g.fillRect(rect.x-quartheight, rect.y-quartheight, rect.width+halfheight, rect.height+halfheight);
+				}
+				g.setColor(noteColor);
+				g.fillRect(rect.x, rect.y, rect.width, rect.height);
+				
+				int veloHeight = Math.round(note.getVelocity()/127f * (noteHeight-1));
+				g.setColor(noteColorLight);
+				g.fillRect(rect.x, rect.y, rect.width, rect.height-veloHeight);
+				
+				g.setColor(noteColor);
+				g.drawRect(rect.x, rect.y, rect.width, rect.height);
+			}
+			int rightindex = rects.length-1;			
 			if (note==selectedNoteRun) {
 				g.setColor(Color.RED);
-				g.setStroke(STROKE_1);
-				g.drawLine(0, (int)notey, width, (int)notey);
-				g.drawLine((int)notestartx, 0, (int)notestartx, height);
-				g.drawLine((int)noteendx, 0, (int)noteendx, height);
+				int ybottom = rects[0].y+rects[0].height;
+				int xright = rects[rightindex].x+rects[rightindex].width;
+				g.drawLine(0, rects[0].y, width, rects[0].y);
+				g.drawLine(0, ybottom, width, ybottom);
+				g.drawLine(rects[0].x, 0, rects[0].x, height);
+				g.drawLine(xright, 0, xright, height);
 			}
 			
-			if (selectedNoteRun!=null) {
-				String notetext = note.getNoteName(session.getTransposeIndex());
-				FontMetrics fm = g.getFontMetrics();
-				Rectangle2D rect = fm.getStringBounds(notetext, g);
-				int y = (int)(notey);
-				if (note==selectedNoteRun) {
-					y -= veloHeight;	
-				}
-				g.setColor(noteColor);
-				g.fill(new RoundRectangle2D.Float(notestartx-1, (float)(y-fm.getAscent()), (float)rect.getWidth()+2, (float)rect.getHeight(), 7, 7));
-				g.setColor(Theme.CURRENT.getColorSelectedNoteText());
-				g.drawString(notetext, notestartx, y);
+//			if (selectedNoteRun!=null) {
+//				String notetext = note.getNoteName(session.getTransposeIndex());
+//				FontMetrics fm = g.getFontMetrics();
+//				Rectangle2D rect = fm.getStringBounds(notetext, g);
+//				int y = rects[0].y+halfheight+quartheight; 
+//				g.setColor(Theme.CURRENT.getColorSelectedNoteText());
+//				g.drawString(notetext, rects[0].x+rects[0].width/2-(int)rect.getWidth()/2, y);
+//			}
+			if (note==resizeNote) {
+				g.setColor(Color.RED);
+				g.setStroke(new BasicStroke(tickwidth));
+				g.drawLine(rects[rightindex].x+rects[rightindex].width, 0, rects[rightindex].x+rects[rightindex].width, height);
 			}
 		}
-		if (resizeNote!=null) {
-			Line2D.Float npos = getNotePosition(resizeNote);
-			g.setColor(Color.RED);
-			g.setStroke(new BasicStroke(tickwidth));
-			g.drawLine((int)npos.x2, 0, (int)npos.x2, height);
+		
+		// draw pitchbend and mod
+	    g.setStroke(STROKE_3);
+	    tickwidth = (float)width/session.getMaxTicks();
+	    final int centery = 64;//-0x2000/129;
+	    for (int i=0;i<session.getLengthQuarters()*Session.TICK_COUNT_BASE;++i) {
+	    	int xpos = Math.round(i*tickwidth);
+	    	int mod = session.getCcList()[i];
+	    	int pb = (-session.getPitchBendList()[i])/129;
+	    	g.setColor(Theme.CURRENT.getColorPitchBend());
+	    	if (pb<0) {
+	    		g.fillRect(xpos, centery+pb, Math.round(tickwidth)+1, Math.abs(pb));
+	    	}
+	    	else if (pb>0) {
+	    		g.fillRect(xpos, centery, Math.round(tickwidth)+1, pb);
+	    	}
+	    	g.setColor(Theme.CURRENT.getColorModWheel());
+	    	g.drawLine(xpos, height-mod, xpos, height);
+	    }
+		
+		if (selectedNoteRun!=null) {
+			Rectangle pos = getNotePositionsRect(selectedNoteRun)[0];
+			final int keywidth = (int)(tickwidth*12);
+			int x = 0;
+			if (pos.x<keywidth+quartheight) {
+				x = width-keywidth;
+			}
+			g.setColor(Theme.CURRENT.getColorBackground());
+			g.fillRect(x>0?x-1:x, 0, keywidth+2, height);
+			for (int i=lowestNote;i<highestNote+1;i++) {
+				int index = (highestNote+MARGIN_SEMIS)-i;
+				int notey = Math.round(index*noteHeight-noteHeight/2);
+				String notetext = Note.getConcreteNoteName(i);
+				boolean blackkey = notetext.length()>1;
+				FontMetrics fm = g.getFontMetrics();
+				Rectangle2D rect = fm.getStringBounds(notetext, g);
+				int y = notey+halfheight+quartheight;
+				if (blackkey) {
+					g.setColor(Color.BLACK);	
+				}
+				else {
+					g.setColor(Color.WHITE);
+				}
+				g.fillRect(x, notey+1, keywidth, (int)(noteHeight*.85f)-1);
+				if (blackkey) {
+					g.setColor(Color.WHITE);	
+				}
+				else {
+					g.setColor(Color.BLACK);
+				}
+				g.drawString(notetext, blackkey?x:x+keywidth-(int)rect.getWidth()-2, y);	
+			}
 		}
 	}
 	
-	private Line2D.Float getNotePosition(Note note) {
-		int no = (highestNote+MARGIN_SEMIS)-note.getTransformedNoteNumber(session.getTransposeIndex());
-		float notey = no*noteHeight;
-		float notestartx = note.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex())*tickwidth;
-		float noteendx = note.isCompleted()?note.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex())*tickwidth:pos*tickwidth;
-		return new Line2D.Float(notestartx, notey, noteendx, notey);
+	
+	private Rectangle[] getNotePositionsRect(Note note) {
+		int index = (highestNote+MARGIN_SEMIS)-note.getTransformedNoteNumber(session.getTransposeIndex());
+		int notey = Math.round(index*noteHeight-noteHeight/2);
+		int notestartx = Math.round(note.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex())*tickwidth);
+		int noteendx = Math.round(note.isCompleted()?note.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex())*tickwidth:pos*tickwidth);
+		int height = Math.round(noteHeight*.85f);
+		if (noteendx>=notestartx) {
+			return new Rectangle[] {new Rectangle(notestartx, notey, noteendx-notestartx, height) };
+		}
+		else {
+			return new Rectangle[] {
+					new Rectangle(notestartx, notey, getWidth()-notestartx, height),
+					new Rectangle(0, notey, noteendx, height)
+					};
+		}
+		
 	}
+	
 
 	public void updateLoopPosition(int pos) {
 		this.pos = pos;
