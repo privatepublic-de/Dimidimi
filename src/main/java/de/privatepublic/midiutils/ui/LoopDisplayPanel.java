@@ -364,35 +364,19 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		
 		if (selectedNoteRun!=null) {
 			Rectangle pos = getNotePositionsRect(selectedNoteRun)[0];
-			final int keywidth = (int)(tickwidth*12);
-			int x = 0;
-			if (pos.x<keywidth+quartheight) {
-				x = width-keywidth;
-			}
-			g.setColor(Theme.CURRENT.getColorBackground());
-			g.fillRect(x>0?x-1:x, 0, keywidth+2, height);
+			int x = pos.x;
 			for (int i=lowestNote;i<highestNote+1;i++) {
 				int index = (highestNote+MARGIN_SEMIS)-i;
 				int notey = Math.round(index*noteHeight-noteHeight/2);
 				String notetext = Note.getConcreteNoteName(i);
-				boolean blackkey = notetext.length()>1;
+				boolean isBlackKey = notetext.length()>1;
 				FontMetrics fm = g.getFontMetrics();
 				Rectangle2D rect = fm.getStringBounds(notetext, g);
-				int y = notey+halfheight+quartheight;
-				if (blackkey) {
-					g.setColor(Color.BLACK);	
-				}
-				else {
-					g.setColor(Color.WHITE);
-				}
-				g.fillRect(x, notey+1, keywidth, (int)(noteHeight*.85f)-1);
-				if (blackkey) {
-					g.setColor(Color.WHITE);	
-				}
-				else {
-					g.setColor(Color.BLACK);
-				}
-				g.drawString(notetext, blackkey?x:x+keywidth-(int)rect.getWidth()-2, y);	
+				int y = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
+				g.setColor(isBlackKey?Color.BLACK:Color.WHITE);
+				g.fillRect(x+(int)rect.getX()+2, y+(int)rect.getY(), (int)rect.getWidth()+6, (int)rect.getHeight());
+				g.setColor(isBlackKey?Color.WHITE:Color.BLACK);	
+				g.drawString(notetext, x+4, y);	
 			}
 		}
 	}
@@ -457,7 +441,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	        delete.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					LOG.info("Delete Note Called");
 					session.clearNote(selectedNote);
 					selectedNote = null;
 					hitNote = null;
