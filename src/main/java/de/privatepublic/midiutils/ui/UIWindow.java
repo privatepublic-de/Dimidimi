@@ -730,7 +730,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			menuItemTheme.setSelected(true);
 		}
 		frmDimidimi.setTitle(getWindowTitle());
-		//frmDimidimi.repaint();
 	}
 	
 	@Override

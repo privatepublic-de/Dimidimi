@@ -216,8 +216,8 @@ public class Session implements PerformanceReceiver {
 		StorageContainer data = mapper.readValue(file, StorageContainer.class);
 		LOG.info("Loaded file {}", file.getPath());
 		applyStorageData(data);
-		emitLoopUpdated();
 		emitSettingsUpdated();
+		emitLoopUpdated();
 		getMidiHandler().sendAllNotesOffMidi();
 	}
 	
@@ -295,7 +295,7 @@ public class Session implements PerformanceReceiver {
 
 	public void emitLoopUpdated() {
 		for (LoopUpdateReceiver receiver: loopUpdateReceivers) {
-			receiver.loopUpdated(getNotesList());
+			receiver.loopUpdated();
 		}
 	}
 

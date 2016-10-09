@@ -23,7 +23,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 
 import javax.swing.JLabel;
@@ -262,6 +261,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		int activeQuarter = pos/Session.TICK_COUNT_BASE;
 		float quarterwidth = width*((float)Session.TICK_COUNT_BASE/session.getMaxTicks());
 		float sixthwidth = quarterwidth/4f; 
+		tickwidth = (float)width/session.getMaxTicks();
 		for (int i=0;i<session.getLengthQuarters()*4;i++) {
 			int xpos = (int)(i*sixthwidth);
 			if (i/4 == activeQuarter) {
@@ -337,15 +337,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.drawLine(rects[0].x, 0, rects[0].x, height);
 				g.drawLine(xright, 0, xright, height);
 			}
-			
-//			if (selectedNoteRun!=null) {
-//				String notetext = note.getNoteName(session.getTransposeIndex());
-//				FontMetrics fm = g.getFontMetrics();
-//				Rectangle2D rect = fm.getStringBounds(notetext, g);
-//				int y = rects[0].y+halfheight+quartheight; 
-//				g.setColor(Theme.CURRENT.getColorSelectedNoteText());
-//				g.drawString(notetext, rects[0].x+rects[0].width/2-(int)rect.getWidth()/2, y);
-//			}
 			if (note==resizeNote) {
 				g.setColor(Color.RED);
 				g.setStroke(new BasicStroke(tickwidth));
@@ -355,7 +346,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		
 		// draw pitchbend and mod
 	    g.setStroke(STROKE_3);
-	    tickwidth = (float)width/session.getMaxTicks();
 	    final int centery = 64;//-0x2000/129;
 	    for (int i=0;i<session.getLengthQuarters()*Session.TICK_COUNT_BASE;++i) {
 	    	int xpos = Math.round(i*tickwidth);
@@ -433,7 +423,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	}
 
 	@Override
-	public void loopUpdated(List<Note> list) {
+	public void loopUpdated() {
 		calculateNoteExtents();
 		repaint();
 	}
