@@ -1,8 +1,6 @@
 package de.privatepublic.midiutils;
 
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -10,133 +8,34 @@ import java.util.List;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiDevice.Info;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Transmitter;
-import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.privatepublic.midiutils.Prefs.Identifiable;
-import de.privatepublic.midiutils.events.PerformanceReceiver;
-import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
 public class MidiHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MidiHandler.class);
 	
-	
-	private static MidiHandler INSTANCE = new MidiHandler();
-
-	public static MidiHandler instance() {
-		return INSTANCE;
-	}
-	
-	
-	
-	public static class MidiDeviceWrapper implements Identifiable {
-		private Info info;
-		private MidiDevice device;
-		private Receiver receiver;
-		private Transmitter transmitter;
-		private boolean isActiveForOutput;
-		private boolean isActiveForInput;
-		private String identifier;
-
-		public MidiDeviceWrapper(Info info, MidiDevice device) {
-			this.info = info;
-			this.device = device;
-			try {
-				this.receiver = device.getReceiver();
-			} catch (Exception e) {
-				// has no receiver
-			}
-			try {
-				transmitter = device.getTransmitter();
-			} catch (MidiUnavailableException e) {
-				// has no transmitter
-			}
-			getIdentifier();
-		}
-		
-		@Override
-		/**
-		 * Human readable device description.
-		 */
-		public String toString() {
-			return info.getDescription()+" ("+info.getName()+")";
-		}
-		
-		public String getIdentifier() {
-			if (identifier==null) {
-				try {
-					MessageDigest md5 = MessageDigest.getInstance("MD5");
-					identifier = (new HexBinaryAdapter()).marshal(md5.digest(toString().getBytes()));
-				} catch (NoSuchAlgorithmException e) {
-					// shouldn't happen;
-				}
-			}
-			return identifier;
-		}
-		
-		public MidiDevice getDevice() {
-			return device;
-		}
-		
-		public Receiver getReceiver() {
-			return receiver;
-		}
-		
-		public boolean isActiveForOutput() {
-			return isActiveForOutput && receiver!=null;
-		}
-
-		public void setActiveForOutput(boolean isActiveForOutput) {
-			this.isActiveForOutput = isActiveForOutput;
-		}
-		
-		public boolean isActiveForInput() {
-			return isActiveForInput && transmitter!=null;
-		}
-
-		public void setActiveForInput(boolean isActiveForInput) {
-			this.isActiveForInput = isActiveForInput;
-		}
-		
-		@Override
-		public boolean equals(Object obj) {
-			if (obj instanceof MidiDeviceWrapper) {
-				return ((MidiDeviceWrapper)obj).device==this.device;
-			}
-			return false;
-		}
-		
-	}
-	
+	public static boolean ACTIVE = false;
 	private ArrayList<MidiDeviceWrapper> outputDeviceList = new ArrayList<MidiDeviceWrapper>();
 	private ArrayList<MidiDeviceWrapper> inputDeviceList = new ArrayList<MidiDeviceWrapper>();
-	private int settingsChannelIn = 5 -1;
-	private int settingsChannelOut = 3 -1;
-	private int settingsNumberQuarters = 8;
+	private int pos;
+	private ShortMessage resetPositionMessage = new ShortMessage();
+	private Session session;
 	
-	private boolean receiveNotes = true;
-	private boolean sendNotes = true;
-	
-	
-	private MidiHandler() {
+	public MidiHandler(Session session, int pos) {
+		
+		this.session = session;
+		this.pos = pos;
 		
 		List<String> prefInIds = Prefs.getPrefIdentifierList(Prefs.MIDI_IN_DEVICES);
 		List<String> prefOutIds = Prefs.getPrefIdentifierList(Prefs.MIDI_OUT_DEVICES);
-		
-		settingsChannelIn  = Prefs.get(Prefs.MIDI_IN_CHANNEL, settingsChannelIn);
-		settingsChannelOut  = Prefs.get(Prefs.MIDI_OUT_CHANNEL, settingsChannelOut);
-		
-		setPPQDiv(Prefs.get(Prefs.MIDI_48PPQ, 2));
 		
 		MidiDevice device;
 		MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
@@ -164,7 +63,7 @@ public class MidiHandler {
 						}
 					}
 					device.open();
-					LOG.info("Output device {}", infos[i].getDescription());
+//					LOG.info("Output device {}", infos[i].getDescription());
 				}
 				if (device.getMaxTransmitters()!=0) {
 					// input device
@@ -179,7 +78,7 @@ public class MidiHandler {
 					Receiver receiver = new MIDIReceiver(dev);
 					trans.setReceiver(receiver);
 					device.open();
-					LOG.info("Input device {}", infos[i].getDescription());
+//					LOG.info("Input device {}", infos[i].getDescription());
 				}
 				
 			} catch (MidiUnavailableException e) {
@@ -189,17 +88,17 @@ public class MidiHandler {
 		Collections.sort(outputDeviceList, new Comparator<MidiDeviceWrapper>() {
 			@Override
 			public int compare(MidiDeviceWrapper o1, MidiDeviceWrapper o2) {
-				return o1.info.getVendor().compareTo(o2.info.getVendor());
+				return o1.getInfo().getVendor().compareTo(o2.getInfo().getVendor());
 			}
 		});
 		Collections.sort(inputDeviceList, new Comparator<MidiDeviceWrapper>() {
 			@Override
 			public int compare(MidiDeviceWrapper o1, MidiDeviceWrapper o2) {
-				return o1.info.getVendor().compareTo(o2.info.getVendor());
+				return o1.getInfo().getVendor().compareTo(o2.getInfo().getVendor());
 			}
 		});
-		new PerformanceHandler();
-		SettingsUpdateReceiver.Dispatcher.sendSettingsUpdated();
+		LOG.info("Available MIDI devices: {} in, {} out", inputDeviceList.size(), outputDeviceList.size());
+		session.emitSettingsUpdated();
 	}
 	
 	public void storeSelectedOutDevices() {
@@ -222,12 +121,6 @@ public class MidiHandler {
 		Prefs.putPrefIdentfierList(Prefs.MIDI_IN_DEVICES, list);
 	}
 
-	private int pos_in;
-	private int pos;
-	private int ppqdiv = 2;
-//	List<Receiver> receivers = new ArrayList<Receiver>();
-	ShortMessage resetPositionMessage = new ShortMessage();
-	
 	public List<MidiDeviceWrapper> getOutputDevices() {
 		return outputDeviceList;
 	}
@@ -250,30 +143,31 @@ public class MidiHandler {
 			switch(status) {
 			case ShortMessage.STOP:
 				LOG.info("Received STOP - Setting song position zero");
-				PerformanceReceiver.Dispatcher.sendActive(false, pos);
+				sendAllNotesOffMidi();
+				ACTIVE = false;
+				session.emitActive(false, pos);
 				pos = 0;
-				pos_in = 0;
 				sendMessage(resetPositionMessage);
-				sendAllNotesOff();
 				break;
 			case ShortMessage.START:
 				LOG.info("Received START");
-				PerformanceReceiver.Dispatcher.sendActive(true, pos);
+				ACTIVE = true;
+				session.emitActive(true, pos);
 				break;
 			case ShortMessage.CONTINUE:
 				LOG.info("Received CONTINUE");
-				PerformanceReceiver.Dispatcher.sendActive(true, pos);
+				ACTIVE = true;
+				session.emitActive(true, pos);
 				break;
 			case ShortMessage.TIMING_CLOCK:
-				PerformanceReceiver.Dispatcher.sendClock(pos);
-				pos_in++;
-				pos = (pos_in/ppqdiv)%getMaxTicks();
+				session.emitClock(pos);
+				pos = ++pos%session.getMaxTicks();
 				break;
 			}
-			if (message instanceof ShortMessage && device.isActiveForInput && isReceiveNotes()) {
+			if (message instanceof ShortMessage && device.isActiveForInput() && session.isMidiInputOn()) {
 				final ShortMessage msg = (ShortMessage)message;
 				final int channel = msg.getChannel();
-				if (channel==settingsChannelIn) {
+				if (channel==session.getMidiChannelIn()) {
 					int command = msg.getCommand();
 					final int data1 = msg.getData1();
 					final int data2 = msg.getData2();
@@ -289,6 +183,13 @@ public class MidiHandler {
 					case ShortMessage.NOTE_OFF:
 						noteOff(data1);
 						break;
+					case ShortMessage.CONTROL_CHANGE:
+						session.emitCC(data1, data2, pos);
+						break;
+					case ShortMessage.PITCH_BEND:
+						int val = ((data1 & 0x7f) + ((data2 & 0x7f)<<7)) - 0x2000;
+						session.emitPitchBend(val, pos);
+						break;
 					}
 				}
 			}
@@ -301,20 +202,20 @@ public class MidiHandler {
 	}
 
 	private void noteOn(int noteNumber, int velocity) {
-		PerformanceReceiver.Dispatcher.sendNoteOn(noteNumber, velocity, pos);
-		sendNoteOn(noteNumber, velocity);
+		session.emitNoteOn(noteNumber, velocity, pos);
+		sendNoteOnMidi(noteNumber, velocity);
 	}
 
 	private void noteOff(int noteNumber) {
-		PerformanceReceiver.Dispatcher.sendNoteOff(noteNumber, pos);
-		sendNoteOff(noteNumber);
+		session.emitNoteOff(noteNumber, pos);
+		sendNoteOffMidi(noteNumber);
 	}
 
-	public void sendNoteOn(int noteNumber, int velocity) {
-		if (isSendNotes()) {
+	public void sendNoteOnMidi(int noteNumber, int velocity) {
+		if (session.isMidiOutputOn()) {
 			try {
 				ShortMessage message = new ShortMessage();
-				message.setMessage(ShortMessage.NOTE_ON, settingsChannelOut, noteNumber, velocity);
+				message.setMessage(ShortMessage.NOTE_ON, session.getMidiChannelOut(), noteNumber, velocity);
 				sendMessage(message);
 			} catch (InvalidMidiDataException e) {
 				e.printStackTrace();
@@ -322,22 +223,45 @@ public class MidiHandler {
 		}
 	}
 
-	public void sendNoteOff(int noteNumber) {
-		if (isSendNotes()) {
+	public void sendNoteOffMidi(int noteNumber) {
+		if (session.isMidiOutputOn()) {
 			try {
 				ShortMessage message = new ShortMessage();
-				message.setMessage(ShortMessage.NOTE_OFF, settingsChannelOut, noteNumber, 0);
+				message.setMessage(ShortMessage.NOTE_OFF, session.getMidiChannelOut(), noteNumber, 0);
 				sendMessage(message);
 			} catch (InvalidMidiDataException e) {
 				e.printStackTrace();
 			}
 		}
 	}
+	
+	public void sendCC(int val) {
+		if (session.isMidiOutputOn()) {
+			try {
+				ShortMessage message = new ShortMessage();
+				message.setMessage(ShortMessage.CONTROL_CHANGE, session.getMidiChannelOut(), 1, val);
+				sendMessage(message);
+			} catch (InvalidMidiDataException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void sendPitchBend(int val) {
+		if (session.isMidiOutputOn()) {
+			try {
+				ShortMessage message = new ShortMessage();
+				val = Math.min(val + 0x2000, 0x3fff);
+				message.setMessage(ShortMessage.PITCH_BEND, session.getMidiChannelOut(), val & 0x7f, (val>>7) & 0x7f);
+				sendMessage(message);
+			} catch (InvalidMidiDataException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 
 	private void sendMessage(MidiMessage msg) {
-//		if (selectedDevice!=null) {
-//			selectedDevice.getReceiver().send(msg, -1);
-//		}
 		for (MidiDeviceWrapper d:outputDeviceList) {
 			if (d.isActiveForOutput()) {
 				d.getReceiver().send(msg, -1);
@@ -346,101 +270,40 @@ public class MidiHandler {
 	}
 	
 	
-	public void sendAllNotesOff() {
-		sendAllNotesOff(settingsChannelOut);
+	public void sendAllNotesOffMidi() {
+		sendAllNotesOffMidi(session.getMidiChannelOut());
 	}
 	
 	
-	private void sendAllNotesOff(int channel) {
-		for (int i=0;i<128;i++) {
-			try {
-				ShortMessage message = new ShortMessage();
-				message.setMessage(ShortMessage.NOTE_OFF, channel, i, 0);
-				sendMessage(message);
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
+	public void sendAllNotesOffMidi(int channel) {
+		ShortMessage message = new ShortMessage();		
+		try {
+			for (Note note: session.getNotesList()) {
+				if (note.isPlayed()) {
+					note.setPlayed(false);
+					message.setMessage(ShortMessage.NOTE_OFF, channel, note.getTransformedNoteNumber(session.getTransposeIndex()), 0);
+					sendMessage(message);
+				}
 			}
+			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 1, 0);
+			sendMessage(message);
+			message.setMessage(ShortMessage.PITCH_BEND, channel, 0, 0x40);
+			sendMessage(message);
+			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 123, 0);
+			sendMessage(message);
+			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 120, 0);
+			sendMessage(message);
+			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 121, 0);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
+		
 	}
 	
-	public int getMaxTicks() {
-		return getNumberQuarters() * 24;
+	public int getPos() {
+		return pos;
 	}
-	
-	public int getNumberQuarters() {
-		return settingsNumberQuarters;
-	}
-	
-	public int getMidiChannelOut() {
-		return settingsChannelOut;
-	}
-	
-	public int getMidiChannelIn() {
-		return settingsChannelIn;
-	}
-	
-	// 2 = 48ppq input 1 = 24ppq input
-	public void setPPQDiv(int ppq48div) {
-		ppqdiv = ppq48div;
-	}
-	
-	public int getPPQDiv() {
-		return ppqdiv;
-	}
-
-//	public void updateSettings(int midiIn, int midiOut, int numberQuarters) {
-//		if (midiIn!=settingsChannelIn || midiOut!=settingsChannelOut) {
-//			int oldOut = settingsChannelOut;
-//			settingsChannelIn = midiIn;
-//			settingsChannelOut = midiOut;
-//			sendAllNotesOff(oldOut);
-//			Prefs.put(Prefs.MIDI_IN_CHANNEL, settingsChannelIn);
-//			Prefs.put(Prefs.MIDI_OUT_CHANNEL, settingsChannelOut);
-//		}
-//		if (numberQuarters!=settingsNumberQuarters) {
-//			settingsNumberQuarters = numberQuarters;
-//			//ClockReceiver.Dispatcher.sendClock(pos);
-//		}
-//	}
-	
-	public void setMidiChannelIn(int midiChannel) {
-		settingsChannelIn = midiChannel;
-		Prefs.put(Prefs.MIDI_IN_CHANNEL, settingsChannelIn);
-	}
-	
-	public void setMidiChannelOut(int midiChannel) {
-		int oldOut = settingsChannelOut;
-		settingsChannelOut = midiChannel;
-		sendAllNotesOff(oldOut);
-		Prefs.put(Prefs.MIDI_OUT_CHANNEL, settingsChannelOut);
-	}
-	
-	
-	public boolean isReceiveNotes() {
-		return receiveNotes;
-	}
-
-	public void setReceiveNotes(boolean receiveNotes) {
-		this.receiveNotes = receiveNotes;
-	}
-
-	public boolean isSendNotes() {
-		return sendNotes;
-	}
-
-	public void setSendNotes(boolean sendNotes) {
-		if (this.sendNotes!=sendNotes && !sendNotes) {
-			sendAllNotesOff();
-		}
-		this.sendNotes = sendNotes;
-	}
-
-	public void updateLength(int numberQuarters) {
-		settingsNumberQuarters = numberQuarters;
-		//ClockReceiver.Dispatcher.sendClock(pos);
-	}
-	
-	
 	
 
 }

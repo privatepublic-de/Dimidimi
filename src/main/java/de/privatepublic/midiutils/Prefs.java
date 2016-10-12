@@ -19,8 +19,14 @@ public class Prefs {
 	public static final String MIDI_OUT_DEVICES = "midioutdev";
 	public static final String MIDI_IN_CHANNEL = "midiinch";
 	public static final String MIDI_OUT_CHANNEL = "midioutch";
-	public static final String FILE_LAST_USED_NAME = "lastfile";
-	public static final String MIDI_48PPQ = "48ppq";
+	public static final String FILE_LOOP_LAST_USED_NAME = "lastfile";
+	public static final String FILE_SESSION_LAST_USED_NAME = "lastsession";
+	public static final String THEME = "theme";
+	public static final String RECENT_SESSION_LIST="recentsessions";
+	public static final String RECENT_LOOP_LIST="recentloops";
+	
+	private static int MAX_RECENT_FILE_COUNT = 10;
+	public static String LIST_ENTRY_EMPTY_MARKER = "(--empty--)";
 	
 	public static void put(String key, String val) {
 		PREFS.put(key, val);
@@ -62,6 +68,34 @@ public class Prefs {
 		}
 		put(key, sb.toString());
 	}
+	
+	public static void pushToList(String listKey, String value) {
+		List<String> list = getList(listKey);
+		if (list.contains(value)) {
+			list.remove(value);
+		}
+		list.add(0, value);
+		for (int i=0;i<MAX_RECENT_FILE_COUNT;i++) {
+			if (i>=list.size() || list.get(i)==null) {
+				put(listKey+i, LIST_ENTRY_EMPTY_MARKER);
+			}
+			else {
+				put(listKey+i, list.get(i));
+			}
+		}
+	}
+	
+	public static List<String> getList(String listKey) {
+		String[] result = new String[MAX_RECENT_FILE_COUNT];
+		for (int i=0;i<MAX_RECENT_FILE_COUNT;i++) {
+			result[i] = get(listKey+i, null);
+			if (result[i]==null) {
+				result[i] = LIST_ENTRY_EMPTY_MARKER;
+			}
+		}
+		return new ArrayList<String>(Arrays.asList(result));
+	}
+	
 	
 	
 	public static interface Identifiable {

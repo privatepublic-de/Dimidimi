@@ -12,11 +12,8 @@ public class Note {
 	private boolean isCompleted;
 	private boolean isPlayed;
 
-	private int playedNoteNumber;
 	private int qoffset = 0;
 	
-	public static int APPLY_QUANTIZATION = 0;
-	public static int APPLY_TRANSPOSE = 13;
 	
 	public Note() {
 		
@@ -37,8 +34,8 @@ public class Note {
 	}
 	
 	@JsonIgnore
-	public int getTransformedPosEnd() {
-		return (posEnd + qoffset)%MidiHandler.instance().getMaxTicks();
+	public int getTransformedPosEnd(int maxTicks, int quantizationIndex) {
+		return (posEnd + qoffset)%maxTicks;
 	}
 	public void setPosEnd(int posEnd) {
 		this.posEnd = posEnd;
@@ -58,9 +55,9 @@ public class Note {
 	}
 	
 	@JsonIgnore
-	public int getTransformedPosStart() {
-		if (APPLY_QUANTIZATION>0) {
-			int stepsize = Q_STEPS[APPLY_QUANTIZATION];
+	public int getTransformedPosStart(int maxTicks, int quantizationIndex) {
+		if (quantizationIndex>0) {
+			int stepsize = Q_STEPS[quantizationIndex];
 			int offset = posStart % stepsize;
 			if (offset<stepsize/2) {
 				qoffset = -offset;
@@ -72,12 +69,12 @@ public class Note {
 		else {
 			qoffset = 0;
 		}
-		return (posStart + qoffset)%MidiHandler.instance().getMaxTicks();
+		return (posStart + qoffset)%maxTicks;
 	}
 	
 	@JsonIgnore
-	public int getTransformedNoteNumber() {
-		int result = noteNumber+T_STEPS[APPLY_TRANSPOSE];
+	public int getTransformedNoteNumber(int transposeIndex) {
+		int result = noteNumber+T_STEPS[transposeIndex];
 		return result<0?0:(result>127?127:result);
 	}
 	
@@ -110,29 +107,25 @@ public class Note {
 
 	public void setPlayed(boolean isPlayed) {
 		this.isPlayed = isPlayed;
-		if (isPlayed) {
-			playedNoteNumber = getTransformedNoteNumber();
-		}
-	}
-
-	@JsonIgnore
-	public int getPlayedNoteNumber() {
-		return playedNoteNumber;
 	}
 	
 	@JsonIgnore
-	public String getNoteName() {
-		return NOTE_NAMES[getTransformedNoteNumber()%12]+(getTransformedNoteNumber()/12-1);
+	public String getNoteName(int transposeIndex) {
+		return NOTE_NAMES[getTransformedNoteNumber(transposeIndex)%12]+(getTransformedNoteNumber(transposeIndex)/12-1);
 	}
-	
 	
 	@Override
 	public String toString() {
 		return "<NoteRun #"+noteNumber+", "+velocity+">";
 	}
 	
+	public static String getConcreteNoteName(int number) { // TODO Name
+		return NOTE_NAMES[number%12];
+	}
+	
 	private static final int[] Q_STEPS = new int[]{ 0, 48, 24, 12, 6, 3, 48/3, 24/3, 12/3};
 	private static final int[] T_STEPS = new int[]{ 24, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -24};
-	private static final String[] NOTE_NAMES = new String[] {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
+	// private static final String[] NOTE_NAMES = new String[] {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
+	private static final String[] NOTE_NAMES = new String[] {"C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"};
 	
 }
