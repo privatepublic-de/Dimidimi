@@ -261,6 +261,30 @@ public class Session implements PerformanceReceiver {
 		emitLoopUpdated();
 		emitSettingsUpdated();
 	}
+	
+	public void doubleSpeed() {
+		setLengthQuarters(getLengthQuarters()/2);
+		for (Note note: getNotesList()) {
+			if (note.isCompleted()) {
+				note.setPosStart(note.getPosStart()/2);
+				note.setPosEnd(note.getPosEnd()/2);
+			}
+		}
+		emitLoopUpdated();
+		emitSettingsUpdated();
+	}
+	
+	public void halfSpeed() {
+		setLengthQuarters(getLengthQuarters()*2);
+		for (Note note: getNotesList()) {
+			if (note.isCompleted()) {
+				note.setPosStart(note.getPosStart()*2);
+				note.setPosEnd(note.getPosEnd()*2);
+			}
+		}
+		emitLoopUpdated();
+		emitSettingsUpdated();
+	}
 
 
 	public void destroy() {

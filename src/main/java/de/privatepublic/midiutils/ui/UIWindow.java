@@ -559,8 +559,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		menu.addSeparator();
 		
-		menuItem = new JMenuItem("Double");
+		menuItem = new JMenuItem("Double Loop");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -568,6 +569,25 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Half Speed");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.halfSpeed();
+			}
+		});
+		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Double Speed");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.doubleSpeed();
+			}
+		});
+		menu.add(menuItem);
+		
 		menuBar.add(menu);
 		
 		menu = new JMenu("MIDI");
