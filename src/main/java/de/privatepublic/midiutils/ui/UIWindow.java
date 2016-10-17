@@ -71,7 +71,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private static final String APP_TITLE = "dimidimi Looper";
 	
 	private static final String[] MIDI_CHANNELS = new String[]{"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"};
-	private static final String[] QUANTIZE = new String[]{"none","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
+	private static final String[] QUANTIZE = new String[]{"off","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
 	private static final String[] TRANSPOSE = new String[]{"+24", "+12","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","0","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-24"};
 	
 	private JFrame frmDimidimi;
@@ -559,8 +559,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		menu.addSeparator();
 		
-		menuItem = new JMenuItem("Double");
+		menuItem = new JMenuItem("Double Loop");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -568,6 +569,25 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Half Speed");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.halfSpeed();
+			}
+		});
+		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Double Speed");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.doubleSpeed();
+			}
+		});
+		menu.add(menuItem);
+		
 		menuBar.add(menu);
 		
 		menu = new JMenu("MIDI");
