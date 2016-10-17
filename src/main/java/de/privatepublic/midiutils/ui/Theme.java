@@ -46,9 +46,9 @@ public class Theme {
 			Color.BLACK /*colorSelectedNoteText*/, 
 			Color.getHSBColor(.58f, .8f, 1f) /*colorClockOn*/, 
 			SystemColor.window /*colorClockOff*/, 
-			Color.decode("#eeeeee") /*colorMidiOutBig*/, 
-			Color.decode("#D4F4FF") /*colorModWheel*/, 
-			Color.decode("#D99E9F") /*colorPitchBend*/, 
+			Color.decode("#f4f4f4") /*colorMidiOutBig*/, 
+			new Color(0xbd, 0xd9, 0xff, 0x80) /*colorModWheel*/, 
+			new Color(0xd9, 0x9e, 0x9f, 0x80) /*colorPitchBend*/, 
 			.8f /*noteColorSaturation*/, 
 			.8f /*noteColorBrightness*/, 
 			.8f, /*noteLightColorBrightnessFactor*/
