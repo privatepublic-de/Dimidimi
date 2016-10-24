@@ -24,6 +24,7 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -54,7 +55,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private Note selectedNote;
 	private Note resizeNote;
 	private boolean isDragging;
+	private boolean isSelectionDrag;
 	private Point dragStart;
+	private Point dragEnd;
 	private int dragStartNoteNumber;
 	private int dragStartPosStart;
 	private int dragStartPosEnd;
@@ -64,6 +67,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private static final int MARGIN_SEMIS = 1;
 	private int highestNote = 96-MARGIN_SEMIS;
 	private int lowestNote = 12+MARGIN_SEMIS;
+	private CopyOnWriteArrayList<Note> selectedNotes = new CopyOnWriteArrayList<Note>();
 	
 	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
 	
@@ -76,6 +80,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				isDragging = false;
+				isSelectionDrag = false;
+				repaint();
 				if (e.isPopupTrigger()) {
 					if (selectedNote!=null && selectedNote.isCompleted()) {
 						openPopUp(e);
@@ -93,8 +99,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					}
 				}
 				else {
-					dragStart = e.getPoint();
 					Note storeStartDataNote = null;
+					dragStart = e.getPoint();
 					if (selectedNote!=null) {
 						storeStartDataNote = selectedNote;
 					}
@@ -105,6 +111,12 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						dragStartNoteNumber = storeStartDataNote.getNoteNumber();
 						dragStartPosStart = storeStartDataNote.getPosStart();
 						dragStartPosEnd = storeStartDataNote.getPosEnd();
+						isSelectionDrag = false;
+					}
+					else {
+						// clicked outside note, start selection
+						isSelectionDrag = true;
+						dragEnd = e.getPoint();
 					}
 				}
 				repaint();
@@ -176,24 +188,30 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				if (selectedNote!=null) {
-					int distY = dragStart.y-e.getY();
-					int distX = e.getX()-dragStart.x;
-					
-					int noteOffset = (int)(distY/noteHeight);
-					selectedNote.setNoteNumber(dragStartNoteNumber+noteOffset);
-					
-					int ticksOffset = (int)(distX/tickwidth);
-					selectedNote.setPosStart((dragStartPosStart+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
-					selectedNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
-					refreshLoopDisplay();
+				if (isSelectionDrag) {
+					dragEnd = e.getPoint();
+					repaint();
 				}
 				else {
-					if (resizeNote!=null) {
+					if (selectedNote!=null) {
+						int distY = dragStart.y-e.getY();
 						int distX = e.getX()-dragStart.x;
+
+						int noteOffset = (int)(distY/noteHeight);
+						selectedNote.setNoteNumber(dragStartNoteNumber+noteOffset);
+
 						int ticksOffset = (int)(distX/tickwidth);
-						resizeNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+						selectedNote.setPosStart((dragStartPosStart+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+						selectedNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
 						refreshLoopDisplay();
+					}
+					else {
+						if (resizeNote!=null) {
+							int distX = e.getX()-dragStart.x;
+							int ticksOffset = (int)(distX/tickwidth);
+							resizeNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+							refreshLoopDisplay();
+						}
 					}
 				}
 			}
@@ -379,6 +397,24 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.setColor(isBlackKey?Color.WHITE:Color.BLACK);	
 				g.drawString(notetext, x+4, y);	
 			}
+		}
+		if (isSelectionDrag) {
+			g.setStroke(STROKE_3);
+			g.setColor(Color.WHITE);
+			int rw = dragEnd.x-dragStart.x;
+			int rh = dragEnd.y-dragStart.y;
+			int rx = dragStart.x;
+			int ry = dragStart.y;
+			if (rw<0) {
+				rx += rw;
+				rw = -rw;
+			}
+			if (rh<0) {
+				ry += rh;
+				rh = -rh;
+			}
+			g.drawRect(rx, ry, rw, rh);
+			
 		}
 	}
 	
