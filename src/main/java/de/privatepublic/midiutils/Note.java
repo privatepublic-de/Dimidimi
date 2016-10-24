@@ -8,6 +8,12 @@ public class Note {
 	private int posStart;
 	private int posEnd = -1;
 	private int noteNumber;
+	
+	private int storedPosStart; // TODO not a good place here for ui stuff
+	private int storedPosEnd;
+	private int storedNoteNumber;
+	
+	
 	private int velocity;
 	private boolean isCompleted;
 	private boolean isPlayed;
@@ -121,6 +127,27 @@ public class Note {
 	
 	public static String getConcreteNoteName(int number) { // TODO Name
 		return NOTE_NAMES[number%12];
+	}
+	
+	public void storeCurrent() {
+		storedPosStart = posStart;
+		storedPosEnd = posEnd;
+		storedNoteNumber = noteNumber;
+	}
+	
+	@JsonIgnore
+	public int getStoredPosEnd() {
+		return storedPosEnd;
+	}
+	
+	@JsonIgnore
+	public int getStoredPosStart() {
+		return storedPosStart;
+	}
+	
+	@JsonIgnore
+	public int getStoredNoteNumber() {
+		return storedNoteNumber;
 	}
 	
 	private static final int[] Q_STEPS = new int[]{ 0, 48, 24, 12, 6, 3, 48/3, 24/3, 12/3};
