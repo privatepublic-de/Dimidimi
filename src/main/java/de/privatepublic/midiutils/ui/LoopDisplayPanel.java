@@ -99,30 +99,18 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				else {
 					dragStart = e.getPoint();
 					if (resizeNote==null) {
-						boolean hitSelected = false;
-						outer:
-							for (Note note: selectedNotes) {
-								for (Rectangle rect: getNotePositionsRect(note)) {
-									if (rect.contains(dragStart)) {
-										hitSelected = true;
-										draggedNote = note;
-										break outer;
-									}
-								}
+						Note hitNote = findHitNote(selectedNotes, dragStart);
+						if (hitNote!=null) {
+							draggedNote = hitNote;
+						}
+						else {
+							selectedNotes.clear();
+							hitNote = findHitNote(session.getNotesList(), dragStart);
+							if (hitNote!=null) {
+								selectedNotes.add(hitNote);
+								hitNote.storeCurrent();
+								draggedNote = hitNote;
 							}
-						if (!hitSelected) {
-							selectedNotes.clear();					
-							for (Note note: session.getNotesList()) {
-								for (Rectangle rect: getNotePositionsRect(note)) {
-									if (rect.contains(e.getPoint())) {
-										selectedNotes.add(note);
-										note.storeCurrent();
-										draggedNote = note;
-										break;
-									}
-								}
-							}
-
 							if (selectedNotes.size()>0) {
 								isSelectionDrag = false;
 							}
@@ -192,7 +180,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				if (resizeNote!=null) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
 				}
-				else if (isDragging || isHit(session.getNotesList(), e.getPoint())) {
+				else if (isDragging || isListHit(session.getNotesList(), e.getPoint())) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				}
 				else {
@@ -465,7 +453,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		}
 	}
 	
-	public boolean isHit(List<Note> notelist, Point hitPoint) {
+	private boolean isListHit(List<Note> notelist, Point hitPoint) {
 		for (Note note:notelist) {
 			Rectangle[] rects = getNotePositionsRect(note);
 			for (Rectangle rect:rects) {
@@ -476,6 +464,17 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 		}
 		return false;
+	}
+	
+	private Note findHitNote(List<Note> notelist, Point hitPoint) {
+		for (Note note: notelist) {
+			for (Rectangle rect: getNotePositionsRect(note)) {
+				if (rect.contains(hitPoint)) {
+					return note;
+				}
+			}
+		}
+		return null;
 	}
 	
 	public void updateLoopPosition(int pos) {
