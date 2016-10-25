@@ -418,54 +418,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	
 	private JMenuBar buildMenu() {
 		JMenuBar menuBar = new JMenuBar();
-		JMenu menu = new JMenu("Session");
-		JMenuItem menuItem = new JMenuItem("Load...");
-		menuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File selectedFile = GUIUtils.loadDialog("Load Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
-				if (selectedFile!=null) {
-					GUIUtils.loadSession(selectedFile, frmDimidimi);
-				}
-			}
-		});
-		menu.add(menuItem);
-		JMenu recentSub = new JMenu("Recent Sessions");
-		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_SESSION_LIST, new RecentMenuActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				super.actionPerformed(e);
-				String filename = Prefs.getList(Prefs.RECENT_SESSION_LIST).get(selectedIndex);
-				if (!Prefs.LIST_ENTRY_EMPTY_MARKER.equals(filename)) {
-					GUIUtils.loadSession(new File(filename), frmDimidimi);
-				}
-			}
-		}));
-		menu.add(recentSub);
+		JMenu menu = new JMenu("File");
 		
-		menu.addSeparator();
-		menuItem = new JMenuItem("Save as...");
-		menuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File selectedFile = GUIUtils.saveDialog("Save Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
-				if (selectedFile!=null) {
-					try {
-						DiMIDImi.saveSession(selectedFile);
-						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
-					} catch (IOException e1) {
-						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
-		        		LOG.error("Could not write file", e1);
-					}
-					Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
-				}
-			}
-		});
-		menu.add(menuItem);
-		menuBar.add(menu);
-		
-		menu = new JMenu("Loop");
-		menuItem = new JMenuItem("New");
+		JMenuItem  menuItem = new JMenuItem("New Loop");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
 			@Override
@@ -477,12 +432,11 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 		menu.add(menuItem);
 		
-		menu.addSeparator();
-		menuItem = new JMenuItem("Load...");
+		menuItem = new JMenuItem("Open Loop...");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				File selectedFile = GUIUtils.loadDialog("Load Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
+				File selectedFile = GUIUtils.loadDialog("Open Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
 		        if (selectedFile!=null) {
 		        	String s = GUIUtils.loadLoop(selectedFile, session, frmDimidimi);
 		        	if (s!=null) {
@@ -493,7 +447,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
-		recentSub = new JMenu("Recent Loops");
+		JMenu recentSub = new JMenu("Recent Loops");
 		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_LOOP_LIST, new RecentMenuActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -510,7 +464,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		}));
 		menu.add(recentSub);
 		menu.addSeparator();
-		menuItem = new JMenuItem("Save...");
+		menuItem = new JMenuItem("Save Loop...");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -532,6 +486,76 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 		menu.add(menuItem);
 		menu.addSeparator();
+		
+		menuItem = new JMenuItem("Close Loop");
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				closeWindow();
+			}
+		});
+		menu.add(menuItem);
+		
+		menu.addSeparator();
+		menuItem = new JMenuItem("Open Session...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = GUIUtils.loadDialog("Load Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
+				if (selectedFile!=null) {
+					GUIUtils.loadSession(selectedFile, frmDimidimi);
+				}
+			}
+		});
+		menu.add(menuItem);
+		recentSub = new JMenu("Recent Sessions");
+		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_SESSION_LIST, new RecentMenuActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				super.actionPerformed(e);
+				String filename = Prefs.getList(Prefs.RECENT_SESSION_LIST).get(selectedIndex);
+				if (!Prefs.LIST_ENTRY_EMPTY_MARKER.equals(filename)) {
+					GUIUtils.loadSession(new File(filename), frmDimidimi);
+				}
+			}
+		}));
+		menu.add(recentSub);
+		
+		menu.addSeparator();
+		menuItem = new JMenuItem("Save Session as...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = GUIUtils.saveDialog("Save Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
+				if (selectedFile!=null) {
+					try {
+						DiMIDImi.saveSession(selectedFile);
+						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
+		        		LOG.error("Could not write file", e1);
+					}
+					Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
+				}
+			}
+		});
+		menu.add(menuItem);
+		
+		menu.addSeparator();
+		menuItem = new JMenuItem("Close All (Exit)");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DiMIDImi.removeAllSessions();
+			}
+		});
+		menu.add(menuItem);
+		menuBar.add(menu);
+
+		
+		menu = new JMenu("Edit");
+		
 		menuItem = new JMenuItem("Clear");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
@@ -541,6 +565,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		menu.addSeparator();
 		
 		menuItem = new JMenuItem("Clear Mod Wheel");
 		menuItem.addActionListener(new ActionListener() {
@@ -561,7 +586,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menu.add(menuItem);
 		menu.addSeparator();
 		
-		menuItem = new JMenuItem("Double Loop");
+		menuItem = new JMenuItem("Duplicate Loop");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -658,27 +683,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				DiMIDImi.arrangeSessionWindows();
-			}
-		});
-		menu.add(menuItem);
-		menu.addSeparator();
-		
-		menuItem = new JMenuItem("Close");
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-		menuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				closeWindow();
-			}
-		});
-		menu.add(menuItem);
-		
-		menu.addSeparator();
-		menuItem = new JMenuItem("Close All (Exit)");
-		menuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				DiMIDImi.removeAllSessions();
 			}
 		});
 		menu.add(menuItem);
