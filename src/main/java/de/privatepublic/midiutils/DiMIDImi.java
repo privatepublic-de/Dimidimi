@@ -1,5 +1,6 @@
 package de.privatepublic.midiutils;
 
+import java.awt.EventQueue;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.io.File;
@@ -17,6 +18,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.privatepublic.midiutils.ui.ControllerWindow;
 import de.privatepublic.midiutils.ui.UIWindow;
 
 
@@ -27,8 +29,25 @@ public class DiMIDImi {
 	
 	private static final List<Session> SESSIONS = new CopyOnWriteArrayList<Session>();
 	
+	private static ControllerWindow controllerWindow;
+	
 	public static void main(String[] args) {
 		LOG.info("DiMIDImi Looper starting ...");
+		
+		// create controller window
+		
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					controllerWindow = new ControllerWindow();
+					controllerWindow.setAlwaysOnTop(true);
+					controllerWindow.setVisible(false);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
 		createSession();
 	}
 	
@@ -144,6 +163,10 @@ public class DiMIDImi {
 				}
 			}
 		}
+	}
+	
+	public static ControllerWindow getControllerWindow() {
+		return controllerWindow;
 	}
 	
 }

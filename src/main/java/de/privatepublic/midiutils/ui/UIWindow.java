@@ -666,17 +666,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuBar.add(menu);
 		
 		menu = new JMenu("Window");
-		menuItemTheme = new JCheckBoxMenuItem("Dark Theme");
-		menuItemTheme.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
-				DiMIDImi.updateSettingsOnAllSessions();
-			}
-		});
-		menu.add(menuItemTheme);
-		menu.addSeparator();		
 		
+
 		menuItem = new JMenuItem("Arrange Windows");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK+Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
@@ -686,6 +677,30 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		menu.addSeparator();
+		
+		menuItem = new JMenuItem("Show Controller");
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DiMIDImi.getControllerWindow().setVisible(true);
+			}
+		});
+		menu.add(menuItem);
+		menu.addSeparator();
+		
+		menuItemTheme = new JCheckBoxMenuItem("Dark Theme");
+		menuItemTheme.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
+				DiMIDImi.updateSettingsOnAllSessions();
+			}
+		});
+		menu.add(menuItemTheme);
+		menu.addSeparator();
+		
 		
 		menuBar.add(menu);
 		return menuBar;
