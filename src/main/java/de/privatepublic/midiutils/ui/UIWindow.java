@@ -242,7 +242,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		buttonNewSession.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				session.setMidiInputOn(false);
-				settingsUpdated();
 				DiMIDImi.createSession();
 			}
 		});

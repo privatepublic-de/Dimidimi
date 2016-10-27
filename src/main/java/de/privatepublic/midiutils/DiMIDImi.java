@@ -47,7 +47,6 @@ public class DiMIDImi {
 				}
 			}
 		});
-		
 		createSession();
 	}
 	
@@ -61,6 +60,7 @@ public class DiMIDImi {
 	public static Session createSession() {
 		Session session = new Session(SESSIONS.size()>0?SESSIONS.get(0).getMidiHandler().getPos():0);
 		SESSIONS.add(session);
+		DiMIDImi.updateSettingsOnAllSessions();
 		LOG.info("Created new session {}", session.hashCode());
 		return session;
 	}
@@ -68,16 +68,20 @@ public class DiMIDImi {
 	public static Session createSession(StorageContainer data) {
 		Session session = new Session(data);
 		SESSIONS.add(session);
+		DiMIDImi.updateSettingsOnAllSessions();
 		LOG.info("Created new session {}", session.hashCode());
 		return session;
 	}
 	
 	public static void removeSession(Session session) {
-		SESSIONS.remove(session);
-		session.destroy();
-		LOG.info("Removed session {}", session.hashCode());
-		if (SESSIONS.size()==0) {
-			System.exit(0);
+		if (SESSIONS.contains(session)) {
+			SESSIONS.remove(session);
+			session.destroy();
+			DiMIDImi.updateSettingsOnAllSessions();
+			LOG.info("Removed session {}", session.hashCode());
+			if (SESSIONS.size()==0) {
+				System.exit(0);
+			}
 		}
 	}
 	
@@ -111,6 +115,10 @@ public class DiMIDImi {
 			session.getWindow().closeWindow();
 		}
 		LOG.info("Loaded session {}", file.getPath());
+	}
+	
+	public static List<Session> getSessions() {
+		return SESSIONS;
 	}
 
 	public static void arrangeSessionWindows() {

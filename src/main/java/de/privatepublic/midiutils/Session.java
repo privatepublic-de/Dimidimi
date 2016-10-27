@@ -99,6 +99,7 @@ public class Session implements PerformanceReceiver {
 		this.midiChannelOut = midiChannelOut;
 		getMidiHandler().sendAllNotesOffMidi(oldOut);
 		Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
+		emitSettingsUpdated();
 		emitRefreshLoopDisplay();
 	}
 
@@ -166,6 +167,38 @@ public class Session implements PerformanceReceiver {
 
 	public int[] getPitchBendList() {
 		return pitchBendList;
+	}
+
+	public boolean isMuted() {
+		return isMuted;
+	}
+
+	public void setMuted(boolean isMuted) {
+		this.isMuted = isMuted;
+	}
+
+	public boolean isSoloed() {
+		return isSoloed;
+	}
+
+	public void setSoloed(boolean isSoloed) {
+		this.isSoloed = isSoloed;
+	}
+
+	public boolean isQueuedMute() {
+		return isQueuedMute;
+	}
+
+	public void setQueuedMute(boolean isQueuedMute) {
+		this.isQueuedMute = isQueuedMute;
+	}
+
+	public boolean isQueuedSolo() {
+		return isQueuedSolo;
+	}
+
+	public void setQueuedSolo(boolean isQueuedSolo) {
+		this.isQueuedSolo = isQueuedSolo;
 	}
 
 	public UIWindow getWindow() {
@@ -496,6 +529,10 @@ public class Session implements PerformanceReceiver {
 	private int midiChannelOut = 1;// 0 - based
 	private boolean midiInputOn = true;
 	private boolean midiOutputOn = true;
+	private boolean isMuted = false;
+	private boolean isSoloed = false;
+	private boolean isQueuedMute = false;
+	private boolean isQueuedSolo = false;
 	private int quantizationIndex = 0;
 	private int transposeIndex = 13;
 	private UIWindow window;
