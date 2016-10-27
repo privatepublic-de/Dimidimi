@@ -185,20 +185,20 @@ public class Session implements PerformanceReceiver {
 		this.isSoloed = isSoloed;
 	}
 
-	public boolean isQueuedMute() {
-		return isQueuedMute;
+	public QueuedState getQueuedMute() {
+		return queuedMuteState;
 	}
 
-	public void setQueuedMute(boolean isQueuedMute) {
-		this.isQueuedMute = isQueuedMute;
+	public void setQueuedMute(QueuedState isQueuedMute) {
+		this.queuedMuteState = isQueuedMute;
 	}
 
-	public boolean isQueuedSolo() {
-		return isQueuedSolo;
+	public QueuedState getQueuedSolo() {
+		return queuedSoloState;
 	}
 
-	public void setQueuedSolo(boolean isQueuedSolo) {
-		this.isQueuedSolo = isQueuedSolo;
+	public void setQueuedSolo(QueuedState isQueuedSolo) {
+		this.queuedSoloState = isQueuedSolo;
 	}
 
 	public UIWindow getWindow() {
@@ -531,8 +531,8 @@ public class Session implements PerformanceReceiver {
 	private boolean midiOutputOn = true;
 	private boolean isMuted = false;
 	private boolean isSoloed = false;
-	private boolean isQueuedMute = false;
-	private boolean isQueuedSolo = false;
+	private QueuedState queuedMuteState = QueuedState.NO_CHANGE;
+	private QueuedState queuedSoloState = QueuedState.NO_CHANGE;
 	private int quantizationIndex = 0;
 	private int transposeIndex = 13;
 	private UIWindow window;
@@ -552,5 +552,7 @@ public class Session implements PerformanceReceiver {
 	
 	public static final int TICK_COUNT_BASE = 24;
 	public static final int MAX_NUMBER_OF_QUARTERS = 64;
+	
+	public static enum QueuedState { NO_CHANGE, ON, OFF }
 
 }
