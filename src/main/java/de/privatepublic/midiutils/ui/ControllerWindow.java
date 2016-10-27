@@ -96,6 +96,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 			}
 			if (removeKey!=null) {
 				contentPane.remove(panelComponents.get(removeKey).getPanel());
+				panelComponents.get(removeKey).destroy();
 				panelComponents.remove(removeKey);
 				refreshView();
 			}
@@ -186,6 +187,12 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		}
 		
 		
+		public void destroy() {
+			BLINKERS.remove(btnMute);
+			BLINKERS.remove(btnSolo);
+		}
+
+
 		private void toggleState(Toggle toggle, boolean on) {		
 				switch (toggle) {
 				case MUTE:
