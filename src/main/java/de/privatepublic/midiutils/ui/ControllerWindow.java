@@ -3,11 +3,15 @@ package de.privatepublic.midiutils.ui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -107,11 +111,29 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 	
 	private static class PanelComponent {
 		
+		static final CopyOnWriteArrayList<BlinkToggleButton> BLINKERS = new CopyOnWriteArrayList<BlinkToggleButton>(); 
+		static {
+			javax.swing.Timer flashTimer = new javax.swing.Timer(334, new ActionListener() {
+				private boolean blinkState;
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					blinkState=!blinkState;
+					for (BlinkToggleButton btn:BLINKERS) {
+						btn.blink(blinkState);
+					}
+				}
+			});
+		    flashTimer.setCoalesce(true);
+		    flashTimer.setRepeats(true);
+		    flashTimer.setInitialDelay(0);
+		    flashTimer.start();
+		}
+		
 		private JPanel panel;
 		private Session session;
 		private JLabel label;
-		private JToggleButton btnMute;
-		private JToggleButton btnSolo;
+		private BlinkToggleButton btnMute;
+		private BlinkToggleButton btnSolo;
 		private boolean onNextCycle = false;
 		
 		public PanelComponent(Session session) {
@@ -123,30 +145,26 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 			label.setPreferredSize(new Dimension(30, 24));
 			panel.add(label);
 			
-			btnMute = new JToggleButton("Mute");
+			btnMute = new BlinkToggleButton("Mute");
 			btnMute.setIcon(IC_EMPTY);
 			btnMute.setSelectedIcon(IC_CHECKED);
 			panel.add(btnMute);
 			btnMute.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ev) {
-					if(ev.getStateChange()==ItemEvent.SELECTED){
-						toggleState(onNextCycle?Toggle.MUTE_NEXT:Toggle.MUTE, true);
-					} else if(ev.getStateChange()==ItemEvent.DESELECTED){
-						toggleState(onNextCycle?Toggle.MUTE_NEXT:Toggle.MUTE, false);
+					if (ev.getStateChange()==ItemEvent.SELECTED || ev.getStateChange()==ItemEvent.DESELECTED){
+						toggleState(Toggle.MUTE, ev.getStateChange()==ItemEvent.SELECTED);
 					}
 				}
 			});
 			
-			btnSolo = new JToggleButton("Solo");
+			btnSolo = new BlinkToggleButton("Solo");
 			btnSolo.setIcon(IC_EMPTY);
 			btnSolo.setSelectedIcon(IC_CHECKED);
 			panel.add(btnSolo);
 			btnSolo.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ev) {
-					if(ev.getStateChange()==ItemEvent.SELECTED){
-						toggleState(onNextCycle?Toggle.SOLO_NEXT:Toggle.SOLO, true);
-					} else if(ev.getStateChange()==ItemEvent.DESELECTED){
-						toggleState(onNextCycle?Toggle.SOLO_NEXT:Toggle.SOLO, false);
+					if (ev.getStateChange()==ItemEvent.SELECTED || ev.getStateChange()==ItemEvent.DESELECTED){
+						toggleState(Toggle.SOLO, ev.getStateChange()==ItemEvent.SELECTED);
 					}
 				}
 			});
@@ -162,46 +180,43 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 					}
 				}
 			});
+			
+			BLINKERS.add(btnMute);
+			BLINKERS.add(btnSolo);
 		}
 		
 		
-		private void toggleState(Toggle toggle, boolean on) {
-			if (on) {
+		private void toggleState(Toggle toggle, boolean on) {		
 				switch (toggle) {
 				case MUTE:
-					btnSolo.setSelected(false);
-					btnMute.setSelectedIcon(IC_CHECKED);
-					break;
-				case MUTE_NEXT:
-					btnMute.setSelectedIcon(IC_NEXT_CYCLE);
-					break;
-				case SOLO:
-					btnMute.setSelected(false);
-					btnSolo.setSelectedIcon(IC_CHECKED);
-					break;
-				case SOLO_NEXT:
-					btnSolo.setSelectedIcon(IC_NEXT_CYCLE);
-					break;
-				}
-			}
-			else {
-				switch (toggle) {
-				case MUTE:
-					btnMute.setSelected(false);
-					break;
-				case MUTE_NEXT:
-					btnMute.setSelected(false);
+					if (onNextCycle) {
+						if (on) {
+							btnMute.setSelectedIcon(IC_NEXT_CYCLE);
+							btnMute.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+						}
+					}
+					else {
+						if (on) {
+							btnMute.stopBlinking();
+							btnMute.setSelectedIcon(IC_CHECKED);
+						}
+					}
 					break;
 				case SOLO:
-					btnSolo.setSelected(false);
-					break;
-				case SOLO_NEXT:
-					btnMute.setSelected(false);
+					if (onNextCycle) {
+						if (on) {
+							btnSolo.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+						}
+					}
+					else {
+						if (on) {
+							btnSolo.stopBlinking();
+							btnSolo.setSelectedIcon(IC_CHECKED);
+						}
+					}
 					break;
 				}
-			}
 		}
-		
 		
 		
 		public void updateLabelText() {
@@ -216,9 +231,46 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/ic_check.png"));
 		private static final ImageIcon IC_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_next_cycle.png"));
 		private static final ImageIcon IC_OFF_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_off_next_cycle.png"));
-		private static enum Toggle { MUTE, MUTE_NEXT, SOLO, SOLO_NEXT};
+		private static enum Toggle { MUTE, SOLO };
 	}
 	
-	
+	private static class BlinkToggleButton extends JToggleButton {
+		
+		ImageIcon blinkIcon1;
+		ImageIcon blinkIcon2;
+		boolean blinkUseSelectedIcon;
+		boolean blinkOn;
+		
+		public BlinkToggleButton(String string) {
+			super(string);
+		}
+
+		public void blink(boolean blinkState) {
+			if (blinkOn) {
+				ImageIcon useIcon = blinkState?blinkIcon2:blinkIcon1;
+				if (blinkUseSelectedIcon) {
+					setSelectedIcon(useIcon);
+				}
+				else {
+					setIcon(useIcon);
+				}
+			}
+		}
+		
+		public void startBlinking(ImageIcon icon1, ImageIcon icon2, boolean useSelectedIcon) {
+			blinkIcon1 = icon1;
+			blinkIcon2 = icon2;
+			blinkUseSelectedIcon = useSelectedIcon;
+			if (useSelectedIcon) {
+				setSelectedIcon(icon1);
+			}
+			blinkOn = true;
+		}
+		
+		public void stopBlinking() {
+			blinkOn = false;
+		}
+		
+	}
 	
 }
