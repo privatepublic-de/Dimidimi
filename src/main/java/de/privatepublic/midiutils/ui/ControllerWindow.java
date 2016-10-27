@@ -198,14 +198,15 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 				case MUTE:
 					if (onNextCycle) {
 						if (on) {
-							btnMute.setSelectedIcon(IC_NEXT_CYCLE);
 							btnMute.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+						}
+						else {
+							btnMute.startBlinking(IC_OFF_NEXT_CYCLE, IC_EMPTY, false);
 						}
 					}
 					else {
 						if (on) {
 							btnMute.stopBlinking();
-							btnMute.setSelectedIcon(IC_CHECKED);
 						}
 					}
 					break;
@@ -214,11 +215,13 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 						if (on) {
 							btnSolo.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
 						}
+						else {
+							btnSolo.startBlinking(IC_OFF_NEXT_CYCLE, IC_EMPTY, false);
+						}
 					}
 					else {
 						if (on) {
 							btnSolo.stopBlinking();
-							btnSolo.setSelectedIcon(IC_CHECKED);
 						}
 					}
 					break;
@@ -234,10 +237,6 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 			return panel;
 		}
 		
-		private static final ImageIcon IC_EMPTY = new ImageIcon(PanelComponent.class.getResource("/ic_empty_circle.png"));
-		private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/ic_check.png"));
-		private static final ImageIcon IC_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_next_cycle.png"));
-		private static final ImageIcon IC_OFF_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_off_next_cycle.png"));
 		private static enum Toggle { MUTE, SOLO };
 	}
 	
@@ -276,8 +275,15 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		
 		public void stopBlinking() {
 			blinkOn = false;
+			setIcon(IC_EMPTY);
+			setSelectedIcon(IC_CHECKED);
 		}
 		
 	}
+	
+	private static final ImageIcon IC_EMPTY = new ImageIcon(PanelComponent.class.getResource("/ic_empty_circle.png"));
+	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/ic_check.png"));
+	private static final ImageIcon IC_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_next_cycle.png"));
+	private static final ImageIcon IC_OFF_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_off_next_cycle.png"));
 	
 }
