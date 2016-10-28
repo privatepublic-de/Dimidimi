@@ -520,11 +520,11 @@ public class Session implements PerformanceReceiver {
 				emitLoopUpdated();
 				continue;
 			}
-			if (pos==note.getTransformedPosStart(getMaxTicks(), getQuantizationIndex()) && isAudible) {
+			if (isAudible && pos==note.getTransformedPosStart(getMaxTicks(), getQuantizationIndex())) {
 				note.setPlayed(true);
 				getMidiHandler().sendNoteOnMidi(note.getTransformedNoteNumber(getTransposeIndex()), note.getVelocity());
 			}
-			if (pos==note.getTransformedPosEnd(getMaxTicks(), getQuantizationIndex())) {
+			if (pos==note.getTransformedPosEnd(getMaxTicks(), getQuantizationIndex()) && note.isPlayed()) {
 				getMidiHandler().sendNoteOffMidi(note.getTransformedNoteNumber(getTransposeIndex()));
 				note.setPlayed(false);
 			}
