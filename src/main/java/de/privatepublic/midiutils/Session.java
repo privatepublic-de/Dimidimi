@@ -27,6 +27,8 @@ public class Session implements PerformanceReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Session.class);
 	
+	private static int SOLOCOUNT = 0;
+	
 	public Session(int pos) {
 		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
 		midiChannelOut = Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1);
@@ -174,7 +176,10 @@ public class Session implements PerformanceReceiver {
 	}
 
 	public void setMuted(boolean isMuted) {
-		this.isMuted = isMuted;
+		if (isMuted!=this.isMuted) {
+			this.isMuted = isMuted;
+			emitLoopUpdated();
+		}
 	}
 
 	public boolean isSoloed() {
@@ -182,7 +187,11 @@ public class Session implements PerformanceReceiver {
 	}
 
 	public void setSoloed(boolean isSoloed) {
-		this.isSoloed = isSoloed;
+		if (isSoloed!=this.isSoloed) {
+			this.isSoloed = isSoloed;
+			SOLOCOUNT += isSoloed?1:-1;
+			DiMIDImi.updateLoopsOnAllSessions();
+		}
 	}
 
 	public QueuedState getQueuedMute() {
@@ -200,13 +209,24 @@ public class Session implements PerformanceReceiver {
 	public void setQueuedSolo(QueuedState isQueuedSolo) {
 		this.queuedSoloState = isQueuedSolo;
 	}
+	
+	public boolean isAudible() {
+		if (isMuted) {
+			return false;
+		}
+		if (SOLOCOUNT>0) {
+			return isSoloed;	
+		}
+		return true;
+	}
 
 	public UIWindow getWindow() {
 		return window;
 	}
 
-
-
+	
+	
+	
 
 	public void clearPattern() {
 		for (Note dc:getNotesList()) {
@@ -321,6 +341,7 @@ public class Session implements PerformanceReceiver {
 
 
 	public void destroy() {
+		setSoloed(false);
 		midiHandler.sendAllNotesOffMidi();
 		notesList.clear();
 		loopUpdateReceivers.clear();
@@ -399,13 +420,19 @@ public class Session implements PerformanceReceiver {
 			receiver.receiveActive(active, pos);
 		}
 	}
+	
+	public void emitState() {
+		for (PerformanceReceiver receiver: performanceReceivers) {
+			receiver.stateChange(isMuted, isSoloed, queuedMuteState, queuedSoloState);
+		}
+	}
 
 	public void emitSettingsUpdated() {
 		for (SettingsUpdateReceiver receiver: settingsUpdateReceivers) {
 			receiver.settingsUpdated();
 		}
 	}
-
+	
 	
 	
 	@Override
@@ -437,6 +464,36 @@ public class Session implements PerformanceReceiver {
 	public void receiveClock(int pos) {
 		if (pos==0) {
 			overrideCC = overridePitchBend = false;
+			boolean hasChanges = queuedMuteState!=QueuedState.NO_CHANGE || queuedSoloState!=QueuedState.NO_CHANGE;
+			// check for queued mutes and solos
+			switch (queuedMuteState) {
+			case OFF:
+				setMuted(false);
+				break;
+			case ON:
+				setMuted(true);
+				break;
+			default:
+				break;
+			}
+			queuedMuteState = QueuedState.NO_CHANGE;
+			
+			switch (queuedSoloState) {
+			case OFF:
+				setSoloed(false);
+				break;
+			case ON:
+				setSoloed(true);
+				break;
+			default:
+				break;
+			}
+			queuedSoloState = QueuedState.NO_CHANGE;
+			if (hasChanges) {
+				emitState();
+				emitLoopUpdated();
+			}
+			
 		}
 		if (overridePitchBend) {
 			pitchBendList[pos] = currentPitchBend;	
@@ -451,6 +508,9 @@ public class Session implements PerformanceReceiver {
 		if (ccList[pos]!=ccList[prevpos]) {
 			getMidiHandler().sendCC(ccList[pos]);
 		}
+		
+		boolean isAudible = isAudible();
+		
 		for (Note note:getNotesList()) {
 			if (!note.isCompleted()) {
 				Note overlap = findOverlappingNote(note, pos);
@@ -460,7 +520,7 @@ public class Session implements PerformanceReceiver {
 				emitLoopUpdated();
 				continue;
 			}
-			if (pos==note.getTransformedPosStart(getMaxTicks(), getQuantizationIndex())) {
+			if (pos==note.getTransformedPosStart(getMaxTicks(), getQuantizationIndex()) && isAudible) {
 				note.setPlayed(true);
 				getMidiHandler().sendNoteOnMidi(note.getTransformedNoteNumber(getTransposeIndex()), note.getVelocity());
 			}
@@ -554,5 +614,11 @@ public class Session implements PerformanceReceiver {
 	public static final int MAX_NUMBER_OF_QUARTERS = 64;
 	
 	public static enum QueuedState { NO_CHANGE, ON, OFF }
+
+	@Override
+	public void stateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

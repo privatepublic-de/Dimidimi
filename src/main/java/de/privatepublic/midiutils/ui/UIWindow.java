@@ -58,6 +58,7 @@ import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.MidiDeviceWrapper;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
+import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
@@ -793,6 +794,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	@Override
 	public void receivePitchBend(int val, int pos) {
+	}
+
+	@Override
+	public void stateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

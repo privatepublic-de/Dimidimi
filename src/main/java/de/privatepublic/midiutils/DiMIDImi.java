@@ -51,9 +51,16 @@ public class DiMIDImi {
 	}
 	
 	public static void updateSettingsOnAllSessions() {
-		LOG.info("Updating sessions");
+		LOG.info("Updating settings for all sessions");
 		for (Session session: SESSIONS) {
 			session.emitSettingsUpdated();
+		}
+	}
+	
+	public static void updateLoopsOnAllSessions() {
+		LOG.info("Updating loops for all sessions");
+		for (Session session: SESSIONS) {
+			session.emitLoopUpdated();
 		}
 	}
 	

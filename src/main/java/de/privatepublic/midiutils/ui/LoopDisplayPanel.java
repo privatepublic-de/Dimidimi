@@ -409,6 +409,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    	g.setColor(Theme.CURRENT.getColorModWheel());
 	    	g.drawLine(xpos, height-mod, xpos, height);
 	    }
+	    
+	    if (!session.isAudible()) {
+	    	g.setColor(new Color(0x30cc0000, true));
+			g.fillRect(0, 0, width, height);
+	    }
 		
 		if (selectedNotes.size()>0 && isDragging) {
 			// draw scale

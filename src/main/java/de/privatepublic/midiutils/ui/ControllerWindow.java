@@ -2,7 +2,6 @@ package de.privatepublic.midiutils.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -11,23 +10,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.swing.AbstractButton;
+import javax.swing.BoxLayout;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
 import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.Session;
+import de.privatepublic.midiutils.Session.QueuedState;
+import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
 public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 
 	private static final long serialVersionUID = 3196404892575349167L;
+	private JPanel windowPane;
 	private JPanel contentPane;
 	private Map<Integer, PanelComponent> panelComponents = new HashMap<Integer, PanelComponent>();
 
@@ -37,27 +43,32 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		setTitle("dimidimi Control");
 		
 		
+		windowPane = new JPanel();
+		windowPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+		setContentPane(windowPane);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollPane.setBorder(null);
+		GroupLayout gl_windowPane = new GroupLayout(windowPane);
+		gl_windowPane.setHorizontalGroup(
+			gl_windowPane.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_windowPane.createSequentialGroup()
+					.addComponent(scrollPane)
+					)
+		);
+		gl_windowPane.setVerticalGroup(
+			gl_windowPane.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_windowPane.createSequentialGroup()
+					.addComponent(scrollPane)
+					)
+		);
+		
 		contentPane = new JPanel();
+		scrollPane.setViewportView(contentPane);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
-		contentPane.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-		
-//		JPanel panel = new JPanel();
-//		contentPane.add(panel);
-//		
-//		JLabel label = new JLabel("#1");
-//		panel.add(label);
-//		
-//		
-//		JToggleButton btnMute = new JToggleButton("Mute");
-//		panel.add(btnMute);
-//		
-//		JToggleButton btnSolo = new JToggleButton("Solo");
-//		panel.add(btnSolo);
-//		
-//		JCheckBox chckbxTriggerOnEnd = new JCheckBox("Trigger on End");
-//		panel.add(chckbxTriggerOnEnd);
-		
+		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+		windowPane.setLayout(gl_windowPane);
 		
 		for (Session session:DiMIDImi.getSessions()) {
 			session.registerAsReceiver(this);
@@ -73,6 +84,13 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 					panel = new PanelComponent(session);
 					contentPane.add(panel.getPanel());
 					panelComponents.put(session.hashCode(), panel);
+					int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
+					int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
+					Dimension currSize = getMaximumSize();
+				    setMaximumSize(new Dimension(targetWidth, currSize.height));
+				    setMinimumSize(new Dimension(targetWidth, targetHeight));
+				    currSize = getSize();
+				    setSize(new Dimension(targetWidth, currSize.height));
 					session.registerAsReceiver(this);
 				}
 				panel.updateLabelText();
@@ -110,7 +128,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 	}
 	
 	
-	private static class PanelComponent {
+	private static class PanelComponent implements PerformanceReceiver {
 		
 		static final CopyOnWriteArrayList<BlinkToggleButton> BLINKERS = new CopyOnWriteArrayList<BlinkToggleButton>(); 
 		static {
@@ -129,6 +147,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		    flashTimer.setInitialDelay(0);
 		    flashTimer.start();
 		}
+		
+		private static enum Toggle { MUTE, SOLO }
 		
 		private JPanel panel;
 		private Session session;
@@ -181,9 +201,11 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 					}
 				}
 			});
-			
+			panel.setMaximumSize(panel.getPreferredSize());
 			BLINKERS.add(btnMute);
 			BLINKERS.add(btnSolo);
+
+			session.registerAsReceiver(this);
 		}
 		
 		
@@ -199,14 +221,20 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 					if (onNextCycle) {
 						if (on) {
 							btnMute.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+							session.setQueuedMute(QueuedState.ON);
 						}
 						else {
 							btnMute.startBlinking(IC_OFF_NEXT_CYCLE, IC_EMPTY, false);
+							session.setQueuedMute(QueuedState.OFF);
 						}
 					}
 					else {
 						if (on) {
 							btnMute.stopBlinking();
+							session.setMuted(true);
+						}
+						else {
+							session.setMuted(false);
 						}
 					}
 					break;
@@ -214,14 +242,20 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 					if (onNextCycle) {
 						if (on) {
 							btnSolo.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+							session.setQueuedSolo(QueuedState.ON);
 						}
 						else {
 							btnSolo.startBlinking(IC_OFF_NEXT_CYCLE, IC_EMPTY, false);
+							session.setQueuedSolo(QueuedState.OFF);
 						}
 					}
 					else {
 						if (on) {
 							btnSolo.stopBlinking();
+							session.setSoloed(true);
+						}
+						else {
+							session.setSoloed(false);
 						}
 					}
 					break;
@@ -237,10 +271,82 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 			return panel;
 		}
 		
-		private static enum Toggle { MUTE, SOLO };
+		
+		@Override
+		public void stateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
+			
+			switch (queuedMute) {
+			case OFF:
+				btnMute.startBlinking(IC_OFF_NEXT_CYCLE, IC_EMPTY, false);
+				break;
+			case ON:
+				btnMute.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+				break;
+			default:
+				btnMute.stopBlinking();
+				if (mute) {
+					btnMute.setSelected(true);
+				}
+				else {
+					btnMute.setSelected(false);
+				}
+				break;
+			}
+			switch (queuedSolo) {
+			case OFF:
+				btnSolo.startBlinking(IC_OFF_NEXT_CYCLE, IC_EMPTY, false);
+				break;
+			case ON:
+				btnSolo.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+				break;
+			default:
+				btnSolo.stopBlinking();
+				if (solo) {
+					btnSolo.setSelected(true);
+				}
+				else {
+					btnSolo.setSelected(false);
+				}
+				break;
+			}
+
+		};
+		
+
+		@Override
+		public void noteOn(int noteNumber, int velocity, int pos) {
+		}
+
+
+		@Override
+		public void noteOff(int notenumber, int pos) {
+		}
+
+
+		@Override
+		public void receiveClock(int pos) {
+		}
+
+
+		@Override
+		public void receiveActive(boolean active, int pos) {
+		}
+
+
+		@Override
+		public void receiveCC(int cc, int val, int pos) {
+		}
+
+
+		@Override
+		public void receivePitchBend(int val, int pos) {
+		}
+		
 	}
 	
 	private static class BlinkToggleButton extends JToggleButton {
+		
+		private static final long serialVersionUID = 7707283219651661189L;
 		
 		ImageIcon blinkIcon1;
 		ImageIcon blinkIcon2;
@@ -285,5 +391,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/ic_check.png"));
 	private static final ImageIcon IC_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_next_cycle.png"));
 	private static final ImageIcon IC_OFF_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_off_next_cycle.png"));
+	
+	private static final int WIDTH_PADDING = 48;
+	private static final int HEIGHT_PADDING = 48;
 	
 }
