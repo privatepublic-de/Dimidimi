@@ -411,7 +411,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    }
 	    
 	    if (!session.isAudible()) {
-	    	g.setColor(new Color(0x30cc0000, true));
+	    	g.setColor(Theme.CURRENT.getColorMuted());
 			g.fillRect(0, 0, width, height);
 	    }
 		

@@ -457,6 +457,8 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 	
 	private static class HiddenSeparator extends JSeparator {
 		
+		private static final long serialVersionUID = -9201372853580667710L;
+
 		public HiddenSeparator() {
 			super();
 			setForeground(new Color( 0x00000000, true));
