@@ -146,7 +146,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 				PanelComponent panel = panelComponents.get(session.hashCode());
 				if (panel==null) {
 					panel = new PanelComponent(session);
-					contentPane.add(panel.getPanel());
+					contentPane.add(panel.getPanel(), contentPane.getLayout());
 					panelComponents.put(session.hashCode(), panel);
 					int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
 					int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
