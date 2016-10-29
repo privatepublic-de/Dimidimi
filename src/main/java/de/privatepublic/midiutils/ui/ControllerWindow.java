@@ -6,6 +6,7 @@ import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -18,7 +19,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JFrame;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -26,6 +27,8 @@ import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
@@ -35,10 +38,7 @@ import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
-import javax.swing.UIManager;
-import javax.swing.SwingConstants;
-
-public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
+public class ControllerWindow extends JDialog implements SettingsUpdateReceiver {
 
 	private static final long serialVersionUID = 3196404892575349167L;
 	private JPanel windowPane;
@@ -47,9 +47,9 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 
 
 	public ControllerWindow() {
+		setType(Window.Type.UTILITY);
 		setBounds(100, 100, 450, 300);
 		setTitle("dimidimi Control");
-		
 		
 		windowPane = new JPanel();
 		windowPane.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -78,12 +78,32 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		btnAllSoloOff.setToolTipText("All Solo Off");
 		toolBar.add(btnAllSoloOff);
 		
+		btnAllMuteOff.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				allOff(Toggle.MUTE);
+			}
+			
+		});
+		btnAllSoloOff.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				allOff(Toggle.SOLO);
+			}
+		});
+		
 		separator_1 = new HiddenSeparator();
 		toolBar.add(separator_1);
 		
 		chckbxAlwaysOnTop = new JCheckBox("Always on Top:");
 		chckbxAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
 		chckbxAlwaysOnTop.setFont(chckbxAlwaysOnTop.getFont().deriveFont(chckbxAlwaysOnTop.getFont().getSize() - 2f));
+		chckbxAlwaysOnTop.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				setAlwaysOnTop(chckbxAlwaysOnTop.isSelected());
+			}
+		});
 		toolBar.add(chckbxAlwaysOnTop);
 		
 		JScrollPane scrollPane = new JScrollPane();
@@ -94,10 +114,28 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		scrollPane.setViewportView(contentPane);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+		contentPane.setFont(contentPane.getFont().deriveFont(Font.PLAIN));
 		windowPane.add(scrollPane);
 		
 		for (Session session:DiMIDImi.getSessions()) {
 			session.registerAsReceiver(this);
+		}
+	}
+	
+	private void allOff(Toggle what) {
+		for (PanelComponent comp:panelComponents.values()) {
+			boolean isSelected = false;
+			switch (what) {
+			case SOLO:
+				isSelected = comp.btnSolo.isSelected();
+				break;
+			case MUTE:
+				isSelected = comp.btnMute.isSelected();
+				break;
+			};
+			if (isSelected) {
+				comp.toggleState(what, false);
+			}
 		}
 	}
 
@@ -174,8 +212,6 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		    flashTimer.start();
 		}
 		
-		private static enum Toggle { MUTE, SOLO }
-		
 		private JPanel panel;
 		private Session session;
 		private JLabel label;
@@ -187,7 +223,6 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 			this.session = session;
 			
 			panel = new JPanel();
-			panel.setFont(panel.getFont().deriveFont(Font.PLAIN));
 			panel.setBorder(new MatteBorder(0,0,1,0, Color.lightGray));
 			label = new JLabel();
 			label.setPreferredSize(new Dimension(30, 24));
@@ -264,6 +299,9 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 							session.setMuted(false);
 						}
 					}
+					if (btnMute.isSelected()!=on) {
+						btnMute.setSelected(on);
+					}
 					break;
 				case SOLO:
 					if (onNextCycle) {
@@ -284,6 +322,9 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 						else {
 							session.setSoloed(false);
 						}
+					}
+					if (btnSolo.isSelected()!=on) {
+						btnSolo.setSelected(on);
 					}
 					break;
 				}
@@ -428,6 +469,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/ic_check.png"));
 	private static final ImageIcon IC_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_next_cycle.png"));
 	private static final ImageIcon IC_OFF_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_off_next_cycle.png"));
+
+	private static enum Toggle { MUTE, SOLO };
 	
 	private static final int WIDTH_PADDING = 48;
 	private static final int HEIGHT_PADDING = 48;

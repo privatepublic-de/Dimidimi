@@ -40,7 +40,6 @@ public class DiMIDImi {
 			public void run() {
 				try {
 					controllerWindow = new ControllerWindow();
-					controllerWindow.setAlwaysOnTop(true);
 					controllerWindow.setVisible(false);
 				} catch (Exception e) {
 					e.printStackTrace();
