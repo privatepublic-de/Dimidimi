@@ -329,6 +329,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, 0, SpringLayout.EAST, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -12, SpringLayout.WEST, lblOut);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
@@ -366,19 +367,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		checkBoxMidiOut.setToolTipText("Output Notes on selcted Channel");
 		panelMidi.add(checkBoxMidiOut);
 		panelMidi.add(comboMidiOut);
-		
-		JButton btnNotesOff = new JButton("Panic");
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, -8, SpringLayout.WEST, btnNotesOff);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, btnNotesOff, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, btnNotesOff, -10, SpringLayout.EAST, panelMidi);
-		btnNotesOff.setToolTipText("Turns off all playing or stuck MIDI notes.");
-		panelMidi.add(btnNotesOff);
-		
-		btnNotesOff.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				session.getMidiHandler().sendAllNotesOffMidi();
-			}});
 		panelLoop.setLayout(new BorderLayout(0, 0));
 		loopDisplayPanel = new LoopDisplayPanel(session);
 		loopDisplayPanel.setBackground(Color.WHITE);
@@ -663,11 +651,19 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		menu.addSeparator();
+		menuItem = new JMenuItem("Panic (All Notes Off)");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.getMidiHandler().sendAllNotesOffMidi();
+			}
+		});
+		menu.add(menuItem);
 		menuBar.add(menu);
+
 		
 		menu = new JMenu("Window");
-		
-
 		menuItem = new JMenuItem("Arrange Windows");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK+Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
