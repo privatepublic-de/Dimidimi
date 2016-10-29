@@ -464,36 +464,6 @@ public class Session implements PerformanceReceiver {
 	public void receiveClock(int pos) {
 		if (pos==0) {
 			overrideCC = overridePitchBend = false;
-			boolean hasChanges = queuedMuteState!=QueuedState.NO_CHANGE || queuedSoloState!=QueuedState.NO_CHANGE;
-			// check for queued mutes and solos
-			switch (queuedMuteState) {
-			case OFF:
-				setMuted(false);
-				break;
-			case ON:
-				setMuted(true);
-				break;
-			default:
-				break;
-			}
-			queuedMuteState = QueuedState.NO_CHANGE;
-			
-			switch (queuedSoloState) {
-			case OFF:
-				setSoloed(false);
-				break;
-			case ON:
-				setSoloed(true);
-				break;
-			default:
-				break;
-			}
-			queuedSoloState = QueuedState.NO_CHANGE;
-			if (hasChanges) {
-				emitState();
-				emitLoopUpdated();
-			}
-			
 		}
 		if (overridePitchBend) {
 			pitchBendList[pos] = currentPitchBend;	
@@ -529,6 +499,40 @@ public class Session implements PerformanceReceiver {
 				note.setPlayed(false);
 			}
 		}
+		
+		if (pos==getMaxTicks()-1) {
+			boolean hasChanges = queuedMuteState!=QueuedState.NO_CHANGE || queuedSoloState!=QueuedState.NO_CHANGE;
+			// check for queued mutes and solos
+			switch (queuedMuteState) {
+			case OFF:
+				setMuted(false);
+				break;
+			case ON:
+				setMuted(true);
+				break;
+			default:
+				break;
+			}
+			queuedMuteState = QueuedState.NO_CHANGE;
+			
+			switch (queuedSoloState) {
+			case OFF:
+				setSoloed(false);
+				break;
+			case ON:
+				setSoloed(true);
+				break;
+			default:
+				break;
+			}
+			queuedSoloState = QueuedState.NO_CHANGE;
+			if (hasChanges) {
+				emitState();
+				emitLoopUpdated();
+			}
+			
+		}
+		
 	}
 
 
