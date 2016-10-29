@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,6 +22,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.ScrollPaneConstants;
@@ -32,6 +34,9 @@ import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
+
+import javax.swing.UIManager;
+import javax.swing.SwingConstants;
 
 public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 
@@ -52,19 +57,34 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		windowPane.setLayout(new BorderLayout(0, 0));
 		
 		toolBar = new JToolBar();
+		toolBar.setBackground(Color.WHITE);
+		toolBar.setBorder(UIManager.getBorder("ToolBar.border"));
 		toolBar.setMargin(new Insets(0, 10, 0, 10));
 		toolBar.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
 		toolBar.setFloatable(false);
 		windowPane.add(toolBar, BorderLayout.NORTH);
 		
-		btnAllMuteOff = new JButton("All Mute Off");
+		separator = new HiddenSeparator();
+		toolBar.add(separator);
+		
+		btnAllMuteOff = new JButton("M");
+		btnAllMuteOff.setToolTipText("All Mute Off");
 		toolBar.add(btnAllMuteOff);
 		
-		btnAllSoloOff = new JButton("All Solo Off");
+		separator_2 = new HiddenSeparator();
+		toolBar.add(separator_2);
+		
+		btnAllSoloOff = new JButton("S");
+		btnAllSoloOff.setToolTipText("All Solo Off");
 		toolBar.add(btnAllSoloOff);
 		
-		tglbtnAlwaysOnTop = new JToggleButton("Always on Top");
-		toolBar.add(tglbtnAlwaysOnTop);
+		separator_1 = new HiddenSeparator();
+		toolBar.add(separator_1);
+		
+		chckbxAlwaysOnTop = new JCheckBox("Always on Top:");
+		chckbxAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
+		chckbxAlwaysOnTop.setFont(chckbxAlwaysOnTop.getFont().deriveFont(chckbxAlwaysOnTop.getFont().getSize() - 2f));
+		toolBar.add(chckbxAlwaysOnTop);
 		
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -138,7 +158,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		
 		static final CopyOnWriteArrayList<BlinkToggleButton> BLINKERS = new CopyOnWriteArrayList<BlinkToggleButton>(); 
 		static {
-			javax.swing.Timer flashTimer = new javax.swing.Timer(334, new ActionListener() {
+			javax.swing.Timer flashTimer = new javax.swing.Timer(150, new ActionListener() {
 				private boolean blinkState;
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -167,7 +187,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 			this.session = session;
 			
 			panel = new JPanel();
-			panel.setBorder(new MatteBorder(0,0,1,0, Color.gray));
+			panel.setFont(panel.getFont().deriveFont(Font.PLAIN));
+			panel.setBorder(new MatteBorder(0,0,1,0, Color.lightGray));
 			label = new JLabel();
 			label.setPreferredSize(new Dimension(30, 24));
 			panel.add(label);
@@ -393,6 +414,16 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		
 	}
 	
+	private static class HiddenSeparator extends JSeparator {
+		
+		public HiddenSeparator() {
+			super();
+			setForeground(new Color( 0x00000000, true));
+			setBackground(new Color( 0x00000000, true));
+		}
+		
+	}
+	
 	private static final ImageIcon IC_EMPTY = new ImageIcon(PanelComponent.class.getResource("/ic_empty_circle.png"));
 	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/ic_check.png"));
 	private static final ImageIcon IC_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_next_cycle.png"));
@@ -403,6 +434,9 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 	private JToolBar toolBar;
 	private JButton btnAllSoloOff;
 	private JButton btnAllMuteOff;
-	private JToggleButton tglbtnAlwaysOnTop;
+	private JSeparator separator;
+	private JCheckBox chckbxAlwaysOnTop;
+	private JSeparator separator_1;
+	private JSeparator separator_2;
 	
 }
