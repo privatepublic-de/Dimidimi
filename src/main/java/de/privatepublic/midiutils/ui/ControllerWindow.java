@@ -1,7 +1,10 @@
 package de.privatepublic.midiutils.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.ComponentOrientation;
 import java.awt.Dimension;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -11,15 +14,15 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.BoxLayout;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -46,29 +49,32 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 		windowPane = new JPanel();
 		windowPane.setBorder(new EmptyBorder(0, 0, 0, 0));
 		setContentPane(windowPane);
+		windowPane.setLayout(new BorderLayout(0, 0));
+		
+		toolBar = new JToolBar();
+		toolBar.setMargin(new Insets(0, 10, 0, 10));
+		toolBar.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+		toolBar.setFloatable(false);
+		windowPane.add(toolBar, BorderLayout.NORTH);
+		
+		btnAllMuteOff = new JButton("All Mute Off");
+		toolBar.add(btnAllMuteOff);
+		
+		btnAllSoloOff = new JButton("All Solo Off");
+		toolBar.add(btnAllSoloOff);
+		
+		tglbtnAlwaysOnTop = new JToggleButton("Always on Top");
+		toolBar.add(tglbtnAlwaysOnTop);
 		
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.setBorder(null);
-		GroupLayout gl_windowPane = new GroupLayout(windowPane);
-		gl_windowPane.setHorizontalGroup(
-			gl_windowPane.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_windowPane.createSequentialGroup()
-					.addComponent(scrollPane)
-					)
-		);
-		gl_windowPane.setVerticalGroup(
-			gl_windowPane.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_windowPane.createSequentialGroup()
-					.addComponent(scrollPane)
-					)
-		);
 		
 		contentPane = new JPanel();
 		scrollPane.setViewportView(contentPane);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-		windowPane.setLayout(gl_windowPane);
+		windowPane.add(scrollPane);
 		
 		for (Session session:DiMIDImi.getSessions()) {
 			session.registerAsReceiver(this);
@@ -394,5 +400,9 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver {
 	
 	private static final int WIDTH_PADDING = 48;
 	private static final int HEIGHT_PADDING = 48;
+	private JToolBar toolBar;
+	private JButton btnAllSoloOff;
+	private JButton btnAllMuteOff;
+	private JToggleButton tglbtnAlwaysOnTop;
 	
 }
