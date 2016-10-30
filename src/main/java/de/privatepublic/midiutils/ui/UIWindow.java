@@ -695,8 +695,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItemTheme);
-		menu.addSeparator();
-		
 		
 		menuBar.add(menu);
 		return menuBar;

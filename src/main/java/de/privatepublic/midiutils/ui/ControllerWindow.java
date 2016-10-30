@@ -115,6 +115,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		
 		chckbxAlwaysOnTop = new JCheckBox("Always on Top:");
 		chckbxAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
+		chckbxAlwaysOnTop.setSelected(isAlwaysOnTop());
 		chckbxAlwaysOnTop.setFont(chckbxAlwaysOnTop.getFont().deriveFont(chckbxAlwaysOnTop.getFont().getSize() - 2f));
 		chckbxAlwaysOnTop.addItemListener(new ItemListener() {
 			@Override
