@@ -257,6 +257,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 			panel.setBorder(new MatteBorder(0,0,1,0, Color.lightGray));
 			label = new JLabel();
 			label.setPreferredSize(new Dimension(30, 24));
+//			label.setOpaque(true);
 			panel.add(label);
 			
 			btnMute = new BlinkToggleButton("Mute");
@@ -364,6 +365,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		
 		public void updateLabelText() {
 			label.setText("#"+(session.getMidiChannelOut()+1));
+			panel.setBackground(Color.getHSBColor((session.getMidiChannelOut())/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()));
 		}
 		
 		public JPanel getPanel() {
