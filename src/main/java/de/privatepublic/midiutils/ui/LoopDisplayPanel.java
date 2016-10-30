@@ -348,8 +348,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		for (Note note:session.getNotesList()) {
 			boolean isSelected = selectedNotes.contains(note);
 			
-			Color noteColor = Color.getHSBColor(colorhue, Theme.CURRENT.getNoteColorSaturation()/(isSelected?2:1), Theme.CURRENT.getNoteColorBrightness());
-			Color noteColorLight = Color.getHSBColor(colorhue, Theme.CURRENT.getNoteColorSaturation()/(isSelected?2:1), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+			Color noteColor = session.getNoteColor(isSelected);
+			Color noteColorLight = session.getNoteColorHighlighted(isSelected);
 			
 			g.setStroke(STROKE_1);
 			

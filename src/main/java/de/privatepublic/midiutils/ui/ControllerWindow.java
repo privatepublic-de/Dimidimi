@@ -255,7 +255,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 			
 			panel = new JPanel();
 			panel.setBorder(new MatteBorder(0,0,1,0, Color.lightGray));
-			label = new JLabel();
+			label = new JLabel("", SwingConstants.RIGHT);
 			label.setPreferredSize(new Dimension(30, 24));
 //			label.setOpaque(true);
 			panel.add(label);
@@ -365,7 +365,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		
 		public void updateLabelText() {
 			label.setText("#"+(session.getMidiChannelOut()+1));
-			panel.setBackground(Color.getHSBColor((session.getMidiChannelOut())/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()));
+			panel.setBackground(session.getNoteColor(false));
 		}
 		
 		public JPanel getPanel() {

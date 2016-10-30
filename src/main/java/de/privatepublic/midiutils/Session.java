@@ -1,5 +1,6 @@
 package de.privatepublic.midiutils;
 
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Rectangle;
 import java.io.File;
@@ -21,6 +22,7 @@ import de.privatepublic.midiutils.events.DimidimiEventReceiver;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
+import de.privatepublic.midiutils.ui.Theme;
 import de.privatepublic.midiutils.ui.UIWindow;
 
 public class Session implements PerformanceReceiver {
@@ -99,7 +101,13 @@ public class Session implements PerformanceReceiver {
 	public void setMidiChannelOut(int midiChannelOut) {
 		int oldOut = midiChannelOut;
 		this.midiChannelOut = midiChannelOut;
-		getMidiHandler().sendAllNotesOffMidi(oldOut);
+		getMidiHandler().sendAllNotesOffMidi(oldOut); // TODO just kill played notes (no panic messages)
+		
+		colorNote = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
+	    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+	    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
+	    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+		
 		Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
 		emitSettingsUpdated();
 		emitRefreshLoopDisplay();
@@ -224,8 +232,13 @@ public class Session implements PerformanceReceiver {
 		return window;
 	}
 
+	public Color getNoteColor(boolean selected) {
+		return selected?colorNoteSelected:colorNote;
+	}
 	
-	
+	public Color getNoteColorHighlighted(boolean selected) {
+		return selected?colorNoteBrightSelected:colorNoteBright;
+	}
 	
 
 	public void clearPattern() {
@@ -590,7 +603,7 @@ public class Session implements PerformanceReceiver {
 	private int maxTicks = lengthQuarters*TICK_COUNT_BASE;
 	private MidiHandler midiHandler;
 	private int midiChannelIn = 0; // 0 - based
-	private int midiChannelOut = 1;// 0 - based
+	private int midiChannelOut = 0;// 0 - based
 	private boolean midiInputOn = true;
 	private boolean midiOutputOn = true;
 	private boolean isMuted = false;
@@ -607,6 +620,11 @@ public class Session implements PerformanceReceiver {
 	private boolean overridePitchBend = false;
 	private int[] ccList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
 	private int[] pitchBendList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
+	
+	private Color colorNote;
+	private Color colorNoteBright;
+	private Color colorNoteSelected;
+	private Color colorNoteBrightSelected;
 
 	private List<LoopUpdateReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<LoopUpdateReceiver>();
 	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
