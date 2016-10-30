@@ -4,7 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.EventQueue;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -38,6 +38,9 @@ import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
+import javax.swing.border.LineBorder;
+import javax.swing.border.BevelBorder;
+
 public class ControllerWindow extends JDialog implements SettingsUpdateReceiver {
 
 	private static final long serialVersionUID = 3196404892575349167L;
@@ -57,7 +60,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		windowPane.setLayout(new BorderLayout(0, 0));
 		
 		toolBar = new JToolBar();
-		toolBar.setBackground(Color.WHITE);
+//		toolBar.setBackground(Color.WHITE);
 		toolBar.setBorder(UIManager.getBorder("ToolBar.border"));
 		toolBar.setMargin(new Insets(0, 10, 0, 10));
 		toolBar.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
@@ -107,6 +110,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		toolBar.add(chckbxAlwaysOnTop);
 		
 		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setViewportBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.setBorder(null);
 		
@@ -114,8 +118,9 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		scrollPane.setViewportView(contentPane);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-		contentPane.setFont(contentPane.getFont().deriveFont(Font.PLAIN));
+		
 		windowPane.add(scrollPane);
+		
 		
 		for (Session session:DiMIDImi.getSessions()) {
 			session.registerAsReceiver(this);
@@ -141,54 +146,64 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 
 	@Override
 	public void settingsUpdated() {
-		if (panelComponents.size()<=DiMIDImi.getSessions().size()) {
-			for (Session session:DiMIDImi.getSessions()) {
-				PanelComponent panel = panelComponents.get(session.hashCode());
-				if (panel==null) {
-					panel = new PanelComponent(session);
-					contentPane.add(panel.getPanel(), contentPane.getLayout());
-					panel.getPanel().revalidate();
-					panelComponents.put(session.hashCode(), panel);
-					int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
-					int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
-					Dimension currSize = getMaximumSize();
-				    setMaximumSize(new Dimension(targetWidth, currSize.height));
-				    setMinimumSize(new Dimension(targetWidth, targetHeight));
-				    currSize = getSize();
-				    setSize(new Dimension(targetWidth, currSize.height));
-					session.registerAsReceiver(this);
-				}
-				panel.updateLabelText();
-			}
-			refreshView();
-		}
-		else if (panelComponents.size()>DiMIDImi.getSessions().size()) {
-			Integer removeKey = null;
-			for (Integer key:panelComponents.keySet()) {
-				boolean exists = false;
-				for (Session session:DiMIDImi.getSessions()) {
-					if (session.hashCode()==key) {
-						exists = true;
-						break;
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					if (panelComponents.size()<=DiMIDImi.getSessions().size()) {
+						for (Session session:DiMIDImi.getSessions()) {
+							PanelComponent panel = panelComponents.get(session.hashCode());
+							if (panel==null) {
+								panel = new PanelComponent(session);
+								contentPane.add(panel.getPanel(), contentPane.getLayout());
+								panel.getPanel().revalidate();
+								panelComponents.put(session.hashCode(), panel);
+								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
+								int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
+								Dimension currSize = getMaximumSize();
+							    setMaximumSize(new Dimension(targetWidth, currSize.height));
+							    setMinimumSize(new Dimension(targetWidth, targetHeight));
+							    currSize = getSize();
+							    setSize(new Dimension(targetWidth, currSize.height));
+								session.registerAsReceiver(ControllerWindow.this);
+							}
+							panel.updateLabelText();
+						}
+						refreshView();
 					}
-				}
-				if (!exists) {
-					removeKey = key;
-					break;
+					else if (panelComponents.size()>DiMIDImi.getSessions().size()) {
+						Integer removeKey = null;
+						for (Integer key:panelComponents.keySet()) {
+							boolean exists = false;
+							for (Session session:DiMIDImi.getSessions()) {
+								if (session.hashCode()==key) {
+									exists = true;
+									break;
+								}
+							}
+							if (!exists) {
+								removeKey = key;
+								break;
+							}
+						}
+						if (removeKey!=null) {
+							contentPane.remove(panelComponents.get(removeKey).getPanel());
+							panelComponents.get(removeKey).destroy();
+							panelComponents.remove(removeKey);
+							refreshView();
+						}
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
-			if (removeKey!=null) {
-				contentPane.remove(panelComponents.get(removeKey).getPanel());
-				panelComponents.get(removeKey).destroy();
-				panelComponents.remove(removeKey);
-				refreshView();
-			}
-		}
+		});
+		
 	}
 
 	private void refreshView() {
-		invalidate();
-		validate();
+		revalidate();
+//		invalidate();
+//		validate();
 		repaint();
 	}
 	
@@ -475,7 +490,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 
 	private static enum Toggle { MUTE, SOLO };
 	
-	private static final int WIDTH_PADDING = 48;
+	private static final int WIDTH_PADDING = 64;
 	private static final int HEIGHT_PADDING = 48;
 	private JToolBar toolBar;
 	private JButton btnAllSoloOff;
