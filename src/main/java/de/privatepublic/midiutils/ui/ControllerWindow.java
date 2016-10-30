@@ -29,21 +29,26 @@ import javax.swing.JToolBar;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.privatepublic.midiutils.DiMIDImi;
+import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
-import javax.swing.border.LineBorder;
-import javax.swing.border.BevelBorder;
-
 public class ControllerWindow extends JDialog implements SettingsUpdateReceiver {
 
 	private static final long serialVersionUID = 3196404892575349167L;
+	
+	private static final Logger LOG = LoggerFactory.getLogger(ControllerWindow.class);
+	
 	private JPanel windowPane;
 	private JPanel contentPane;
 	private Map<Integer, PanelComponent> panelComponents = new HashMap<Integer, PanelComponent>();
@@ -51,7 +56,18 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 
 	public ControllerWindow() {
 		setType(Window.Type.UTILITY);
-		setBounds(100, 100, 450, 300);
+		
+		String posprefs = Prefs.get(Prefs.CONTROLLER_POS, null);
+		if (posprefs!=null) {
+			LOG.debug(posprefs);
+			String[] parts = posprefs.split(",");
+			setBounds(Integer.parseInt(parts[0]),Integer.parseInt(parts[1]),Integer.parseInt(parts[2]),Integer.parseInt(parts[3]));
+			setAlwaysOnTop("true".equals(parts[4]));
+			setVisible("true".equals(parts[5]));
+		}
+		else {
+			setBounds(100, 100, 450, 300);
+		}
 		setTitle("dimidimi Control");
 		
 		windowPane = new JPanel();
@@ -60,7 +76,6 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		windowPane.setLayout(new BorderLayout(0, 0));
 		
 		toolBar = new JToolBar();
-//		toolBar.setBackground(Color.WHITE);
 		toolBar.setBorder(UIManager.getBorder("ToolBar.border"));
 		toolBar.setMargin(new Insets(0, 10, 0, 10));
 		toolBar.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
@@ -298,11 +313,11 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 				case MUTE:
 					if (onNextCycle) {
 						if (on) {
-							btnMute.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+							btnMute.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
 							session.setQueuedMute(QueuedState.ON);
 						}
 						else {
-							btnMute.startBlinking(IC_OFF_NEXT_CYCLE, IC_EMPTY, false);
+							btnMute.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
 							session.setQueuedMute(QueuedState.OFF);
 						}
 					}
@@ -322,11 +337,11 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 				case SOLO:
 					if (onNextCycle) {
 						if (on) {
-							btnSolo.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+							btnSolo.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
 							session.setQueuedSolo(QueuedState.ON);
 						}
 						else {
-							btnSolo.startBlinking(IC_OFF_NEXT_CYCLE, IC_EMPTY, false);
+							btnSolo.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
 							session.setQueuedSolo(QueuedState.OFF);
 						}
 					}
@@ -361,10 +376,10 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 			
 			switch (queuedMute) {
 			case OFF:
-				btnMute.startBlinking(IC_OFF_NEXT_CYCLE, IC_EMPTY, false);
+				btnMute.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
 				break;
 			case ON:
-				btnMute.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+				btnMute.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
 				break;
 			default:
 				btnMute.stopBlinking();
@@ -378,10 +393,10 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 			}
 			switch (queuedSolo) {
 			case OFF:
-				btnSolo.startBlinking(IC_OFF_NEXT_CYCLE, IC_EMPTY, false);
+				btnSolo.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
 				break;
 			case ON:
-				btnSolo.startBlinking(IC_NEXT_CYCLE, IC_EMPTY, true);
+				btnSolo.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
 				break;
 			default:
 				btnSolo.stopBlinking();
@@ -485,8 +500,8 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 	
 	private static final ImageIcon IC_EMPTY = new ImageIcon(PanelComponent.class.getResource("/ic_empty_circle.png"));
 	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/ic_check.png"));
-	private static final ImageIcon IC_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_next_cycle.png"));
-	private static final ImageIcon IC_OFF_NEXT_CYCLE = new ImageIcon(PanelComponent.class.getResource("/ic_off_next_cycle.png"));
+	private static final ImageIcon IC_NEXT_CYCLE_ON = new ImageIcon(PanelComponent.class.getResource("/ic_next_cycle.png"));
+	private static final ImageIcon IC_NEXT_CYCLE_OFF = new ImageIcon(PanelComponent.class.getResource("/ic_off_next_cycle.png"));
 
 	private static enum Toggle { MUTE, SOLO };
 	

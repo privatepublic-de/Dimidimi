@@ -35,18 +35,28 @@ public class DiMIDImi {
 		LOG.info("DiMIDImi Looper starting ...");
 		
 		// create controller window
-		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					controllerWindow = new ControllerWindow();
-					controllerWindow.setVisible(false);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
 		createSession();
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+		    public void run() {
+		    	LOG.info("Shutting down ...");
+		    	if (controllerWindow!=null) {
+		    		Rectangle pos = controllerWindow.getBounds();
+		    		boolean visible = controllerWindow.isVisible();
+		    		boolean topmost = controllerWindow.isAlwaysOnTop();
+		    		LOG.info("{} visible {} topmost {}", pos, visible, topmost);
+		    		Prefs.put(Prefs.CONTROLLER_POS, pos.x+","+pos.y+","+pos.width+","+pos.height+","+topmost+","+visible);
+		    	}
+		    }
+		 });
 	}
 	
 	public static void updateSettingsOnAllSessions() {

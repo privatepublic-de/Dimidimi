@@ -24,6 +24,7 @@ public class Prefs {
 	public static final String THEME = "theme";
 	public static final String RECENT_SESSION_LIST="recentsessions";
 	public static final String RECENT_LOOP_LIST="recentloops";
+	public static final String CONTROLLER_POS="ctrlpos";
 	
 	private static int MAX_RECENT_FILE_COUNT = 10;
 	public static String LIST_ENTRY_EMPTY_MARKER = "(--empty--)";
