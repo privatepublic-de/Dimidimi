@@ -166,9 +166,9 @@ public class MidiHandler {
 				LOG.info("Received CONTINUE");
 				ACTIVE = true;
 				break;
-			case ShortMessage.TIMING_CLOCK:
-				pos++;
-				break;
+//			case ShortMessage.TIMING_CLOCK:
+//				pos++;
+//				break;
 			}
 			for (Session session:DiMIDImi.getSessions()) {
 				switch(status) {
@@ -215,6 +215,9 @@ public class MidiHandler {
 						}
 					}
 				}
+			}
+			if (status==ShortMessage.TIMING_CLOCK) {
+				pos++;
 			}
 		}
 
