@@ -1,7 +1,6 @@
 package de.privatepublic.midiutils.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Window;
@@ -25,7 +24,6 @@ import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,7 +170,6 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 								contentPane.add(panel.getPanel());
 								panel.getPanel().revalidate();
 								panelComponents.put(session.hashCode(), panel);
-								
 								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
 								targetWidth = Math.max(targetWidth, 410);
 								int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
