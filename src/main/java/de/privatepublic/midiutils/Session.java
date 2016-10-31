@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -252,13 +253,11 @@ public class Session implements PerformanceReceiver {
 
 	public void saveLoop(File file) throws JsonGenerationException, JsonMappingException, IOException {
 		StorageContainer data = new StorageContainer(this);		
-		ObjectMapper mapper = new ObjectMapper();
 		mapper.writeValue(file, data);
 		LOG.info("Saved file {}", file.getPath());
 	}
 
 	public void loadLoop(File file) throws JsonParseException, JsonMappingException, IOException {
-		ObjectMapper mapper = new ObjectMapper();
 		StorageContainer data = mapper.readValue(file, StorageContainer.class);
 		LOG.info("Loaded file {}", file.getPath());
 		applyStorageData(data);
@@ -627,6 +626,11 @@ public class Session implements PerformanceReceiver {
 	@Override
 	public void stateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
 		
+	}
+	
+	private static ObjectMapper mapper = new ObjectMapper();
+	static {
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
 
 }

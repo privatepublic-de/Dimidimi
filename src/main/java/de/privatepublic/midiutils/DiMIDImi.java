@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -114,7 +115,6 @@ public class DiMIDImi {
 			StorageContainer data = new StorageContainer(session);
 			dataList.add(data);
 		}
-		ObjectMapper mapper = new ObjectMapper();
 		mapper.writeValue(file, dataList);
 		LOG.info("Saved session {}", file.getPath());
 	}
@@ -122,7 +122,6 @@ public class DiMIDImi {
 	
 	public static void loadSession(File file) throws JsonParseException, JsonMappingException, IOException {
 		List<Session> sessionsToClose = new ArrayList<Session>(SESSIONS);
-		ObjectMapper mapper = new ObjectMapper();
 		List<StorageContainer> list = Arrays.asList(mapper.readValue(file, StorageContainer[].class));
 		for (StorageContainer data:list) {
 			createSession(data);
@@ -191,6 +190,11 @@ public class DiMIDImi {
 	
 	public static ControllerWindow getControllerWindow() {
 		return controllerWindow;
+	}
+	
+	private static ObjectMapper mapper = new ObjectMapper();
+	static {
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
 	
 }
