@@ -122,19 +122,6 @@ public class Session implements PerformanceReceiver {
 	}
 
 
-	public boolean isMidiOutputOn() {
-		return midiOutputOn;
-	}
-
-
-	public void setMidiOutputOn(boolean midiOutputOn) {
-		if (this.midiOutputOn!=midiOutputOn && !midiOutputOn) {
-			MidiHandler.instance().sendAllNotesOffMidi(this);
-		}
-		this.midiOutputOn = midiOutputOn;
-	}
-
-
 	public int getQuantizationIndex() {
 		return quantizationIndex;
 	}
@@ -291,7 +278,6 @@ public class Session implements PerformanceReceiver {
 		setMidiChannelIn(data.getMidiChannelIn());
 		setMidiChannelOut(data.getMidiChannelOut());
 		setMidiInputOn(data.isMidiChannelInActive());
-		setMidiOutputOn(data.isMidiChannelOutActive());
 		data.copyList(data.getPitchBend(), pitchBendList);
 		data.copyList(data.getModWheel(), ccList);
 		Map<String, Integer> wpos = data.getWindowPos();
@@ -442,7 +428,7 @@ public class Session implements PerformanceReceiver {
 	
 	@Override
 	public void noteOn(int noteNumber, int velocity, int p) {
-		if (MidiHandler.ACTIVE) {
+		if (MidiHandler.ACTIVE && isMidiInputOn()) {
 			int pos = p%getMaxTicks();
 			Note note = new Note(noteNumber, velocity, pos);
 			lastStarted[noteNumber] = note;
@@ -458,7 +444,7 @@ public class Session implements PerformanceReceiver {
 	@Override
 	public void noteOff(int notenumber, int p) {
 		int pos = p%getMaxTicks();
-		if (MidiHandler.ACTIVE) {
+		if (MidiHandler.ACTIVE && isMidiInputOn()) {
 			Note reference = lastStarted[notenumber];
 			if (reference!=null) {
 				reference.setPosEnd(pos);
@@ -579,20 +565,24 @@ public class Session implements PerformanceReceiver {
 
 	@Override
 	public void receiveCC(int cc, int val, int p) {
-		int pos = p%getMaxTicks();
-		if (cc==1) {
-			currentCC = val;
-			ccList[pos] = val;
-			overrideCC = true;
+		if (isMidiInputOn()) {
+			int pos = p%getMaxTicks();
+			if (cc==1) {
+				currentCC = val;
+				ccList[pos] = val;
+				overrideCC = true;
+			}
 		}
 	}
 
 	@Override
 	public void receivePitchBend(int val, int p) {
-		int pos = p%getMaxTicks();
-		currentPitchBend = val;
-		pitchBendList[pos] = val;
-		overridePitchBend = true;
+		if (isMidiInputOn()) {
+			int pos = p%getMaxTicks();
+			currentPitchBend = val;
+			pitchBendList[pos] = val;
+			overridePitchBend = true;
+		}
 	}
 	
 	
@@ -603,7 +593,6 @@ public class Session implements PerformanceReceiver {
 	private int midiChannelIn = 0; // 0 - based
 	private int midiChannelOut = 0;// 0 - based
 	private boolean midiInputOn = true;
-	private boolean midiOutputOn = true;
 	private boolean isMuted = false;
 	private boolean isSoloed = false;
 	private QueuedState queuedMuteState = QueuedState.NO_CHANGE;

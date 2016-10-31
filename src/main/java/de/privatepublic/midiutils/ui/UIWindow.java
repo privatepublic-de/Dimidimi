@@ -36,6 +36,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SpringLayout;
@@ -83,8 +84,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JComboBox<String> comboBoxTranspose;
 	private JComboBox<String> comboMidiIn;
 	private JComboBox<String> comboMidiOut;
-	private JCheckBox checkBoxMidiOut;
-	private JCheckBox checkBoxMidiIn;
+	private JToggleButton toggleMidiIn;
 	private JLabel lblDimidimiLooper;
 	private JCheckBoxMenuItem menuItemTheme;
 	private Session session;
@@ -330,8 +330,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, 0, SpringLayout.WEST, lblOut);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, lblOut, 0, SpringLayout.WEST, comboMidiOut);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, 0, SpringLayout.EAST, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -12, SpringLayout.WEST, lblOut);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
@@ -340,33 +341,23 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		panelMidi.add(lblIn);
 		
-		checkBoxMidiIn = new JCheckBox("");
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -28, SpringLayout.EAST, checkBoxMidiIn);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, checkBoxMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, checkBoxMidiIn, 3, SpringLayout.WEST, comboMidiIn);
-		checkBoxMidiIn.setSelected(true);
-		checkBoxMidiIn.addChangeListener(new ChangeListener() {
+		toggleMidiIn = new JToggleButton();
+		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -5, SpringLayout.WEST, toggleMidiIn);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMidiIn, 0, SpringLayout.WEST, comboMidiIn);
+		toggleMidiIn.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
+		toggleMidiIn.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_red_circle.png")));
+		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
+		toggleMidiIn.setSelected(true);
+		toggleMidiIn.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				session.setMidiInputOn(checkBoxMidiIn.isSelected());
+				session.setMidiInputOn(toggleMidiIn.isSelected());
 			}
 		});
-		checkBoxMidiIn.setToolTipText("Receive Notes from selected Channel");
-		panelMidi.add(checkBoxMidiIn);
+		toggleMidiIn.setToolTipText("Receive Notes from selected Channel");
+		panelMidi.add(toggleMidiIn);
 		panelMidi.add(comboMidiIn);
 		panelMidi.add(lblOut);
 		
-		checkBoxMidiOut = new JCheckBox("");
-		sl_panelMidi.putConstraint(SpringLayout.EAST, checkBoxMidiOut, 3, SpringLayout.WEST, comboMidiOut);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblOut, 0, SpringLayout.WEST, checkBoxMidiOut);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, checkBoxMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		checkBoxMidiOut.setSelected(true);
-		checkBoxMidiOut.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				session.setMidiOutputOn(checkBoxMidiOut.isSelected());
-			}
-		});
-		checkBoxMidiOut.setToolTipText("Output Notes on selcted Channel");
-		panelMidi.add(checkBoxMidiOut);
 		panelMidi.add(comboMidiOut);
 		panelLoop.setLayout(new BorderLayout(0, 0));
 		loopDisplayPanel = new LoopDisplayPanel(session);
@@ -751,8 +742,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboQuantize.setSelectedIndex(session.getQuantizationIndex());
 		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		checkBoxMidiIn.setSelected(session.isMidiInputOn());
-		checkBoxMidiOut.setSelected(session.isMidiOutputOn());
+		toggleMidiIn.setSelected(session.isMidiInputOn());
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
 		if (Prefs.get(Prefs.THEME, 0)==0) {

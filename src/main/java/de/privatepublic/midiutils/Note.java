@@ -13,7 +13,6 @@ public class Note {
 	private int storedPosEnd;
 	private int storedNoteNumber;
 	
-	
 	private int velocity;
 	private boolean isCompleted;
 	private boolean isPlayed;

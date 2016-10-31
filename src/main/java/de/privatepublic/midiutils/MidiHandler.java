@@ -225,51 +225,43 @@ public class MidiHandler {
 	}
 
 	public void sendNoteOnMidi(Session session, int noteNumber, int velocity) {
-		if (session.isMidiOutputOn()) {
-			try {
-				ShortMessage message = new ShortMessage();
-				message.setMessage(ShortMessage.NOTE_ON, session.getMidiChannelOut(), noteNumber, velocity);
-				sendMessage(message);
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
-			}
+		try {
+			ShortMessage message = new ShortMessage();
+			message.setMessage(ShortMessage.NOTE_ON, session.getMidiChannelOut(), noteNumber, velocity);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
 	}
 
 	public void sendNoteOffMidi(Session session, int noteNumber) {
-		if (session.isMidiOutputOn()) {
-			try {
-				ShortMessage message = new ShortMessage();
-				message.setMessage(ShortMessage.NOTE_OFF, session.getMidiChannelOut(), noteNumber, 0);
-				sendMessage(message);
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
-			}
+		try {
+			ShortMessage message = new ShortMessage();
+			message.setMessage(ShortMessage.NOTE_OFF, session.getMidiChannelOut(), noteNumber, 0);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
 	}
 	
 	public void sendCC(Session session, int val) {
-		if (session.isMidiOutputOn()) {
-			try {
-				ShortMessage message = new ShortMessage();
-				message.setMessage(ShortMessage.CONTROL_CHANGE, session.getMidiChannelOut(), 1, val);
-				sendMessage(message);
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
-			}
+		try {
+			ShortMessage message = new ShortMessage();
+			message.setMessage(ShortMessage.CONTROL_CHANGE, session.getMidiChannelOut(), 1, val);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
 	}
 
 	public void sendPitchBend(Session session, int val) {
-		if (session.isMidiOutputOn()) {
-			try {
-				ShortMessage message = new ShortMessage();
-				val = Math.min(val + 0x2000, 0x3fff);
-				message.setMessage(ShortMessage.PITCH_BEND, session.getMidiChannelOut(), val & 0x7f, (val>>7) & 0x7f);
-				sendMessage(message);
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
-			}
+		try {
+			ShortMessage message = new ShortMessage();
+			val = Math.min(val + 0x2000, 0x3fff);
+			message.setMessage(ShortMessage.PITCH_BEND, session.getMidiChannelOut(), val & 0x7f, (val>>7) & 0x7f);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
 	}
 	
