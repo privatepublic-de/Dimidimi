@@ -59,7 +59,6 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		
 		String posprefs = Prefs.get(Prefs.CONTROLLER_POS, null);
 		if (posprefs!=null) {
-			LOG.debug(posprefs);
 			String[] parts = posprefs.split(",");
 			setBounds(Integer.parseInt(parts[0]),Integer.parseInt(parts[1]),Integer.parseInt(parts[2]),Integer.parseInt(parts[3]));
 			setAlwaysOnTop("true".equals(parts[4]));
