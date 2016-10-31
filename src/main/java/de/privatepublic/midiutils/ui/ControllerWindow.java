@@ -2,10 +2,8 @@ package de.privatepublic.midiutils.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,13 +21,9 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
-import javax.swing.JToolBar;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 
@@ -74,45 +68,26 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		setContentPane(windowPane);
 		windowPane.setLayout(new BorderLayout(0, 0));
 		
-		toolBar = new JToolBar();
-		toolBar.setBorder(UIManager.getBorder("ToolBar.border"));
-		toolBar.setMargin(new Insets(0, 10, 0, 10));
-		toolBar.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-		toolBar.setFloatable(false);
-		windowPane.add(toolBar, BorderLayout.NORTH);
+		panel_1 = new JPanel();
+		windowPane.add(panel_1, BorderLayout.SOUTH);
 		
-		separator = new HiddenSeparator();
-		toolBar.add(separator);
-		
-		btnAllMuteOff = new JButton("M");
+		btnAllMuteOff = new JButton("Mute");
+		btnAllMuteOff.setIcon(IC_NEXT_CYCLE_OFF);
+		panel_1.add(btnAllMuteOff);
 		btnAllMuteOff.setToolTipText("All Mute Off");
-		toolBar.add(btnAllMuteOff);
 		
-		separator_2 = new HiddenSeparator();
-		toolBar.add(separator_2);
-		
-		btnAllSoloOff = new JButton("S");
+		btnAllSoloOff = new JButton("Solo");
+		btnAllSoloOff.setIcon(IC_NEXT_CYCLE_OFF);
+		panel_1.add(btnAllSoloOff);
 		btnAllSoloOff.setToolTipText("All Solo Off");
-		toolBar.add(btnAllSoloOff);
 		
-		btnAllMuteOff.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				allOff(Toggle.MUTE);
-			}
-			
-		});
-		btnAllSoloOff.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				allOff(Toggle.SOLO);
-			}
-		});
+		btnNext = new JButton("Next");
+		btnNext.setIcon(IC_EMPTY);
+		btnNext.setToolTipText("Toggle All Next Cycle");
+		panel_1.add(btnNext);
 		
-		separator_1 = new HiddenSeparator();
-		toolBar.add(separator_1);
-		
-		chckbxAlwaysOnTop = new JCheckBox("Always on Top:");
+		chckbxAlwaysOnTop = new JCheckBox("Float on top:");
+		panel_1.add(chckbxAlwaysOnTop);
 		chckbxAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
 		chckbxAlwaysOnTop.setSelected(isAlwaysOnTop());
 		chckbxAlwaysOnTop.setFont(chckbxAlwaysOnTop.getFont().deriveFont(chckbxAlwaysOnTop.getFont().getSize() - 2f));
@@ -122,18 +97,41 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 				setAlwaysOnTop(chckbxAlwaysOnTop.isSelected());
 			}
 		});
-		toolBar.add(chckbxAlwaysOnTop);
+		btnAllSoloOff.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				allOff(Toggle.SOLO);
+			}
+		});
+		
+		btnAllMuteOff.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				allOff(Toggle.MUTE);
+			}
+			
+		});
+		btnNext.addActionListener(new ActionListener() {
+			boolean value = false;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				value = !value;
+				for (PanelComponent comp:panelComponents.values()) {
+					comp.onNextCycle = value;
+					comp.chckbxTriggerOnEnd.setSelected(value);
+				}
+			}
+		});
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setViewportBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.setBorder(null);
 		
 		contentPane = new JPanel();
+		contentPane.setBackground(Theme.CURRENT.getColorBackground());
 		scrollPane.setViewportView(contentPane);
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPane.setBorder(new EmptyBorder(5, 0, 5, 0));
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-		
 		windowPane.add(scrollPane);
 		
 		
@@ -164,12 +162,13 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					contentPane.setBackground(Theme.CURRENT.getColorBackground());
 					if (panelComponents.size()<=DiMIDImi.getSessions().size()) {
 						for (Session session:DiMIDImi.getSessions()) {
 							PanelComponent panel = panelComponents.get(session.hashCode());
 							if (panel==null) {
 								panel = new PanelComponent(session);
-								contentPane.add(panel.getPanel(), contentPane.getLayout());
+								contentPane.add(panel.getPanel());
 								panel.getPanel().revalidate();
 								panelComponents.put(session.hashCode(), panel);
 								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
@@ -248,13 +247,13 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		private JLabel label;
 		private BlinkToggleButton btnMute;
 		private BlinkToggleButton btnSolo;
+		private JCheckBox chckbxTriggerOnEnd;
 		private boolean onNextCycle = false;
 		
 		public PanelComponent(Session session) {
 			this.session = session;
 			
 			panel = new JPanel();
-			panel.setBorder(new MatteBorder(0,0,1,0, Color.lightGray));
 			label = new JLabel("", SwingConstants.RIGHT);
 			label.setPreferredSize(new Dimension(30, 24));
 //			label.setOpaque(true);
@@ -284,7 +283,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 				}
 			});
 			
-			JCheckBox chckbxTriggerOnEnd = new JCheckBox("Next cycle");
+			chckbxTriggerOnEnd = new JCheckBox("Next cycle");
 			panel.add(chckbxTriggerOnEnd);
 			chckbxTriggerOnEnd.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ev) {
@@ -488,18 +487,6 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		
 	}
 	
-	private static class HiddenSeparator extends JSeparator {
-		
-		private static final long serialVersionUID = -9201372853580667710L;
-
-		public HiddenSeparator() {
-			super();
-			setForeground(new Color( 0x00000000, true));
-			setBackground(new Color( 0x00000000, true));
-		}
-		
-	}
-	
 	private static final ImageIcon IC_EMPTY = new ImageIcon(PanelComponent.class.getResource("/ic_empty_circle.png"));
 	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/ic_check.png"));
 	private static final ImageIcon IC_NEXT_CYCLE_ON = new ImageIcon(PanelComponent.class.getResource("/ic_next_cycle.png"));
@@ -509,12 +496,10 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 	
 	private static final int WIDTH_PADDING = 64;
 	private static final int HEIGHT_PADDING = 48;
-	private JToolBar toolBar;
 	private JButton btnAllSoloOff;
 	private JButton btnAllMuteOff;
-	private JSeparator separator;
 	private JCheckBox chckbxAlwaysOnTop;
-	private JSeparator separator_1;
-	private JSeparator separator_2;
+	private JPanel panel_1;
+	private JButton btnNext;
 	
 }
