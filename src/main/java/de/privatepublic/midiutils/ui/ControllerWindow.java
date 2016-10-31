@@ -86,7 +86,8 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		btnNext.setToolTipText("Toggle All Next Cycle");
 		panel_1.add(btnNext);
 		
-		chckbxAlwaysOnTop = new JCheckBox("Float on top:");
+		chckbxAlwaysOnTop = new JCheckBox("Stay on top:");
+		chckbxAlwaysOnTop.setToolTipText("Controller window always on top");
 		panel_1.add(chckbxAlwaysOnTop);
 		chckbxAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
 		chckbxAlwaysOnTop.setSelected(isAlwaysOnTop());
@@ -171,7 +172,9 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 								contentPane.add(panel.getPanel());
 								panel.getPanel().revalidate();
 								panelComponents.put(session.hashCode(), panel);
+								
 								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
+								targetWidth = Math.max(targetWidth, 410);
 								int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
 								Dimension currSize = getMaximumSize();
 							    setMaximumSize(new Dimension(targetWidth, currSize.height));

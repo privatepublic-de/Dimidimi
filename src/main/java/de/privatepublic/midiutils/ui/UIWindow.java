@@ -330,8 +330,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, 0, SpringLayout.WEST, lblOut);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblOut, 0, SpringLayout.WEST, comboMidiOut);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -10, SpringLayout.WEST, lblOut);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, lblOut, -5, SpringLayout.WEST, comboMidiOut);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, 0, SpringLayout.EAST, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
@@ -342,8 +342,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(lblIn);
 		
 		toggleMidiIn = new JToggleButton();
+		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMidiIn, -5, SpringLayout.WEST, comboMidiIn);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -5, SpringLayout.WEST, toggleMidiIn);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMidiIn, 0, SpringLayout.WEST, comboMidiIn);
 		toggleMidiIn.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
 		toggleMidiIn.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_red_circle.png")));
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
