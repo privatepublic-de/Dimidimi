@@ -426,9 +426,8 @@ public class Session implements PerformanceReceiver {
 	
 	
 	@Override
-	public void noteOn(int noteNumber, int velocity, int p) {
+	public void noteOn(int noteNumber, int velocity, int pos) {
 		if (MidiHandler.ACTIVE && isMidiInputOn()) {
-			int pos = p%getMaxTicks();
 			Note note = new Note(noteNumber, velocity, pos);
 			lastStarted[noteNumber] = note;
 			getNotesList().add(note);
@@ -441,8 +440,7 @@ public class Session implements PerformanceReceiver {
 	}
 	
 	@Override
-	public void noteOff(int notenumber, int p) {
-		int pos = p%getMaxTicks();
+	public void noteOff(int notenumber, int pos) {
 		if (MidiHandler.ACTIVE && isMidiInputOn()) {
 			Note reference = lastStarted[notenumber];
 			if (reference!=null) {
@@ -453,8 +451,7 @@ public class Session implements PerformanceReceiver {
 	}
 	
 	@Override
-	public void receiveClock(int p) {
-		int pos = p%getMaxTicks();
+	public void receiveClock(int pos) {
 		if (pos==0) {
 			overrideCC = overridePitchBend = false;
 		}
@@ -530,9 +527,8 @@ public class Session implements PerformanceReceiver {
 
 
 	@Override
-	public void receiveActive(boolean active, int p) {
+	public void receiveActive(boolean active, int pos) {
 		if (!active) {
-			int pos = p%getMaxTicks();
 			// find still uncompleted notes
 			for (Note nr:getNotesList()) {
 				if (!nr.isCompleted()) {
@@ -543,8 +539,7 @@ public class Session implements PerformanceReceiver {
 		}
 	}
 
-	private Note findOverlappingNote(Note note, int p) {
-		int pos = p%getMaxTicks();
+	private Note findOverlappingNote(Note note, int pos) {
 		for (Note ln:getNotesList()) {
 			if (ln!=note && ln.getNoteNumber()==note.getNoteNumber()) {
 				if (ln.getPosStart()<ln.getPosEnd()) {
@@ -563,9 +558,8 @@ public class Session implements PerformanceReceiver {
 	}
 
 	@Override
-	public void receiveCC(int cc, int val, int p) {
+	public void receiveCC(int cc, int val, int pos) {
 		if (isMidiInputOn()) {
-			int pos = p%getMaxTicks();
 			if (cc==1) {
 				currentCC = val;
 				ccList[pos] = val;
@@ -575,9 +569,8 @@ public class Session implements PerformanceReceiver {
 	}
 
 	@Override
-	public void receivePitchBend(int val, int p) {
+	public void receivePitchBend(int val, int pos) {
 		if (isMidiInputOn()) {
-			int pos = p%getMaxTicks();
 			currentPitchBend = val;
 			pitchBendList[pos] = val;
 			overridePitchBend = true;

@@ -150,30 +150,40 @@ public class MidiHandler {
 		
 		@Override
 		public void send(MidiMessage message, long timeStamp) {
+			final int status = message.getStatus();
+			switch(status) {
+			case ShortMessage.STOP:
+				LOG.info("Received STOP - Setting song position zero");
+				ACTIVE = false;
+				pos = 0;
+				sendMessage(resetPositionMessage);
+				break;
+			case ShortMessage.START:
+				LOG.info("Received START");
+				ACTIVE = true;
+				break;
+			case ShortMessage.CONTINUE:
+				LOG.info("Received CONTINUE");
+				ACTIVE = true;
+				break;
+			case ShortMessage.TIMING_CLOCK:
+				pos++;
+				break;
+			}
 			for (Session session:DiMIDImi.getSessions()) {
-				final int status = message.getStatus();
 				switch(status) {
 				case ShortMessage.STOP:
-					LOG.info("Received STOP - Setting song position zero");
 					sendAllNotesOffMidi(session, false);
-					ACTIVE = false;
 					session.emitActive(false, pos);
-					pos = 0;
-					sendMessage(resetPositionMessage);
 					break;
 				case ShortMessage.START:
-					LOG.info("Received START");
-					ACTIVE = true;
 					session.emitActive(true, pos);
 					break;
 				case ShortMessage.CONTINUE:
-					LOG.info("Received CONTINUE");
-					ACTIVE = true;
 					session.emitActive(true, pos);
 					break;
 				case ShortMessage.TIMING_CLOCK:
-					session.emitClock(pos);
-					pos++;//%session.getMaxTicks();
+					session.emitClock(pos%session.getMaxTicks());
 					break;
 				}
 				if (message instanceof ShortMessage && device.isActiveForInput() && session.isMidiInputOn()) {
