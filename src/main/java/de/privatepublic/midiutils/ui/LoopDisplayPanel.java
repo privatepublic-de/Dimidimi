@@ -326,10 +326,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		}
 		g.setColor(Theme.CURRENT.getColorOctaves());
 		for (int i=0;i<11;i++) {
-			float colorhue = (96-i*12)/96f;
-			g.setColor(Color.getHSBColor(colorhue, Theme.CURRENT.getOctaveColorSaturation(), Theme.CURRENT.getOctaveColorBrightness()));
 			int y = (int)(((highestNote+MARGIN_SEMIS)-i*12)*noteHeight);
 			g.drawLine(0, y, width, y);
+			g.drawString(Note.getConcreteNoteName(i*12)+(i-1), 2, y);
 		}
 		
 		// draw playhead
@@ -343,7 +342,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		int quartheight = halfheight/2;
 		
 		boolean isSingleSelection = selectedNotes.size()==1;
-		float colorhue = (session.getMidiChannelOut())/16f; 
 		
 		for (Note note:session.getNotesList()) {
 			boolean isSelected = selectedNotes.contains(note);
