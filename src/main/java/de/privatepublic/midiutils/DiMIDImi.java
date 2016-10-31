@@ -74,7 +74,7 @@ public class DiMIDImi {
 	}
 	
 	public static Session createSession() {
-		Session session = new Session(SESSIONS.size()>0?SESSIONS.get(0).getMidiHandler().getPos():0);
+		Session session = new Session();
 		SESSIONS.add(session);
 		DiMIDImi.updateSettingsOnAllSessions();
 		LOG.info("Created new session {}", session.hashCode());

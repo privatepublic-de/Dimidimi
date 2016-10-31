@@ -56,6 +56,7 @@ import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.MidiDeviceWrapper;
+import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.Session.QueuedState;
@@ -609,9 +610,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				CheckboxList listinput = new CheckboxList("Activate Input Devices");
-				JCheckBox[] inboxes = new JCheckBox[session.getMidiHandler().getInputDevices().size()];
+				JCheckBox[] inboxes = new JCheckBox[MidiHandler.instance().getInputDevices().size()];
 				for (int i = 0; i < inboxes.length; i++) {
-					MidiDeviceWrapper dev = session.getMidiHandler().getInputDevices().get(i);
+					MidiDeviceWrapper dev = MidiHandler.instance().getInputDevices().get(i);
 					JCheckBox cbox = new JCheckBox(dev.toString());
 					cbox.setSelected(dev.isActiveForInput());
 					inboxes[i] = cbox;
@@ -619,9 +620,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				listinput.setListData(inboxes);
 				
 				CheckboxList listoutput = new CheckboxList("Activate Output Devices");
-				JCheckBox[] outboxes = new JCheckBox[session.getMidiHandler().getOutputDevices().size()];
+				JCheckBox[] outboxes = new JCheckBox[MidiHandler.instance().getOutputDevices().size()];
 				for (int i = 0; i < outboxes.length; i++) {
-					MidiDeviceWrapper dev = session.getMidiHandler().getOutputDevices().get(i);
+					MidiDeviceWrapper dev = MidiHandler.instance().getOutputDevices().get(i);
 					JCheckBox cbox = new JCheckBox(dev.toString());
 					cbox.setSelected(dev.isActiveForOutput());
 					outboxes[i] = cbox;
@@ -636,16 +637,16 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				int result = JOptionPane.showOptionDialog(frmDimidimi, p, "Select MIDI Devices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
 				if (result==JOptionPane.OK_OPTION) {
 					for (int i = 0; i < inboxes.length; i++) {
-						MidiDeviceWrapper dev = session.getMidiHandler().getInputDevices().get(i);
+						MidiDeviceWrapper dev = MidiHandler.instance().getInputDevices().get(i);
 						dev.setActiveForInput(inboxes[i].isSelected());
 					}
-					session.getMidiHandler().storeSelectedInDevices();
+					MidiHandler.instance().storeSelectedInDevices();
 					
 					for (int i = 0; i < outboxes.length; i++) {
-						MidiDeviceWrapper dev = session.getMidiHandler().getOutputDevices().get(i);
+						MidiDeviceWrapper dev = MidiHandler.instance().getOutputDevices().get(i);
 						dev.setActiveForOutput(outboxes[i].isSelected());
 					}
-					session.getMidiHandler().storeSelectedOutDevices();
+					MidiHandler.instance().storeSelectedOutDevices();
 				}
 				session.emitRefreshLoopDisplay();
 			}
@@ -656,7 +657,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.getMidiHandler().sendAllNotesOffMidi();
+				MidiHandler.instance().sendAllNotesOffMidi(session, true);
 			}
 		});
 		menu.add(menuItem);
