@@ -175,6 +175,7 @@ public class MidiHandler {
 				case ShortMessage.STOP:
 					sendAllNotesOffMidi(session, false);
 					session.emitActive(false, pos);
+					session.emitRefreshLoopDisplay();
 					break;
 				case ShortMessage.START:
 					session.emitActive(true, pos);
