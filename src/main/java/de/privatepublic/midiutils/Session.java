@@ -48,7 +48,8 @@ public class Session implements PerformanceReceiver {
 		});
 	}
 	
-	public Session(StorageContainer data) {
+	public Session(StorageContainer data, String sessionName) {
+		setSessionName(sessionName);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -158,6 +159,14 @@ public class Session implements PerformanceReceiver {
 
 	public int[] getPitchBendList() {
 		return pitchBendList;
+	}
+
+	public String getSessionName() {
+		return sessionName;
+	}
+
+	public void setSessionName(String sessionName) {
+		this.sessionName = sessionName;
 	}
 
 	public boolean isMuted() {
@@ -599,6 +608,7 @@ public class Session implements PerformanceReceiver {
 	private boolean overridePitchBend = false;
 	private int[] ccList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
 	private int[] pitchBendList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
+	private String sessionName;
 	
 	private Color colorNote;
 	private Color colorNoteBright;

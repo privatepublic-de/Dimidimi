@@ -88,7 +88,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JLabel lblDimidimiLooper;
 	private JCheckBoxMenuItem menuItemTheme;
 	private Session session;
-	private String titleExtension = "";
+	private String titleExtension = null;
 
 	public UIWindow(Session session) {
 		this.session = session;
@@ -123,7 +123,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	}
 	
 	private String getWindowTitle() {
-		return APP_TITLE+" - "+titleExtension+" (MIDI out #"+(session.getMidiChannelOut()+1)+")"; 
+		return APP_TITLE+" - "+(titleExtension!=null?titleExtension:"")+" (#"+(session.getMidiChannelOut()+1)+")"; 
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -752,6 +752,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		else {
 			Theme.CURRENT = Theme.DARK;
 			menuItemTheme.setSelected(true);
+		}
+		if (session.getSessionName()!=null && titleExtension==null) { 
+			titleExtension = session.getSessionName();
 		}
 		frmDimidimi.setTitle(getWindowTitle());
 	}

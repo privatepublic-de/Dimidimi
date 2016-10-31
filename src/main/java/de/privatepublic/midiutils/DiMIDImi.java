@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,6 @@ public class DiMIDImi {
 		    		Rectangle pos = controllerWindow.getBounds();
 		    		boolean visible = controllerWindow.isVisible();
 		    		boolean topmost = controllerWindow.isAlwaysOnTop();
-		    		LOG.info("{} visible {} topmost {}", pos, visible, topmost);
 		    		Prefs.put(Prefs.CONTROLLER_POS, pos.x+","+pos.y+","+pos.width+","+pos.height+","+topmost+","+visible);
 		    	}
 		    }
@@ -82,8 +82,8 @@ public class DiMIDImi {
 		return session;
 	}
 	
-	public static Session createSession(StorageContainer data) {
-		Session session = new Session(data);
+	public static Session createSession(StorageContainer data, String sessionName) {
+		Session session = new Session(data, sessionName);
 		SESSIONS.add(session);
 		DiMIDImi.updateSettingsOnAllSessions();
 		LOG.info("Created new session {}", session.hashCode());
@@ -111,9 +111,11 @@ public class DiMIDImi {
 	
 	public static void saveSession(File file) throws JsonGenerationException, JsonMappingException, IOException {
 		List<StorageContainer> dataList = new ArrayList<StorageContainer>();
+		String sessionName = FilenameUtils.getBaseName(file.getName());
 		for (Session session: SESSIONS) {
 			StorageContainer data = new StorageContainer(session);
 			dataList.add(data);
+			session.setSessionName(sessionName);
 		}
 		mapper.writeValue(file, dataList);
 		LOG.info("Saved session {}", file.getPath());
@@ -123,8 +125,9 @@ public class DiMIDImi {
 	public static void loadSession(File file) throws JsonParseException, JsonMappingException, IOException {
 		List<Session> sessionsToClose = new ArrayList<Session>(SESSIONS);
 		List<StorageContainer> list = Arrays.asList(mapper.readValue(file, StorageContainer[].class));
+		String sessionName = FilenameUtils.getBaseName(file.getName());
 		for (StorageContainer data:list) {
-			createSession(data);
+			createSession(data, sessionName);
 		}
 		for (Session session:sessionsToClose) {
 			session.getWindow().closeWindow();
