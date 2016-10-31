@@ -388,6 +388,16 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.setStroke(new BasicStroke(tickwidth));
 				g.drawLine(rects[rightindex].x+rects[rightindex].width, 0, rects[rightindex].x+rects[rightindex].width, height);
 			}
+			if (note.isPlayed()) {
+				int length = note.getPosStart()>note.getPosEnd()?note.getPosEnd()+session.getMaxTicks()-note.getPosStart():note.getPosEnd()-note.getPosStart();
+				int position = note.getPosStart()>note.getPosEnd()?pos-session.getMaxTicks()+session.getMaxTicks():pos-note.getPosStart();
+				float percent = position/(float)length;
+				int offset = (int)(percent*noteHeight);
+				g.setColor(session.getNoteColorHighlighted(false));
+				for (Rectangle rect:rects) {
+					g.drawRect(rect.x-offset, rect.y-offset, rect.width+offset*2, rect.height+offset*2);
+				}
+			}
 		}
 		
 		// draw pitchbend and mod
