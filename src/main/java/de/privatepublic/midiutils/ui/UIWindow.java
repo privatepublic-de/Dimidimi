@@ -353,7 +353,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				session.setMidiInputOn(toggleMidiIn.isSelected());
 			}
 		});
-		toggleMidiIn.setToolTipText("Receive Notes from selected Channel");
+		toggleMidiIn.setToolTipText("Record Notes from selected Channel");
 		panelMidi.add(toggleMidiIn);
 		panelMidi.add(comboMidiIn);
 		panelMidi.add(lblOut);
