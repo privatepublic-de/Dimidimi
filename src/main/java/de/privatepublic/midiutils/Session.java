@@ -355,15 +355,7 @@ public class Session implements PerformanceReceiver {
 
 	public void destroy() {
 		setSoloed(false);
-		midiHandler.sendAllNotesOffMidi();
-		for (MidiDeviceWrapper dev:midiHandler.getInputDevices()) { // TODO watch this!
-			dev.setActiveForInput(false);
-			dev.setActiveForOutput(false);
-		}
-		for (MidiDeviceWrapper dev:midiHandler.getOutputDevices()) {
-			dev.setActiveForInput(false);
-			dev.setActiveForOutput(false);
-		}
+		midiHandler.destroy();
 		notesList.clear();
 		loopUpdateReceivers.clear();
 		performanceReceivers.clear();

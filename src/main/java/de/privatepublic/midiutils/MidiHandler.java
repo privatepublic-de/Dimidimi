@@ -305,5 +305,15 @@ public class MidiHandler {
 		return pos;
 	}
 	
+	
+	public void destroy() {
+		sendAllNotesOffMidi();
+		List<MidiDeviceWrapper> devlist = new ArrayList<MidiDeviceWrapper>(getInputDevices());
+		devlist.addAll(getOutputDevices());
+		for (MidiDeviceWrapper dev:devlist) {
+			dev.setActiveForInput(false);
+			dev.setActiveForOutput(false);
+		}
+	}
 
 }
