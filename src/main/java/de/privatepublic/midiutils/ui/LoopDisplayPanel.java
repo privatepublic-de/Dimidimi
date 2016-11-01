@@ -304,11 +304,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		tickwidth = (float)width/session.getMaxTicks();
 		for (int i=0;i<session.getLengthQuarters()*4;i++) {
 			int xpos = (int)(i*sixthwidth);
-			if (i/4 == activeQuarter) {
-				g.setColor(Theme.CURRENT.getColorActiveQuarter());
-				g.fillRect(xpos, height-height/30, Math.round(sixthwidth), height);
-				g.fillRect(xpos, 0, Math.round(sixthwidth), height/30);
-			}
 			g.setColor(Theme.CURRENT.getColorGrid());
 			g.drawLine(xpos, 0, xpos, height);
 			if (i%4==0) { 
@@ -322,6 +317,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.drawLine(xpos+3, 0, xpos+3, height);
 				g.drawLine(xpos-1, 0, xpos-1, height);
 				g.drawLine(xpos-3, 0, xpos-3, height);
+			}
+			if (i/4 == activeQuarter) {
+				g.setColor(Theme.CURRENT.getColorActiveQuarter());
+				g.fillRect(xpos, height-height/30, Math.round(sixthwidth), height);
+				g.fillRect(xpos, 0, Math.round(sixthwidth), height/30);
 			}
 		}
 		g.setColor(Theme.CURRENT.getColorOctaves());
@@ -390,9 +390,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			}
 			if (note.isPlayed()) {
 				int length = note.getPosStart()>note.getPosEnd()?note.getPosEnd()+session.getMaxTicks()-note.getPosStart():note.getPosEnd()-note.getPosStart();
-				int position = note.getPosStart()>note.getPosEnd()?pos-session.getMaxTicks()+session.getMaxTicks():pos-note.getPosStart();
+				int position = note.getPosStart()>note.getPosEnd()?pos-note.getPosStart()+session.getMaxTicks():pos-note.getPosStart();
 				float percent = position/(float)length;
-				int offset = (int)(percent*noteHeight);
+				int offset = (int)((1-(percent-1)*(percent-1))*noteHeight*.5);
 				g.setColor(session.getNoteColorHighlighted(false));
 				for (Rectangle rect:rects) {
 					g.drawRect(rect.x-offset, rect.y-offset, rect.width+offset*2, rect.height+offset*2);
