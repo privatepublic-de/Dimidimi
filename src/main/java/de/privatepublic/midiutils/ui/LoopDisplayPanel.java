@@ -11,6 +11,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -68,6 +70,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private CopyOnWriteArrayList<Note> selectedNotes = new CopyOnWriteArrayList<Note>();
 	
 	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
+	
 	
 	public LoopDisplayPanel(Session session) {
 		super();
@@ -154,6 +157,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		addMouseMotionListener(new MouseMotionListener() {
 			@Override
 			public void mouseMoved(MouseEvent e) {
+				
 				if (!isDragging) {
 					int mx = e.getX();
 					int my = e.getY();
@@ -182,6 +186,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				}
 				else if (isDragging || isListHit(session.getNotesList(), e.getPoint())) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				}
+				else if ((e.getModifiersEx() & MouseEvent.META_DOWN_MASK)>0) {
+					setCursor(PEN_CURSOR);
 				}
 				else {
 					setCursor(Cursor.getDefaultCursor());
@@ -578,5 +585,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	
 	private static final Stroke STROKE_1 = new BasicStroke(1);
 	private static final Stroke STROKE_3 = new BasicStroke(3);
+	private static Cursor PEN_CURSOR;
+	static {
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		PEN_CURSOR = toolkit.createCustomCursor(new ImageIcon(LoopDisplayPanel.class.getResource("/crs-pencil.png")).getImage() , new Point(1, 18), "custom cursor");
+	}
+
 	
 }
