@@ -3,6 +3,9 @@ package de.privatepublic.midiutils.ui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,7 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -130,10 +132,8 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		contentPane.setBackground(Theme.CURRENT.getColorBackground());
 		scrollPane.setViewportView(contentPane);
 		contentPane.setBorder(new EmptyBorder(5, 0, 5, 0));
-		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+		contentPane.setLayout(new GridBagLayout());
 		windowPane.add(scrollPane);
-		
-		
 		for (Session session:DiMIDImi.getSessions()) {
 			session.registerAsReceiver(this);
 		}
@@ -167,9 +167,9 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 							PanelComponent panel = panelComponents.get(session.hashCode());
 							if (panel==null) {
 								panel = new PanelComponent(session);
-								contentPane.add(panel.getPanel());
-								panel.getPanel().revalidate();
 								panelComponents.put(session.hashCode(), panel);
+								contentPane.add(panel.getPanel(), gbc);
+								panel.getPanel().revalidate();
 								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
 								targetWidth = Math.max(targetWidth, 410);
 								int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
@@ -254,6 +254,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 			this.session = session;
 			
 			panel = new JPanel();
+			panel.setPreferredSize(null);
 			label = new JLabel("", SwingConstants.RIGHT);
 			label.setPreferredSize(new Dimension(30, 24));
 //			label.setOpaque(true);
@@ -493,6 +494,14 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 	private static final ImageIcon IC_NEXT_CYCLE_OFF = new ImageIcon(PanelComponent.class.getResource("/ic_off_next_cycle.png"));
 
 	private static enum Toggle { MUTE, SOLO };
+	
+	private static GridBagConstraints gbc = new GridBagConstraints();
+	static {
+	    gbc.weightx = 1;
+	    gbc.fill = GridBagConstraints.HORIZONTAL;
+	    gbc.gridwidth = GridBagConstraints.REMAINDER;
+	    gbc.insets = new Insets(1, 0, 1, 0);
+	}
 	
 	private static final int WIDTH_PADDING = 64;
 	private static final int HEIGHT_PADDING = 48;
