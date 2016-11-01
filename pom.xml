@@ -8,6 +8,27 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>sh.tak.appbundler</groupId>
+				<artifactId>appbundle-maven-plugin</artifactId>
+				<version>1.2.0</version>
+				<configuration>
+					<mainClass>de.privatepublic.midiutils.DiMIDImi</mainClass>
+					<jrePath>/Library/Java/JavaVirtualMachines/jdk1.8.0_51.jdk</jrePath>
+					<!-- https://github.com/federkasten/appbundle-maven-plugin -->
+					<!-- generateDiskImageFile>true</generateDiskImageFile -->
+					<dictionaryFile>Info.plist</dictionaryFile>
+					<iconFile>dimidimi.icns</iconFile>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>bundle</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
