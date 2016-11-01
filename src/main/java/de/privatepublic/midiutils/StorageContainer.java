@@ -15,7 +15,6 @@ public class StorageContainer {
 	private int midiChannelIn;
 	private int midiChannelOut;
 	private boolean midiChannelInActive;
-	private boolean midiChannelOutActive;
 	private Map<String, Integer> windowPos;
 	private List<Integer> pitchBend;
 	private List<Integer> modWheel;
@@ -33,7 +32,6 @@ public class StorageContainer {
 		this.midiChannelIn = session.getMidiChannelIn();
 		this.midiChannelOut = session.getMidiChannelOut();
 		this.midiChannelInActive = session.isMidiInputOn();
-		this.midiChannelOutActive = session.isMidiOutputOn();
 		this.windowPos = new HashMap<String, Integer>();
 		this.pitchBend =  asList(session.getPitchBendList());
 		this.modWheel = asList(session.getCcList());
@@ -105,17 +103,6 @@ public class StorageContainer {
 	public void setMidiChannelInActive(boolean midiChannelInActive) {
 		this.midiChannelInActive = midiChannelInActive;
 	}
-
-
-	public boolean isMidiChannelOutActive() {
-		return midiChannelOutActive;
-	}
-
-
-	public void setMidiChannelOutActive(boolean midiChannelOutActive) {
-		this.midiChannelOutActive = midiChannelOutActive;
-	}
-
 
 	public Map<String, Integer> getWindowPos() {
 		return windowPos;

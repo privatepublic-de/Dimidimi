@@ -36,6 +36,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SpringLayout;
@@ -56,8 +57,10 @@ import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.MidiDeviceWrapper;
+import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
+import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
@@ -81,12 +84,11 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JComboBox<String> comboBoxTranspose;
 	private JComboBox<String> comboMidiIn;
 	private JComboBox<String> comboMidiOut;
-	private JCheckBox checkBoxMidiOut;
-	private JCheckBox checkBoxMidiIn;
+	private JToggleButton toggleMidiIn;
 	private JLabel lblDimidimiLooper;
 	private JCheckBoxMenuItem menuItemTheme;
 	private Session session;
-	private String titleExtension = "";
+	private String titleExtension = null;
 
 	public UIWindow(Session session) {
 		this.session = session;
@@ -121,7 +123,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	}
 	
 	private String getWindowTitle() {
-		return APP_TITLE+" - "+titleExtension+" (MIDI out #"+(session.getMidiChannelOut()+1)+")"; 
+		return APP_TITLE+" - "+(titleExtension!=null?titleExtension:"")+" (#"+(session.getMidiChannelOut()+1)+")"; 
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -242,7 +244,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		buttonNewSession.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				session.setMidiInputOn(false);
-				settingsUpdated();
 				DiMIDImi.createSession();
 			}
 		});
@@ -329,7 +330,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -12, SpringLayout.WEST, lblOut);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -10, SpringLayout.WEST, lblOut);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, lblOut, -5, SpringLayout.WEST, comboMidiOut);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, 0, SpringLayout.EAST, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
@@ -338,47 +341,24 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		panelMidi.add(lblIn);
 		
-		checkBoxMidiIn = new JCheckBox("");
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -28, SpringLayout.EAST, checkBoxMidiIn);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, checkBoxMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, checkBoxMidiIn, 3, SpringLayout.WEST, comboMidiIn);
-		checkBoxMidiIn.setSelected(true);
-		checkBoxMidiIn.addChangeListener(new ChangeListener() {
+		toggleMidiIn = new JToggleButton();
+		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMidiIn, -5, SpringLayout.WEST, comboMidiIn);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -5, SpringLayout.WEST, toggleMidiIn);
+		toggleMidiIn.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
+		toggleMidiIn.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_red_circle.png")));
+		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
+		toggleMidiIn.setSelected(true);
+		toggleMidiIn.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				session.setMidiInputOn(checkBoxMidiIn.isSelected());
+				session.setMidiInputOn(toggleMidiIn.isSelected());
 			}
 		});
-		checkBoxMidiIn.setToolTipText("Receive Notes from selected Channel");
-		panelMidi.add(checkBoxMidiIn);
+		toggleMidiIn.setToolTipText("Record Notes from selected Channel");
+		panelMidi.add(toggleMidiIn);
 		panelMidi.add(comboMidiIn);
 		panelMidi.add(lblOut);
 		
-		checkBoxMidiOut = new JCheckBox("");
-		sl_panelMidi.putConstraint(SpringLayout.EAST, checkBoxMidiOut, 3, SpringLayout.WEST, comboMidiOut);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblOut, 0, SpringLayout.WEST, checkBoxMidiOut);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, checkBoxMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		checkBoxMidiOut.setSelected(true);
-		checkBoxMidiOut.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				session.setMidiOutputOn(checkBoxMidiOut.isSelected());
-			}
-		});
-		checkBoxMidiOut.setToolTipText("Output Notes on selcted Channel");
-		panelMidi.add(checkBoxMidiOut);
 		panelMidi.add(comboMidiOut);
-		
-		JButton btnNotesOff = new JButton("Panic");
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, -8, SpringLayout.WEST, btnNotesOff);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, btnNotesOff, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, btnNotesOff, -10, SpringLayout.EAST, panelMidi);
-		btnNotesOff.setToolTipText("Turns off all playing or stuck MIDI notes.");
-		panelMidi.add(btnNotesOff);
-		
-		btnNotesOff.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				session.getMidiHandler().sendAllNotesOffMidi();
-			}});
 		panelLoop.setLayout(new BorderLayout(0, 0));
 		loopDisplayPanel = new LoopDisplayPanel(session);
 		loopDisplayPanel.setBackground(Color.WHITE);
@@ -418,54 +398,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	
 	private JMenuBar buildMenu() {
 		JMenuBar menuBar = new JMenuBar();
-		JMenu menu = new JMenu("Session");
-		JMenuItem menuItem = new JMenuItem("Load...");
-		menuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File selectedFile = GUIUtils.loadDialog("Load Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
-				if (selectedFile!=null) {
-					GUIUtils.loadSession(selectedFile, frmDimidimi);
-				}
-			}
-		});
-		menu.add(menuItem);
-		JMenu recentSub = new JMenu("Recent Sessions");
-		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_SESSION_LIST, new RecentMenuActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				super.actionPerformed(e);
-				String filename = Prefs.getList(Prefs.RECENT_SESSION_LIST).get(selectedIndex);
-				if (!Prefs.LIST_ENTRY_EMPTY_MARKER.equals(filename)) {
-					GUIUtils.loadSession(new File(filename), frmDimidimi);
-				}
-			}
-		}));
-		menu.add(recentSub);
+		JMenu menu = new JMenu("File");
 		
-		menu.addSeparator();
-		menuItem = new JMenuItem("Save as...");
-		menuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File selectedFile = GUIUtils.saveDialog("Save Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
-				if (selectedFile!=null) {
-					try {
-						DiMIDImi.saveSession(selectedFile);
-						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
-					} catch (IOException e1) {
-						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
-		        		LOG.error("Could not write file", e1);
-					}
-					Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
-				}
-			}
-		});
-		menu.add(menuItem);
-		menuBar.add(menu);
-		
-		menu = new JMenu("Loop");
-		menuItem = new JMenuItem("New");
+		JMenuItem  menuItem = new JMenuItem("New Loop");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
 			@Override
@@ -477,12 +412,11 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 		menu.add(menuItem);
 		
-		menu.addSeparator();
-		menuItem = new JMenuItem("Load...");
+		menuItem = new JMenuItem("Open Loop...");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				File selectedFile = GUIUtils.loadDialog("Load Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
+				File selectedFile = GUIUtils.loadDialog("Open Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
 		        if (selectedFile!=null) {
 		        	String s = GUIUtils.loadLoop(selectedFile, session, frmDimidimi);
 		        	if (s!=null) {
@@ -493,7 +427,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
-		recentSub = new JMenu("Recent Loops");
+		JMenu recentSub = new JMenu("Recent Loops");
 		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_LOOP_LIST, new RecentMenuActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -510,7 +444,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		}));
 		menu.add(recentSub);
 		menu.addSeparator();
-		menuItem = new JMenuItem("Save...");
+		menuItem = new JMenuItem("Save Loop...");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -532,6 +466,76 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 		menu.add(menuItem);
 		menu.addSeparator();
+		
+		menuItem = new JMenuItem("Close Loop");
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				closeWindow();
+			}
+		});
+		menu.add(menuItem);
+		
+		menu.addSeparator();
+		menuItem = new JMenuItem("Open Session...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = GUIUtils.loadDialog("Load Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
+				if (selectedFile!=null) {
+					GUIUtils.loadSession(selectedFile, frmDimidimi);
+				}
+			}
+		});
+		menu.add(menuItem);
+		recentSub = new JMenu("Recent Sessions");
+		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_SESSION_LIST, new RecentMenuActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				super.actionPerformed(e);
+				String filename = Prefs.getList(Prefs.RECENT_SESSION_LIST).get(selectedIndex);
+				if (!Prefs.LIST_ENTRY_EMPTY_MARKER.equals(filename)) {
+					GUIUtils.loadSession(new File(filename), frmDimidimi);
+				}
+			}
+		}));
+		menu.add(recentSub);
+		
+		menu.addSeparator();
+		menuItem = new JMenuItem("Save Session as...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = GUIUtils.saveDialog("Save Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
+				if (selectedFile!=null) {
+					try {
+						DiMIDImi.saveSession(selectedFile);
+						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
+		        		LOG.error("Could not write file", e1);
+					}
+					Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
+				}
+			}
+		});
+		menu.add(menuItem);
+		
+		menu.addSeparator();
+		menuItem = new JMenuItem("Close All (Exit)");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DiMIDImi.removeAllSessions();
+			}
+		});
+		menu.add(menuItem);
+		menuBar.add(menu);
+
+		
+		menu = new JMenu("Edit");
+		
 		menuItem = new JMenuItem("Clear");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
@@ -541,6 +545,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		menu.addSeparator();
 		
 		menuItem = new JMenuItem("Clear Mod Wheel");
 		menuItem.addActionListener(new ActionListener() {
@@ -561,7 +566,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menu.add(menuItem);
 		menu.addSeparator();
 		
-		menuItem = new JMenuItem("Double Loop");
+		menuItem = new JMenuItem("Duplicate Loop");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -596,9 +601,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				CheckboxList listinput = new CheckboxList("Activate Input Devices");
-				JCheckBox[] inboxes = new JCheckBox[session.getMidiHandler().getInputDevices().size()];
+				JCheckBox[] inboxes = new JCheckBox[MidiHandler.instance().getInputDevices().size()];
 				for (int i = 0; i < inboxes.length; i++) {
-					MidiDeviceWrapper dev = session.getMidiHandler().getInputDevices().get(i);
+					MidiDeviceWrapper dev = MidiHandler.instance().getInputDevices().get(i);
 					JCheckBox cbox = new JCheckBox(dev.toString());
 					cbox.setSelected(dev.isActiveForInput());
 					inboxes[i] = cbox;
@@ -606,9 +611,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				listinput.setListData(inboxes);
 				
 				CheckboxList listoutput = new CheckboxList("Activate Output Devices");
-				JCheckBox[] outboxes = new JCheckBox[session.getMidiHandler().getOutputDevices().size()];
+				JCheckBox[] outboxes = new JCheckBox[MidiHandler.instance().getOutputDevices().size()];
 				for (int i = 0; i < outboxes.length; i++) {
-					MidiDeviceWrapper dev = session.getMidiHandler().getOutputDevices().get(i);
+					MidiDeviceWrapper dev = MidiHandler.instance().getOutputDevices().get(i);
 					JCheckBox cbox = new JCheckBox(dev.toString());
 					cbox.setSelected(dev.isActiveForOutput());
 					outboxes[i] = cbox;
@@ -623,35 +628,34 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				int result = JOptionPane.showOptionDialog(frmDimidimi, p, "Select MIDI Devices", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
 				if (result==JOptionPane.OK_OPTION) {
 					for (int i = 0; i < inboxes.length; i++) {
-						MidiDeviceWrapper dev = session.getMidiHandler().getInputDevices().get(i);
+						MidiDeviceWrapper dev = MidiHandler.instance().getInputDevices().get(i);
 						dev.setActiveForInput(inboxes[i].isSelected());
 					}
-					session.getMidiHandler().storeSelectedInDevices();
+					MidiHandler.instance().storeSelectedInDevices();
 					
 					for (int i = 0; i < outboxes.length; i++) {
-						MidiDeviceWrapper dev = session.getMidiHandler().getOutputDevices().get(i);
+						MidiDeviceWrapper dev = MidiHandler.instance().getOutputDevices().get(i);
 						dev.setActiveForOutput(outboxes[i].isSelected());
 					}
-					session.getMidiHandler().storeSelectedOutDevices();
+					MidiHandler.instance().storeSelectedOutDevices();
 				}
 				session.emitRefreshLoopDisplay();
 			}
 		});
 		menu.add(menuItem);
-		menuBar.add(menu);
-		
-		menu = new JMenu("Window");
-		menuItemTheme = new JCheckBoxMenuItem("Dark Theme");
-		menuItemTheme.addItemListener(new ItemListener() {
+		menu.addSeparator();
+		menuItem = new JMenuItem("Panic (All Notes Off)");
+		menuItem.addActionListener(new ActionListener() {
 			@Override
-			public void itemStateChanged(ItemEvent e) {
-				Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
-				DiMIDImi.updateSettingsOnAllSessions();
+			public void actionPerformed(ActionEvent e) {
+				MidiHandler.instance().sendAllNotesOffMidi(session, true);
 			}
 		});
-		menu.add(menuItemTheme);
-		menu.addSeparator();		
+		menu.add(menuItem);
+		menuBar.add(menu);
+
 		
+		menu = new JMenu("Window");
 		menuItem = new JMenuItem("Arrange Windows");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK+Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
@@ -663,25 +667,26 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menu.add(menuItem);
 		menu.addSeparator();
 		
-		menuItem = new JMenuItem("Close");
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		menuItem = new JMenuItem("Show Controller");
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_K, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				closeWindow();
+				DiMIDImi.getControllerWindow().setVisible(true);
 			}
 		});
 		menu.add(menuItem);
-		
 		menu.addSeparator();
-		menuItem = new JMenuItem("Close All (Exit)");
-		menuItem.addActionListener(new ActionListener() {
+		
+		menuItemTheme = new JCheckBoxMenuItem("Dark Theme");
+		menuItemTheme.addItemListener(new ItemListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				DiMIDImi.removeAllSessions();
+			public void itemStateChanged(ItemEvent e) {
+				Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
+				DiMIDImi.updateSettingsOnAllSessions();
 			}
 		});
-		menu.add(menuItem);
+		menu.add(menuItemTheme);
 		
 		menuBar.add(menu);
 		return menuBar;
@@ -737,8 +742,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboQuantize.setSelectedIndex(session.getQuantizationIndex());
 		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		checkBoxMidiIn.setSelected(session.isMidiInputOn());
-		checkBoxMidiOut.setSelected(session.isMidiOutputOn());
+		toggleMidiIn.setSelected(session.isMidiInputOn());
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
 		if (Prefs.get(Prefs.THEME, 0)==0) {
@@ -748,6 +752,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		else {
 			Theme.CURRENT = Theme.DARK;
 			menuItemTheme.setSelected(true);
+		}
+		if (session.getSessionName()!=null && titleExtension==null) { 
+			titleExtension = session.getSessionName();
 		}
 		frmDimidimi.setTitle(getWindowTitle());
 	}
@@ -775,6 +782,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	@Override
 	public void receivePitchBend(int val, int pos) {
+	}
+
+	@Override
+	public void stateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

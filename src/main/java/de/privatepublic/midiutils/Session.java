@@ -1,5 +1,6 @@
 package de.privatepublic.midiutils;
 
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Rectangle;
 import java.io.File;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -21,19 +23,21 @@ import de.privatepublic.midiutils.events.DimidimiEventReceiver;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
+import de.privatepublic.midiutils.ui.Theme;
 import de.privatepublic.midiutils.ui.UIWindow;
 
 public class Session implements PerformanceReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Session.class);
 	
-	public Session(int pos) {
+	private static int SOLOCOUNT = 0;
+	
+	public Session() {
 		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
 		midiChannelOut = Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					midiHandler = new MidiHandler(Session.this, pos);
 					window = new UIWindow(Session.this);
 					// new PerformanceHandler(Session.this);
 					registerAsReceiver(Session.this);
@@ -44,7 +48,8 @@ public class Session implements PerformanceReceiver {
 		});
 	}
 	
-	public Session(StorageContainer data) {
+	public Session(StorageContainer data, String sessionName) {
+		setSessionName(sessionName);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -59,7 +64,6 @@ public class Session implements PerformanceReceiver {
 				}
 			}
 		});
-		midiHandler = new MidiHandler(this, 0);
 	}
 
 
@@ -97,14 +101,16 @@ public class Session implements PerformanceReceiver {
 	public void setMidiChannelOut(int midiChannelOut) {
 		int oldOut = midiChannelOut;
 		this.midiChannelOut = midiChannelOut;
-		getMidiHandler().sendAllNotesOffMidi(oldOut);
+		MidiHandler.instance().sendAllNotesOffMidi(this, oldOut);
+		
+		colorNote = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
+	    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+	    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
+	    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+		
 		Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
+		emitSettingsUpdated();
 		emitRefreshLoopDisplay();
-	}
-
-
-	public MidiHandler getMidiHandler() {
-		return midiHandler;
 	}
 
 
@@ -115,19 +121,6 @@ public class Session implements PerformanceReceiver {
 
 	public void setMidiInputOn(boolean midiInputOn) {
 		this.midiInputOn = midiInputOn;
-	}
-
-
-	public boolean isMidiOutputOn() {
-		return midiOutputOn;
-	}
-
-
-	public void setMidiOutputOn(boolean midiOutputOn) {
-		if (this.midiOutputOn!=midiOutputOn && !midiOutputOn) {
-			getMidiHandler().sendAllNotesOffMidi();
-		}
-		this.midiOutputOn = midiOutputOn;
 	}
 
 
@@ -168,24 +161,87 @@ public class Session implements PerformanceReceiver {
 		return pitchBendList;
 	}
 
+	public String getSessionName() {
+		return sessionName;
+	}
+
+	public void setSessionName(String sessionName) {
+		this.sessionName = sessionName;
+	}
+
+	public boolean isMuted() {
+		return isMuted;
+	}
+
+	public void setMuted(boolean isMuted) {
+		if (isMuted!=this.isMuted) {
+			this.isMuted = isMuted;
+			emitLoopUpdated();
+		}
+	}
+
+	public boolean isSoloed() {
+		return isSoloed;
+	}
+
+	public void setSoloed(boolean isSoloed) {
+		if (isSoloed!=this.isSoloed) {
+			this.isSoloed = isSoloed;
+			SOLOCOUNT += isSoloed?1:-1;
+			DiMIDImi.updateLoopsOnAllSessions();
+		}
+	}
+
+	public QueuedState getQueuedMute() {
+		return queuedMuteState;
+	}
+
+	public void setQueuedMute(QueuedState isQueuedMute) {
+		this.queuedMuteState = isQueuedMute;
+	}
+
+	public QueuedState getQueuedSolo() {
+		return queuedSoloState;
+	}
+
+	public void setQueuedSolo(QueuedState isQueuedSolo) {
+		this.queuedSoloState = isQueuedSolo;
+	}
+	
+	public boolean isAudible() {
+		if (isMuted) {
+			return false;
+		}
+		if (SOLOCOUNT>0) {
+			return isSoloed;	
+		}
+		return true;
+	}
+
 	public UIWindow getWindow() {
 		return window;
 	}
 
-
-
+	public Color getNoteColor(boolean selected) {
+		return selected?colorNoteSelected:colorNote;
+	}
+	
+	public Color getNoteColorHighlighted(boolean selected) {
+		return selected?colorNoteBrightSelected:colorNoteBright;
+	}
+	
 
 	public void clearPattern() {
 		for (Note dc:getNotesList()) {
-			getMidiHandler().sendNoteOffMidi(dc.getTransformedNoteNumber(getTransposeIndex()));
+			MidiHandler.instance().sendNoteOffMidi(this, dc.getTransformedNoteNumber(getTransposeIndex()));
 		}
 		getNotesList().clear();
 		for (int i=0;i<MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE;++i) {
 			ccList[i] = 0;
 			pitchBendList[i] = 0;
 		}
-		getMidiHandler().sendPitchBend(0);
-		getMidiHandler().sendCC(0);
+		MidiHandler.instance().sendPitchBend(this, 0);
+		MidiHandler.instance().sendCC(this, 0);
 		emitLoopUpdated();
 	}
 	
@@ -193,32 +249,30 @@ public class Session implements PerformanceReceiver {
 		for (int i=0;i<MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE;++i) {
 			ccList[i] = 0;
 		}
-		getMidiHandler().sendCC(0);
+		MidiHandler.instance().sendCC(this, 0);
 	}
 	
 	public void clearPitchBend() {
 		for (int i=0;i<MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE;++i) {
 			pitchBendList[i] = 0;
 		}
-		getMidiHandler().sendPitchBend(0);
+		MidiHandler.instance().sendPitchBend(this, 0);
 	}
 
 
 	public void saveLoop(File file) throws JsonGenerationException, JsonMappingException, IOException {
 		StorageContainer data = new StorageContainer(this);		
-		ObjectMapper mapper = new ObjectMapper();
 		mapper.writeValue(file, data);
 		LOG.info("Saved file {}", file.getPath());
 	}
 
 	public void loadLoop(File file) throws JsonParseException, JsonMappingException, IOException {
-		ObjectMapper mapper = new ObjectMapper();
 		StorageContainer data = mapper.readValue(file, StorageContainer.class);
 		LOG.info("Loaded file {}", file.getPath());
 		applyStorageData(data);
 		emitSettingsUpdated();
 		emitLoopUpdated();
-		getMidiHandler().sendAllNotesOffMidi();
+		MidiHandler.instance().sendAllNotesOffMidi(this);
 	}
 	
 	private void applyStorageData(StorageContainer data) {
@@ -232,7 +286,6 @@ public class Session implements PerformanceReceiver {
 		setMidiChannelIn(data.getMidiChannelIn());
 		setMidiChannelOut(data.getMidiChannelOut());
 		setMidiInputOn(data.isMidiChannelInActive());
-		setMidiOutputOn(data.isMidiChannelOutActive());
 		data.copyList(data.getPitchBend(), pitchBendList);
 		data.copyList(data.getModWheel(), ccList);
 		Map<String, Integer> wpos = data.getWindowPos();
@@ -244,7 +297,7 @@ public class Session implements PerformanceReceiver {
 
 	public void clearNote(Note note) {
 		getNotesList().remove(note);
-		getMidiHandler().sendNoteOffMidi(note.getTransformedNoteNumber(getTransposeIndex()));
+		MidiHandler.instance().sendNoteOffMidi(this, note.getTransformedNoteNumber(getTransposeIndex()));
 		emitLoopUpdated();
 	}
 
@@ -288,12 +341,12 @@ public class Session implements PerformanceReceiver {
 
 
 	public void destroy() {
-		midiHandler.sendAllNotesOffMidi();
+		setSoloed(false);
+		MidiHandler.instance().sendAllNotesOffMidi(this);
 		notesList.clear();
 		loopUpdateReceivers.clear();
 		performanceReceivers.clear();
 		settingsUpdateReceivers.clear();
-		midiHandler = null;
 		window = null;
 	}
 
@@ -366,18 +419,24 @@ public class Session implements PerformanceReceiver {
 			receiver.receiveActive(active, pos);
 		}
 	}
+	
+	public void emitState() {
+		for (PerformanceReceiver receiver: performanceReceivers) {
+			receiver.stateChange(isMuted, isSoloed, queuedMuteState, queuedSoloState);
+		}
+	}
 
 	public void emitSettingsUpdated() {
 		for (SettingsUpdateReceiver receiver: settingsUpdateReceivers) {
 			receiver.settingsUpdated();
 		}
 	}
-
+	
 	
 	
 	@Override
 	public void noteOn(int noteNumber, int velocity, int pos) {
-		if (MidiHandler.ACTIVE) {
+		if (MidiHandler.ACTIVE && isMidiInputOn()) {
 			Note note = new Note(noteNumber, velocity, pos);
 			lastStarted[noteNumber] = note;
 			getNotesList().add(note);
@@ -391,7 +450,7 @@ public class Session implements PerformanceReceiver {
 	
 	@Override
 	public void noteOff(int notenumber, int pos) {
-		if (MidiHandler.ACTIVE) {
+		if (MidiHandler.ACTIVE && isMidiInputOn()) {
 			Note reference = lastStarted[notenumber];
 			if (reference!=null) {
 				reference.setPosEnd(pos);
@@ -413,11 +472,14 @@ public class Session implements PerformanceReceiver {
 		}
 		int prevpos = (pos+getMaxTicks()-1)%getMaxTicks();
 		if (pitchBendList[pos]!=pitchBendList[prevpos]) {
-			getMidiHandler().sendPitchBend(pitchBendList[pos]);
+			MidiHandler.instance().sendPitchBend(this, pitchBendList[pos]);
 		}
 		if (ccList[pos]!=ccList[prevpos]) {
-			getMidiHandler().sendCC(ccList[pos]);
+			MidiHandler.instance().sendCC(this, ccList[pos]);
 		}
+		
+		boolean isAudible = isAudible();
+		
 		for (Note note:getNotesList()) {
 			if (!note.isCompleted()) {
 				Note overlap = findOverlappingNote(note, pos);
@@ -427,15 +489,49 @@ public class Session implements PerformanceReceiver {
 				emitLoopUpdated();
 				continue;
 			}
-			if (pos==note.getTransformedPosStart(getMaxTicks(), getQuantizationIndex())) {
+			if (isAudible && pos==note.getTransformedPosStart(getMaxTicks(), getQuantizationIndex())) {
 				note.setPlayed(true);
-				getMidiHandler().sendNoteOnMidi(note.getTransformedNoteNumber(getTransposeIndex()), note.getVelocity());
+				MidiHandler.instance().sendNoteOnMidi(this, note.getTransformedNoteNumber(getTransposeIndex()), note.getVelocity());
 			}
-			if (pos==note.getTransformedPosEnd(getMaxTicks(), getQuantizationIndex())) {
-				getMidiHandler().sendNoteOffMidi(note.getTransformedNoteNumber(getTransposeIndex()));
+			if (pos==note.getTransformedPosEnd(getMaxTicks(), getQuantizationIndex()) && note.isPlayed()) {
+				MidiHandler.instance().sendNoteOffMidi(this, note.getTransformedNoteNumber(getTransposeIndex()));
 				note.setPlayed(false);
 			}
 		}
+		
+		if (pos==getMaxTicks()-1) {
+			boolean hasChanges = queuedMuteState!=QueuedState.NO_CHANGE || queuedSoloState!=QueuedState.NO_CHANGE;
+			// check for queued mutes and solos
+			switch (queuedMuteState) {
+			case OFF:
+				setMuted(false);
+				break;
+			case ON:
+				setMuted(true);
+				break;
+			default:
+				break;
+			}
+			queuedMuteState = QueuedState.NO_CHANGE;
+			
+			switch (queuedSoloState) {
+			case OFF:
+				setSoloed(false);
+				break;
+			case ON:
+				setSoloed(true);
+				break;
+			default:
+				break;
+			}
+			queuedSoloState = QueuedState.NO_CHANGE;
+			if (hasChanges) {
+				emitState();
+				emitLoopUpdated();
+			}
+			
+		}
+		
 	}
 
 
@@ -472,18 +568,22 @@ public class Session implements PerformanceReceiver {
 
 	@Override
 	public void receiveCC(int cc, int val, int pos) {
-		if (cc==1) {
-			currentCC = val;
-			ccList[pos] = val;
-			overrideCC = true;
+		if (isMidiInputOn()) {
+			if (cc==1) {
+				currentCC = val;
+				ccList[pos] = val;
+				overrideCC = true;
+			}
 		}
 	}
 
 	@Override
 	public void receivePitchBend(int val, int pos) {
-		currentPitchBend = val;
-		pitchBendList[pos] = val;
-		overridePitchBend = true;
+		if (isMidiInputOn()) {
+			currentPitchBend = val;
+			pitchBendList[pos] = val;
+			overridePitchBend = true;
+		}
 	}
 	
 	
@@ -491,11 +591,13 @@ public class Session implements PerformanceReceiver {
 
 	private int lengthQuarters = 8;
 	private int maxTicks = lengthQuarters*TICK_COUNT_BASE;
-	private MidiHandler midiHandler;
 	private int midiChannelIn = 0; // 0 - based
-	private int midiChannelOut = 1;// 0 - based
+	private int midiChannelOut = 0;// 0 - based
 	private boolean midiInputOn = true;
-	private boolean midiOutputOn = true;
+	private boolean isMuted = false;
+	private boolean isSoloed = false;
+	private QueuedState queuedMuteState = QueuedState.NO_CHANGE;
+	private QueuedState queuedSoloState = QueuedState.NO_CHANGE;
 	private int quantizationIndex = 0;
 	private int transposeIndex = 13;
 	private UIWindow window;
@@ -506,6 +608,12 @@ public class Session implements PerformanceReceiver {
 	private boolean overridePitchBend = false;
 	private int[] ccList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
 	private int[] pitchBendList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
+	private String sessionName;
+	
+	private Color colorNote;
+	private Color colorNoteBright;
+	private Color colorNoteSelected;
+	private Color colorNoteBrightSelected;
 
 	private List<LoopUpdateReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<LoopUpdateReceiver>();
 	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
@@ -515,5 +623,17 @@ public class Session implements PerformanceReceiver {
 	
 	public static final int TICK_COUNT_BASE = 24;
 	public static final int MAX_NUMBER_OF_QUARTERS = 64;
+	
+	public static enum QueuedState { NO_CHANGE, ON, OFF }
+
+	@Override
+	public void stateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
+		
+	}
+	
+	private static ObjectMapper mapper = new ObjectMapper();
+	static {
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
 
 }

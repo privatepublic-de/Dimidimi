@@ -23,16 +23,27 @@ public class MidiHandler {
 	private static final Logger LOG = LoggerFactory.getLogger(MidiHandler.class);
 	
 	public static boolean ACTIVE = false;
+	
+	private static final MidiHandler instance = new MidiHandler();
+	
+	public static MidiHandler instance() {
+		return instance;
+	}
+	
+	
+	
 	private ArrayList<MidiDeviceWrapper> outputDeviceList = new ArrayList<MidiDeviceWrapper>();
 	private ArrayList<MidiDeviceWrapper> inputDeviceList = new ArrayList<MidiDeviceWrapper>();
 	private int pos;
 	private ShortMessage resetPositionMessage = new ShortMessage();
-	private Session session;
+//	private Session session;
 	
-	public MidiHandler(Session session, int pos) {
+	
+	
+	private MidiHandler() {
 		
-		this.session = session;
-		this.pos = pos;
+//		this.session = session;
+//		this.pos = pos;
 		
 		List<String> prefInIds = Prefs.getPrefIdentifierList(Prefs.MIDI_IN_DEVICES);
 		List<String> prefOutIds = Prefs.getPrefIdentifierList(Prefs.MIDI_OUT_DEVICES);
@@ -98,7 +109,7 @@ public class MidiHandler {
 			}
 		});
 		LOG.info("Available MIDI devices: {} in, {} out", inputDeviceList.size(), outputDeviceList.size());
-		session.emitSettingsUpdated();
+		//session.emitSettingsUpdated();
 	}
 	
 	public void storeSelectedOutDevices() {
@@ -143,55 +154,71 @@ public class MidiHandler {
 			switch(status) {
 			case ShortMessage.STOP:
 				LOG.info("Received STOP - Setting song position zero");
-				sendAllNotesOffMidi();
 				ACTIVE = false;
-				session.emitActive(false, pos);
 				pos = 0;
 				sendMessage(resetPositionMessage);
 				break;
 			case ShortMessage.START:
 				LOG.info("Received START");
 				ACTIVE = true;
-				session.emitActive(true, pos);
 				break;
 			case ShortMessage.CONTINUE:
 				LOG.info("Received CONTINUE");
 				ACTIVE = true;
-				session.emitActive(true, pos);
 				break;
-			case ShortMessage.TIMING_CLOCK:
-				session.emitClock(pos);
-				pos = ++pos%session.getMaxTicks();
-				break;
+//			case ShortMessage.TIMING_CLOCK:
+//				pos++;
+//				break;
 			}
-			if (message instanceof ShortMessage && device.isActiveForInput() && session.isMidiInputOn()) {
-				final ShortMessage msg = (ShortMessage)message;
-				final int channel = msg.getChannel();
-				if (channel==session.getMidiChannelIn()) {
-					int command = msg.getCommand();
-					final int data1 = msg.getData1();
-					final int data2 = msg.getData2();
-					switch(command) {
-					case ShortMessage.NOTE_ON:
-						if (data2==0) {
-							noteOff(data1);
+			for (Session session:DiMIDImi.getSessions()) {
+				switch(status) {
+				case ShortMessage.STOP:
+					sendAllNotesOffMidi(session, false);
+					session.emitActive(false, pos);
+					session.emitRefreshLoopDisplay();
+					break;
+				case ShortMessage.START:
+					session.emitActive(true, pos);
+					break;
+				case ShortMessage.CONTINUE:
+					session.emitActive(true, pos);
+					break;
+				case ShortMessage.TIMING_CLOCK:
+					session.emitClock(pos%session.getMaxTicks());
+					break;
+				}
+				if (message instanceof ShortMessage && device.isActiveForInput() && session.isMidiInputOn()) {
+					final ShortMessage msg = (ShortMessage)message;
+					final int channel = msg.getChannel();
+					if (channel==session.getMidiChannelIn()) {
+						int command = msg.getCommand();
+						final int data1 = msg.getData1();
+						final int data2 = msg.getData2();
+						switch(command) {
+						case ShortMessage.NOTE_ON:
+							if (data2==0) {
+								noteOff(session, data1);
+							}
+							else {
+								noteOn(session, data1, data2);
+							}
+							break;
+						case ShortMessage.NOTE_OFF:
+							noteOff(session, data1);
+							break;
+						case ShortMessage.CONTROL_CHANGE:
+							session.emitCC(data1, data2, pos);
+							break;
+						case ShortMessage.PITCH_BEND:
+							int val = ((data1 & 0x7f) + ((data2 & 0x7f)<<7)) - 0x2000;
+							session.emitPitchBend(val, pos);
+							break;
 						}
-						else {
-							noteOn(data1, data2);
-						}
-						break;
-					case ShortMessage.NOTE_OFF:
-						noteOff(data1);
-						break;
-					case ShortMessage.CONTROL_CHANGE:
-						session.emitCC(data1, data2, pos);
-						break;
-					case ShortMessage.PITCH_BEND:
-						int val = ((data1 & 0x7f) + ((data2 & 0x7f)<<7)) - 0x2000;
-						session.emitPitchBend(val, pos);
-						break;
 					}
 				}
+			}
+			if (status==ShortMessage.TIMING_CLOCK) {
+				pos++;
 			}
 		}
 
@@ -201,62 +228,54 @@ public class MidiHandler {
 		}
 	}
 
-	private void noteOn(int noteNumber, int velocity) {
+	private void noteOn(Session session, int noteNumber, int velocity) {
 		session.emitNoteOn(noteNumber, velocity, pos);
-		sendNoteOnMidi(noteNumber, velocity);
+		sendNoteOnMidi(session, noteNumber, velocity);
 	}
 
-	private void noteOff(int noteNumber) {
+	private void noteOff(Session session, int noteNumber) {
 		session.emitNoteOff(noteNumber, pos);
-		sendNoteOffMidi(noteNumber);
+		sendNoteOffMidi(session, noteNumber);
 	}
 
-	public void sendNoteOnMidi(int noteNumber, int velocity) {
-		if (session.isMidiOutputOn()) {
-			try {
-				ShortMessage message = new ShortMessage();
-				message.setMessage(ShortMessage.NOTE_ON, session.getMidiChannelOut(), noteNumber, velocity);
-				sendMessage(message);
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
-			}
+	public void sendNoteOnMidi(Session session, int noteNumber, int velocity) {
+		try {
+			ShortMessage message = new ShortMessage();
+			message.setMessage(ShortMessage.NOTE_ON, session.getMidiChannelOut(), noteNumber, velocity);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
 	}
 
-	public void sendNoteOffMidi(int noteNumber) {
-		if (session.isMidiOutputOn()) {
-			try {
-				ShortMessage message = new ShortMessage();
-				message.setMessage(ShortMessage.NOTE_OFF, session.getMidiChannelOut(), noteNumber, 0);
-				sendMessage(message);
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
-			}
+	public void sendNoteOffMidi(Session session, int noteNumber) {
+		try {
+			ShortMessage message = new ShortMessage();
+			message.setMessage(ShortMessage.NOTE_OFF, session.getMidiChannelOut(), noteNumber, 0);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
 	}
 	
-	public void sendCC(int val) {
-		if (session.isMidiOutputOn()) {
-			try {
-				ShortMessage message = new ShortMessage();
-				message.setMessage(ShortMessage.CONTROL_CHANGE, session.getMidiChannelOut(), 1, val);
-				sendMessage(message);
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
-			}
+	public void sendCC(Session session, int val) {
+		try {
+			ShortMessage message = new ShortMessage();
+			message.setMessage(ShortMessage.CONTROL_CHANGE, session.getMidiChannelOut(), 1, val);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
 	}
 
-	public void sendPitchBend(int val) {
-		if (session.isMidiOutputOn()) {
-			try {
-				ShortMessage message = new ShortMessage();
-				val = Math.min(val + 0x2000, 0x3fff);
-				message.setMessage(ShortMessage.PITCH_BEND, session.getMidiChannelOut(), val & 0x7f, (val>>7) & 0x7f);
-				sendMessage(message);
-			} catch (InvalidMidiDataException e) {
-				e.printStackTrace();
-			}
+	public void sendPitchBend(Session session, int val) {
+		try {
+			ShortMessage message = new ShortMessage();
+			val = Math.min(val + 0x2000, 0x3fff);
+			message.setMessage(ShortMessage.PITCH_BEND, session.getMidiChannelOut(), val & 0x7f, (val>>7) & 0x7f);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -270,12 +289,19 @@ public class MidiHandler {
 	}
 	
 	
-	public void sendAllNotesOffMidi() {
-		sendAllNotesOffMidi(session.getMidiChannelOut());
+	public void sendAllNotesOffMidi(Session session) {
+		sendAllNotesOffMidi(session, session.getMidiChannelOut(), false);
 	}
 	
+	public void sendAllNotesOffMidi(Session session, boolean panic) {
+		sendAllNotesOffMidi(session, session.getMidiChannelOut(), panic);
+	}
 	
-	public void sendAllNotesOffMidi(int channel) {
+	public void sendAllNotesOffMidi(Session session, int channel) {
+		sendAllNotesOffMidi(session, channel, false);
+	}
+	
+	public void sendAllNotesOffMidi(Session session, int channel, boolean panic) {
 		ShortMessage message = new ShortMessage();		
 		try {
 			for (Note note: session.getNotesList()) {
@@ -289,12 +315,14 @@ public class MidiHandler {
 			sendMessage(message);
 			message.setMessage(ShortMessage.PITCH_BEND, channel, 0, 0x40);
 			sendMessage(message);
-			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 123, 0);
-			sendMessage(message);
-			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 120, 0);
-			sendMessage(message);
-			message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 121, 0);
-			sendMessage(message);
+			if (panic) {
+				message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 123, 0);
+				sendMessage(message);
+				message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 120, 0);
+				sendMessage(message);
+				message.setMessage(ShortMessage.CONTROL_CHANGE, channel, 121, 0);
+				sendMessage(message);
+			}
 		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();
 		}

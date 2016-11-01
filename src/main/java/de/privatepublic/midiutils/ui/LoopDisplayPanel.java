@@ -23,7 +23,9 @@ import java.awt.geom.Rectangle2D;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -50,20 +52,20 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	
 	private int pos = 0;
 	
-	private Note hitNote;
-	private Note selectedNote;
 	private Note resizeNote;
 	private boolean isDragging;
+	private boolean isSelectionDrag;
 	private Point dragStart;
-	private int dragStartNoteNumber;
-	private int dragStartPosStart;
-	private int dragStartPosEnd;
+	private Point dragEnd;
+	private Rectangle selectRectangle = new Rectangle();
+	private Note draggedNote = null;
 	
 	private float noteHeight;
 	private float tickwidth;
 	private static final int MARGIN_SEMIS = 1;
 	private int highestNote = 96-MARGIN_SEMIS;
 	private int lowestNote = 12+MARGIN_SEMIS;
+	private CopyOnWriteArrayList<Note> selectedNotes = new CopyOnWriteArrayList<Note>();
 	
 	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
 	
@@ -76,8 +78,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				isDragging = false;
+				isSelectionDrag = false;
+				draggedNote = null;
+				repaint();
 				if (e.isPopupTrigger()) {
-					if (selectedNote!=null && selectedNote.isCompleted()) {
+					if (selectedNotes.size()>0) {
 						openPopUp(e);
 					}
 				}
@@ -86,25 +91,43 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				isDragging = true;
-				selectedNote = hitNote;				
 				if (e.isPopupTrigger()) {
-					if (selectedNote!=null) {
+					if (selectedNotes.size()>0) {
 						openPopUp(e);
 					}
 				}
 				else {
 					dragStart = e.getPoint();
-					Note storeStartDataNote = null;
-					if (selectedNote!=null) {
-						storeStartDataNote = selectedNote;
+					if (resizeNote==null) {
+						Note hitNote = findHitNote(selectedNotes, dragStart);
+						if (hitNote!=null) {
+							draggedNote = hitNote;
+						}
+						else {
+							selectedNotes.clear();
+							hitNote = findHitNote(session.getNotesList(), dragStart);
+							if (hitNote!=null) {
+								selectedNotes.add(hitNote);
+								hitNote.storeCurrent();
+								draggedNote = hitNote;
+							}
+							if (selectedNotes.size()>0) {
+								isSelectionDrag = false;
+							}
+							else {
+								// clicked outside note, start selection
+								isSelectionDrag = true;
+								selectedNotes.clear();
+								selectRectangle.x = dragStart.x;
+								selectRectangle.y = dragStart.y;
+								selectRectangle.width = 0;
+								selectRectangle.height = 0;
+								dragEnd = e.getPoint();
+							}
+						}
 					}
-					if (resizeNote!=null) {
-						storeStartDataNote = resizeNote;
-					}
-					if (storeStartDataNote!=null) {
-						dragStartNoteNumber = storeStartDataNote.getNoteNumber();
-						dragStartPosStart = storeStartDataNote.getPosStart();
-						dragStartPosEnd = storeStartDataNote.getPosEnd();
+					else {
+						selectedNotes.clear();
 					}
 				}
 				repaint();
@@ -112,9 +135,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 			@Override
 			public void mouseExited(MouseEvent e) {
-				if (!isDragging) {
-					hitNote = null;
-				}
 			}
 			
 			@Override
@@ -134,65 +154,93 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		addMouseMotionListener(new MouseMotionListener() {
 			@Override
 			public void mouseMoved(MouseEvent e) {
-				Note hitNoteBefore = hitNote;
-				Note resizeNoteBefore = resizeNote;
-				int mx = e.getX();
-				int my = e.getY();
-				hitNote = null;
-				Note potentialResizeNote = null;
-				for (Note note:session.getNotesList()) {
-					if (note.isCompleted()) {
-						Rectangle[] rects = getNotePositionsRect(note);
-						int posy = Math.round(rects[0].y+noteHeight/2);
-						for (Rectangle rect:rects) {
-							if (mx<=rect.x+rect.width && mx>=rect.x && Math.abs(my-posy)<noteHeight) {
-								hitNote = note;
+				if (!isDragging) {
+					int mx = e.getX();
+					int my = e.getY();
+					Note found2resize = null;
+					for (Note note:session.getNotesList()) {
+						if (note.isCompleted()) {
+							Rectangle[] rects = getNotePositionsRect(note);
+							int posy = Math.round(rects[0].y+noteHeight/2);
+							// find length resizable hit
+							int rightx = rects[rects.length-1].x+rects[rects.length-1].width;
+							if (mx<rightx+tickwidth && mx>rightx && Math.abs(my-posy)<noteHeight) {
+								found2resize = note;
+								found2resize.storeCurrent();
 								break;
 							}
 						}
-						// find length resizable hit
-						int rightx = rects[rects.length-1].x+rects[rects.length-1].width;
-						if (mx<rightx+tickwidth && mx>rightx && Math.abs(my-posy)<noteHeight) {
-							potentialResizeNote = note;
-						}
+					}
+					boolean repaint = found2resize!=resizeNote;
+					resizeNote = found2resize;
+					if (repaint) {
+						repaint();
 					}
 				}
-				if (hitNote!=null) {
+				if (resizeNote!=null) {
+					setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
+				}
+				else if (isDragging || isListHit(session.getNotesList(), e.getPoint())) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				}
 				else {
-					if (potentialResizeNote!=null) {
-						setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
-					}
-					else {
-						setCursor(Cursor.getDefaultCursor());						
-					}
-				}
-				resizeNote = potentialResizeNote;
-				if (hitNote!=hitNoteBefore || resizeNote!=resizeNoteBefore) {
-					refreshLoopDisplay();
+					setCursor(Cursor.getDefaultCursor());
 				}
 			}
 			
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				if (selectedNote!=null) {
-					int distY = dragStart.y-e.getY();
+				if (resizeNote!=null) {
 					int distX = e.getX()-dragStart.x;
-					
-					int noteOffset = (int)(distY/noteHeight);
-					selectedNote.setNoteNumber(dragStartNoteNumber+noteOffset);
-					
 					int ticksOffset = (int)(distX/tickwidth);
-					selectedNote.setPosStart((dragStartPosStart+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
-					selectedNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+					resizeNote.setPosEnd((resizeNote.getStoredPosEnd()+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
 					refreshLoopDisplay();
+					return;
+				}
+				if (isSelectionDrag) {
+					dragEnd = e.getPoint();
+					
+					int rw = dragEnd.x-dragStart.x;
+					int rh = dragEnd.y-dragStart.y;
+					int rx = dragStart.x;
+					int ry = dragStart.y;
+					if (rw<0) {
+						rx += rw;
+						rw = -rw;
+					}
+					if (rh<0) {
+						ry += rh;
+						rh = -rh;
+					}
+					selectRectangle.x = rx;
+					selectRectangle.y =ry;
+					selectRectangle.width = rw;
+					selectRectangle.height = rh;
+					selectedNotes.clear();
+					for (Note note: session.getNotesList()) {
+						for (Rectangle nr: getNotePositionsRect(note)) {
+							if (selectRectangle.intersects(nr)) {
+								selectedNotes.add(note);
+								note.storeCurrent();
+								break;
+							}		
+						}
+					}
+					repaint();
 				}
 				else {
-					if (resizeNote!=null) {
-						int distX = e.getX()-dragStart.x;
-						int ticksOffset = (int)(distX/tickwidth);
-						resizeNote.setPosEnd((dragStartPosEnd+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+					if (selectedNotes.size()>0) {
+						for (Note note:selectedNotes) {
+							int distY = dragStart.y-e.getY();
+							int distX = e.getX()-dragStart.x;
+
+							int noteOffset = (int)(distY/noteHeight);
+							note.setNoteNumber(note.getStoredNoteNumber()+noteOffset);
+
+							int ticksOffset = (int)(distX/tickwidth);
+							note.setPosStart((note.getStoredPosStart()+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+							note.setPosEnd((note.getStoredPosEnd()+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+						}
 						refreshLoopDisplay();
 					}
 				}
@@ -201,15 +249,13 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		addMouseWheelListener(new MouseWheelListener() {
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent e) {
-				int wheelinc = e.getWheelRotation();
-				Note note = selectedNote;
-				if (note==null) {
-					note = hitNote;
-				}
-				if (note!=null) {
-					int vel = note.getVelocity();
-					vel = Math.min(Math.max(vel-wheelinc, 0), 127);
-					note.setVelocity(vel);
+				if (selectedNotes.size()>0) {
+					int wheelinc = e.getWheelRotation();
+					for (Note note:selectedNotes) {
+						int vel = note.getVelocity();
+						vel = Math.min(Math.max(vel-wheelinc, 0), 127);
+						note.setVelocity(vel);
+					}
 					refreshLoopDisplay();
 				}
 			}
@@ -258,11 +304,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		tickwidth = (float)width/session.getMaxTicks();
 		for (int i=0;i<session.getLengthQuarters()*4;i++) {
 			int xpos = (int)(i*sixthwidth);
-			if (i/4 == activeQuarter) {
-				g.setColor(Theme.CURRENT.getColorActiveQuarter());
-				g.fillRect(xpos, height-height/30, Math.round(sixthwidth), height);
-				g.fillRect(xpos, 0, Math.round(sixthwidth), height/30);
-			}
 			g.setColor(Theme.CURRENT.getColorGrid());
 			g.drawLine(xpos, 0, xpos, height);
 			if (i%4==0) { 
@@ -277,13 +318,17 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.drawLine(xpos-1, 0, xpos-1, height);
 				g.drawLine(xpos-3, 0, xpos-3, height);
 			}
+			if (i/4 == activeQuarter) {
+				g.setColor(Theme.CURRENT.getColorActiveQuarter());
+				g.fillRect(xpos, height-height/30, Math.round(sixthwidth), height);
+				g.fillRect(xpos, 0, Math.round(sixthwidth), height/30);
+			}
 		}
 		g.setColor(Theme.CURRENT.getColorOctaves());
 		for (int i=0;i<11;i++) {
-			float colorhue = (96-i*12)/96f;
-			g.setColor(Color.getHSBColor(colorhue, Theme.CURRENT.getOctaveColorSaturation(), Theme.CURRENT.getOctaveColorBrightness()));
 			int y = (int)(((highestNote+MARGIN_SEMIS)-i*12)*noteHeight);
 			g.drawLine(0, y, width, y);
+			g.drawString(Note.getConcreteNoteName(i*12)+(i-1), 2, y);
 		}
 		
 		// draw playhead
@@ -293,16 +338,16 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		g.fillRect((int)(playheadx-tickwidth/2), 0, (int)tickwidth, height);
 
 		// draw notes
-		Note selectedNoteRun = selectedNote;
-		if (selectedNoteRun==null) {
-			selectedNoteRun = hitNote;
-		}
 		int halfheight = Math.round(noteHeight/2);
 		int quartheight = halfheight/2;
+		
+		boolean isSingleSelection = selectedNotes.size()==1;
+		
 		for (Note note:session.getNotesList()) {
-			float colorhue = (96-note.getTransformedNoteNumber(session.getTransposeIndex()))/96f; 
-			Color noteColor = Color.getHSBColor(colorhue, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
-			Color noteColorLight = Color.getHSBColor(colorhue, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+			boolean isSelected = selectedNotes.contains(note);
+			
+			Color noteColor = session.getNoteColor(isSelected);
+			Color noteColorLight = session.getNoteColorHighlighted(isSelected);
 			
 			g.setStroke(STROKE_1);
 			
@@ -314,7 +359,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			Rectangle[] rects = getNotePositionsRect(note);
 			
 			for (Rectangle rect: rects) {
-				if (note==selectedNoteRun) {
+				if (isSelected) {
 					g.setColor(Theme.CURRENT.getColorSelectedNoteOutline());
 					g.fillRect(rect.x-quartheight, rect.y-quartheight, rect.width+halfheight, rect.height+halfheight);
 				}
@@ -329,8 +374,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.drawRect(rect.x, rect.y, rect.width, rect.height);
 			}
 			int rightindex = rects.length-1;			
-			if (note==selectedNoteRun) {
-				g.setColor(Color.RED);
+			if (isSingleSelection && isSelected || note==draggedNote) {
+				g.setColor(Theme.CURRENT.getColorGridHighlight());
 				int ybottom = rects[0].y+rects[0].height;
 				int xright = rects[rightindex].x+rects[rightindex].width;
 				g.drawLine(0, rects[0].y, width, rects[0].y);
@@ -339,9 +384,19 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.drawLine(xright, 0, xright, height);
 			}
 			if (note==resizeNote) {
-				g.setColor(Color.RED);
+				g.setColor(Theme.CURRENT.getColorGridHighlight());
 				g.setStroke(new BasicStroke(tickwidth));
 				g.drawLine(rects[rightindex].x+rects[rightindex].width, 0, rects[rightindex].x+rects[rightindex].width, height);
+			}
+			if (note.isPlayed()) {
+				int length = note.getPosStart()>note.getPosEnd()?note.getPosEnd()+session.getMaxTicks()-note.getPosStart():note.getPosEnd()-note.getPosStart();
+				int position = note.getPosStart()>note.getPosEnd()?pos-note.getPosStart()+session.getMaxTicks():pos-note.getPosStart();
+				float percent = position/(float)length;
+				int offset = (int)((1-(percent-1)*(percent-1))*noteHeight*.5);
+				g.setColor(session.getNoteColorHighlighted(false));
+				for (Rectangle rect:rects) {
+					g.drawRect(rect.x-offset, rect.y-offset, rect.width+offset*2, rect.height+offset*2);
+				}
 			}
 		}
 		
@@ -362,9 +417,15 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    	g.setColor(Theme.CURRENT.getColorModWheel());
 	    	g.drawLine(xpos, height-mod, xpos, height);
 	    }
+	    
+	    if (!session.isAudible()) {
+	    	g.setColor(Theme.CURRENT.getColorMuted());
+			g.fillRect(0, 0, width, height);
+	    }
 		
-		if (selectedNoteRun!=null) {
-			Rectangle pos = getNotePositionsRect(selectedNoteRun)[0];
+		if (selectedNotes.size()>0 && isDragging) {
+			// draw scale
+			Rectangle pos = getNotePositionsRect(selectedNotes.get(0))[0];
 			int x = pos.x;
 			for (int i=lowestNote;i<highestNote+1;i++) {
 				int index = (highestNote+MARGIN_SEMIS)-i;
@@ -379,6 +440,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.setColor(isBlackKey?Color.WHITE:Color.BLACK);	
 				g.drawString(notetext, x+4, y);	
 			}
+		}
+		if (isSelectionDrag) {
+			g.setStroke(STROKE_3);
+			g.setColor(Theme.CURRENT.getColorSelectionRectangle());
+			g.drawRect(selectRectangle.x, selectRectangle.y, selectRectangle.width, selectRectangle.height);
 		}
 	}
 	
@@ -398,10 +464,32 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					new Rectangle(0, notey, noteendx, height)
 					};
 		}
-		
 	}
 	
-
+	private boolean isListHit(List<Note> notelist, Point hitPoint) {
+		for (Note note:notelist) {
+			Rectangle[] rects = getNotePositionsRect(note);
+			for (Rectangle rect:rects) {
+				if (rect.contains(hitPoint)) {
+					return true;
+				}
+			}
+			
+		}
+		return false;
+	}
+	
+	private Note findHitNote(List<Note> notelist, Point hitPoint) {
+		for (Note note: notelist) {
+			for (Rectangle rect: getNotePositionsRect(note)) {
+				if (rect.contains(hitPoint)) {
+					return note;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public void updateLoopPosition(int pos) {
 		this.pos = pos;
 		repaint();
@@ -442,16 +530,22 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	        delete.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					session.clearNote(selectedNote);
-					selectedNote = null;
-					hitNote = null;
+					for (Note selectedNote: selectedNotes) {
+						session.clearNote(selectedNote);
+					}
+					selectedNotes.clear();
 				}
 			});
 	        JSlider veloslider = new JSlider();
 	        veloslider.setOrientation(SwingConstants.VERTICAL);
 	        veloslider.setMaximum(127);
 	        veloslider.setMinimum(1);
-	        veloslider.setValue(selectedNote.getVelocity());
+	        int avrvelo = 0;
+	        for (Note selectedNote: selectedNotes) {
+	        	avrvelo += selectedNote.getVelocity();
+	        }
+	        avrvelo /= selectedNotes.size();
+	        veloslider.setValue(avrvelo);
 	        veloslider.setLabelTable(VELOCITY_LABELS);
 	        veloslider.setMajorTickSpacing(32);
 	        veloslider.setMinorTickSpacing(8);
@@ -460,7 +554,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	        veloslider.addChangeListener(new ChangeListener() {
 				@Override
 				public void stateChanged(ChangeEvent e) {
-					selectedNote.setVelocity(veloslider.getValue());
+					for (Note selectedNote: selectedNotes) {
+						selectedNote.setVelocity(veloslider.getValue());
+					}
 					session.emitRefreshLoopDisplay();;
 				}
 			});

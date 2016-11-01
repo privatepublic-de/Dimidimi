@@ -30,6 +30,9 @@ public class Theme {
 	private Color colorClockOn = Color.getHSBColor(.58f, .8f, 1f);
 	private Color colorClockOff = SystemColor.window;
 	private Color colorMidiOutBig = colorGrid;
+	private Color colorGridHighlight = Color.RED;
+	private Color colorSelectionRectangle = Color.WHITE;
+	private Color colorMuted = new Color(0x80ffffff,true);
 	private float noteColorSaturation = .6f;
 	private float noteColorBrightness = 1f;
 	private float octaveColorSaturation = .6f;
@@ -144,6 +147,18 @@ public class Theme {
 	public Color getColorPitchBend() {
 		return colorPitchBend;
 	}
+	public Color getColorGridHighlight() {
+		return colorGridHighlight;
+	}
+
+	public Color getColorSelectionRectangle() {
+		return colorSelectionRectangle;
+	}
+
+	public Color getColorMuted() {
+		return colorMuted;
+	}
+
 	public float getNoteColorSaturation() {
 		return noteColorSaturation;
 	}
