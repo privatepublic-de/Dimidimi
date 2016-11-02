@@ -102,6 +102,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						n.setPosEnd(qend);
 						session.getNotesList().add(n);
 						selectedNotes.clear();
+						n.storeCurrent();
+						draggedNote = n;
 						selectedNotes.add(n);
 						refreshLoopDisplay();
 					}
