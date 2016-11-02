@@ -71,8 +71,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private int highestNote = 96-MARGIN_SEMIS;
 	private int lowestNote = 12+MARGIN_SEMIS;
 	
-	private boolean modKey = false;
-	
 	private CopyOnWriteArrayList<Note> selectedNotes = new CopyOnWriteArrayList<Note>();
 	
 	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
@@ -83,30 +81,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		textAttributes.put(TextAttribute.TRACKING, -0.1f);
 		this.session = session;
 		
-		addKeyListener(new KeyListener() {
-			
-			int modmask = KeyEvent.META_DOWN_MASK | KeyEvent.CTRL_DOWN_MASK;
-			
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-			
-			@Override
-			public void keyReleased(KeyEvent e) {
-				if ((e.getModifiersEx() & modmask)!=0) {
-					modKey = false;
-				}
-			}
-			
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if ((e.getModifiersEx() & modmask)!=0) {
-					modKey = true;
-				}
-			}
-		});
-		
-		
 		addMouseListener(new MouseListener() {
 			
 			@Override
@@ -115,24 +89,29 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				isSelectionDrag = false;
 				draggedNote = null;
 				
-				if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK)!=0) {
+				if ((e.getModifiersEx() & InputEvent.ALT_DOWN_MASK)!=0) {
 					setCursor(Cursor.getDefaultCursor());
 					if (findHitNote(session.getNotesList(), e.getPoint())==null) {
 						int value = (int)(highestNote+MARGIN_SEMIS -  e.getY() / noteHeight);
 						int pos = (int)(e.getX()/tickwidth);
 						Note n = new Note(value, 100, pos);
 						n.setPosEnd((pos+12)%session.getMaxTicks());
+						int qstart = n.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex());
+						int qend = n.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex());
+						n.setPosStart(qstart);
+						n.setPosEnd(qend);
 						session.getNotesList().add(n);
 						selectedNotes.clear();
 						selectedNotes.add(n);
 						refreshLoopDisplay();
 					}
 				}
-				
-				repaint();
-				if (e.isPopupTrigger()) {
-					if (selectedNotes.size()>0) {
-						openPopUp(e);
+				else {
+					repaint();
+					if (e.isPopupTrigger()) {
+						if (selectedNotes.size()>0) {
+							openPopUp(e);
+						}
 					}
 				}
 			}
@@ -233,7 +212,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				else if (isDragging || isListHit(session.getNotesList(), e.getPoint())) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				}
-				else if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK)!=0) {
+				else if ((e.getModifiersEx() & InputEvent.ALT_DOWN_MASK)!=0) {
 					setCursor(PEN_CURSOR);
 				}
 				else {
