@@ -62,6 +62,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private boolean isSelectionDrag;
 	private Point dragStart;
 	private Point dragEnd;
+	private Point insertNotePos;
 	private Rectangle selectRectangle = new Rectangle();
 	private Note draggedNote = null;
 	
@@ -72,7 +73,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private int lowestNote = 12+MARGIN_SEMIS;
 	
 	private CopyOnWriteArrayList<Note> selectedNotes = new CopyOnWriteArrayList<Note>();
-	
 	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
 	
 	
@@ -92,9 +92,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				if ((e.getModifiersEx() & InputEvent.ALT_DOWN_MASK)!=0) {
 					setCursor(Cursor.getDefaultCursor());
 					if (findHitNote(session.getNotesList(), e.getPoint())==null) {
-						int value = (int)(highestNote+MARGIN_SEMIS -  e.getY() / noteHeight);
+						int value = (int)(highestNote+MARGIN_SEMIS-(e.getY()-noteHeight/2)/noteHeight);
 						int pos = (int)(e.getX()/tickwidth);
-						Note n = new Note(value, 100, pos);
+						Note n = new Note(value, 96, pos);
 						n.setPosEnd((pos+12)%session.getMaxTicks());
 						int qstart = n.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex());
 						int qend = n.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex());
@@ -184,7 +184,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		addMouseMotionListener(new MouseMotionListener() {
 			@Override
 			public void mouseMoved(MouseEvent e) {
-				
 				if (!isDragging) {
 					int mx = e.getX();
 					int my = e.getY();
@@ -208,6 +207,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						repaint();
 					}
 				}
+				insertNotePos = null;
 				if (resizeNote!=null) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
 				}
@@ -216,6 +216,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				}
 				else if ((e.getModifiersEx() & InputEvent.ALT_DOWN_MASK)!=0) {
 					setCursor(PEN_CURSOR);
+					insertNotePos = new Point(e.getPoint());
+					repaint();
 				}
 				else {
 					setCursor(Cursor.getDefaultCursor());
@@ -457,10 +459,18 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			g.fillRect(0, 0, width, height);
 	    }
 		
-		if (selectedNotes.size()>0 && isDragging) {
+		if ((selectedNotes.size()>0 && isDragging) || (insertNotePos!=null)) {
 			// draw scale
-			Rectangle pos = getNotePositionsRect(selectedNotes.get(0))[0];
-			int x = pos.x;
+			int x = 0;
+			int xoffs = 0;
+			if (insertNotePos!=null) {
+				x = insertNotePos.x;
+				xoffs = -32;
+			}
+			else {
+				x = getNotePositionsRect(selectedNotes.get(0))[0].x;
+			}
+			int lasty = -10;
 			for (int i=lowestNote;i<highestNote+1;i++) {
 				int index = (highestNote+MARGIN_SEMIS)-i;
 				int notey = Math.round(index*noteHeight-noteHeight/2);
@@ -469,10 +479,13 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				FontMetrics fm = g.getFontMetrics();
 				Rectangle2D rect = fm.getStringBounds(notetext, g);
 				int y = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
-				g.setColor(isBlackKey?Color.BLACK:Color.WHITE);
-				g.fillRect(x+(int)rect.getX()+2, y+(int)rect.getY(), (int)rect.getWidth()+6, (int)rect.getHeight());
-				g.setColor(isBlackKey?Color.WHITE:Color.BLACK);	
-				g.drawString(notetext, x+4, y);	
+				if (Math.abs(y-lasty)>=rect.getHeight()) {
+					g.setColor(isBlackKey?Color.BLACK:Color.WHITE);
+					g.fillRect(x+xoffs+(int)rect.getX()+2, y+(int)rect.getY(), (int)rect.getWidth()+6, (int)rect.getHeight());
+					g.setColor(isBlackKey?Color.WHITE:Color.BLACK);	
+					g.drawString(notetext, x+xoffs+4, y);
+					lasty = y;
+				}
 			}
 		}
 		if (isSelectionDrag) {
@@ -620,7 +633,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private static Cursor PEN_CURSOR;
 	static {
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		PEN_CURSOR = toolkit.createCustomCursor(new ImageIcon(LoopDisplayPanel.class.getResource("/crs-pencil.png")).getImage() , new Point(2, 30), "custom cursor");
+		PEN_CURSOR = toolkit.createCustomCursor(new ImageIcon(LoopDisplayPanel.class.getResource("/crs-pencil.png")).getImage() , new Point(1, 30), "custom cursor");
 	}
 
 	
