@@ -14,6 +14,9 @@ import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -67,6 +70,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private static final int MARGIN_SEMIS = 1;
 	private int highestNote = 96-MARGIN_SEMIS;
 	private int lowestNote = 12+MARGIN_SEMIS;
+	
+	private boolean modKey = false;
+	
 	private CopyOnWriteArrayList<Note> selectedNotes = new CopyOnWriteArrayList<Note>();
 	
 	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
@@ -76,6 +82,31 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		super();
 		textAttributes.put(TextAttribute.TRACKING, -0.1f);
 		this.session = session;
+		
+		addKeyListener(new KeyListener() {
+			
+			int modmask = KeyEvent.META_DOWN_MASK | KeyEvent.CTRL_DOWN_MASK;
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if ((e.getModifiersEx() & modmask)!=0) {
+					modKey = false;
+				}
+			}
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if ((e.getModifiersEx() & modmask)!=0) {
+					modKey = true;
+				}
+			}
+		});
+		
+		
 		addMouseListener(new MouseListener() {
 			
 			@Override
@@ -83,6 +114,21 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				isDragging = false;
 				isSelectionDrag = false;
 				draggedNote = null;
+				
+				if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK)!=0) {
+					setCursor(Cursor.getDefaultCursor());
+					if (findHitNote(session.getNotesList(), e.getPoint())==null) {
+						int value = (int)(highestNote+MARGIN_SEMIS -  e.getY() / noteHeight);
+						int pos = (int)(e.getX()/tickwidth);
+						Note n = new Note(value, 100, pos);
+						n.setPosEnd((pos+12)%session.getMaxTicks());
+						session.getNotesList().add(n);
+						selectedNotes.clear();
+						selectedNotes.add(n);
+						refreshLoopDisplay();
+					}
+				}
+				
 				repaint();
 				if (e.isPopupTrigger()) {
 					if (selectedNotes.size()>0) {
@@ -187,7 +233,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				else if (isDragging || isListHit(session.getNotesList(), e.getPoint())) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				}
-				else if ((e.getModifiersEx() & MouseEvent.META_DOWN_MASK)>0) {
+				else if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK)!=0) {
 					setCursor(PEN_CURSOR);
 				}
 				else {
@@ -525,6 +571,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			minNote = 12 + MARGIN_SEMIS;
 			maxNote = 96+12 - MARGIN_SEMIS;
 		}
+		if (maxNote-minNote<12) {
+			int add = (12-(maxNote-minNote))/2;
+			maxNote += add;
+			minNote -= add;
+		}
 		highestNote = maxNote;
 		lowestNote = minNote;
 	}
@@ -588,7 +639,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private static Cursor PEN_CURSOR;
 	static {
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		PEN_CURSOR = toolkit.createCustomCursor(new ImageIcon(LoopDisplayPanel.class.getResource("/crs-pencil.png")).getImage() , new Point(1, 18), "custom cursor");
+		PEN_CURSOR = toolkit.createCustomCursor(new ImageIcon(LoopDisplayPanel.class.getResource("/crs-pencil.png")).getImage() , new Point(2, 30), "custom cursor");
 	}
 
 	
