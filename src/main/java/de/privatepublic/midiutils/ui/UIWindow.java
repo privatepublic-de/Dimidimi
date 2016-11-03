@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
@@ -87,6 +88,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JToggleButton toggleMidiIn;
 	private JLabel lblDimidimiLooper;
 	private JCheckBoxMenuItem menuItemTheme;
+	private JCheckBoxMenuItem menuItemAnimate;
 	private Session session;
 	private String titleExtension = null;
 
@@ -678,12 +680,28 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menu.add(menuItem);
 		menu.addSeparator();
 		
+		menuItemAnimate = new JCheckBoxMenuItem("Animated Notes");
+		menuItemAnimate.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (LoopDisplayPanel.ANIMATE!=menuItemAnimate.isSelected()) {
+					Prefs.put(Prefs.ANIMATE, menuItemAnimate.isSelected()?1:0);
+					LoopDisplayPanel.ANIMATE = menuItemAnimate.isSelected();
+					DiMIDImi.updateSettingsOnAllSessions();
+				}
+			}
+		});
+		menu.add(menuItemAnimate);
+		
 		menuItemTheme = new JCheckBoxMenuItem("Dark Theme");
 		menuItemTheme.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
-				DiMIDImi.updateSettingsOnAllSessions();
+				Theme selectedTheme = menuItemTheme.isSelected()?Theme.DARK:Theme.BRIGHT;
+				if (selectedTheme!=Theme.CURRENT) {
+					Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
+					DiMIDImi.updateSettingsOnAllSessions();
+				}
 			}
 		});
 		menu.add(menuItemTheme);
@@ -752,6 +770,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		else {
 			Theme.CURRENT = Theme.DARK;
 			menuItemTheme.setSelected(true);
+		}
+		if (Prefs.get(Prefs.ANIMATE, 0)==0) {
+			menuItemAnimate.setSelected(LoopDisplayPanel.ANIMATE);
+		}
+		else {
+			menuItemAnimate.setSelected(LoopDisplayPanel.ANIMATE);
 		}
 		if (session.getSessionName()!=null && titleExtension==null) { 
 			titleExtension = session.getSessionName();
