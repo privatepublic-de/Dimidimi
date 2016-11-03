@@ -15,8 +15,6 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -52,6 +50,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 
 	private static final long serialVersionUID = -592444184016477559L;
 	private static final Logger LOG = LoggerFactory.getLogger(LoopDisplayPanel.class);
+	
+	public static boolean ANIMATE;
 	
 	private Session session;
 	
@@ -424,7 +424,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.setStroke(new BasicStroke(tickwidth));
 				g.drawLine(rects[rightindex].x+rects[rightindex].width, 0, rects[rightindex].x+rects[rightindex].width, height);
 			}
-			if (note.isPlayed()) {
+			if (note.isPlayed() && ANIMATE) {
 				int length = note.getPosStart()>note.getPosEnd()?note.getPosEnd()+session.getMaxTicks()-note.getPosStart():note.getPosEnd()-note.getPosStart();
 				int position = note.getPosStart()>note.getPosEnd()?pos-note.getPosStart()+session.getMaxTicks():pos-note.getPosStart();
 				float percent = position/(float)length;
@@ -459,17 +459,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			g.fillRect(0, 0, width, height);
 	    }
 		
-		if ((selectedNotes.size()>0 && isDragging) || (insertNotePos!=null)) {
+		if ((selectedNotes.size()>0 && isDragging)) {
 			// draw scale
-			int x = 0;
-			int xoffs = 0;
-			if (insertNotePos!=null) {
-				x = insertNotePos.x;
-				xoffs = -32;
-			}
-			else {
-				x = getNotePositionsRect(selectedNotes.get(0))[0].x;
-			}
+			int x = getNotePositionsRect(selectedNotes.get(0))[0].x;;
 			int lasty = -10;
 			for (int i=lowestNote;i<highestNote+1;i++) {
 				int index = (highestNote+MARGIN_SEMIS)-i;
@@ -481,13 +473,31 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				int y = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
 				if (Math.abs(y-lasty)>=rect.getHeight()) {
 					g.setColor(isBlackKey?Color.BLACK:Color.WHITE);
-					g.fillRect(x+xoffs+(int)rect.getX()+2, y+(int)rect.getY(), (int)rect.getWidth()+6, (int)rect.getHeight());
+					g.fillRect(x+(int)rect.getX()+2, y+(int)rect.getY(), (int)rect.getWidth()+6, (int)rect.getHeight());
 					g.setColor(isBlackKey?Color.WHITE:Color.BLACK);	
-					g.drawString(notetext, x+xoffs+4, y);
+					g.drawString(notetext, x+4, y);
 					lasty = y;
 				}
 			}
 		}
+		
+		if ((insertNotePos!=null)) {
+			int value = (int)(highestNote+MARGIN_SEMIS-(insertNotePos.y-noteHeight/2)/noteHeight);
+			String notetext = Note.getConcreteNoteName(value);
+			boolean isBlackKey = notetext.length()>1;
+			FontMetrics fm = g.getFontMetrics();
+			Rectangle2D rect = fm.getStringBounds(notetext, g);
+			int y = insertNotePos.y;
+			int x = insertNotePos.x-24; // cursor size
+			if (x<0) {
+				x = insertNotePos.x+24;
+			}
+			g.setColor(isBlackKey?Color.BLACK:Color.WHITE);
+			g.fillRect(x+(int)rect.getX()+2, y+(int)rect.getY(), (int)rect.getWidth()+6, (int)rect.getHeight());
+			g.setColor(isBlackKey?Color.WHITE:Color.BLACK);	
+			g.drawString(notetext, x+4, y);
+		}
+		
 		if (isSelectionDrag) {
 			g.setStroke(STROKE_3);
 			g.setColor(Theme.CURRENT.getColorSelectionRectangle());
@@ -631,6 +641,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private static final Stroke STROKE_1 = new BasicStroke(1);
 	private static final Stroke STROKE_3 = new BasicStroke(3);
 	private static Cursor PEN_CURSOR;
+	
 	static {
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
 		PEN_CURSOR = toolkit.createCustomCursor(new ImageIcon(LoopDisplayPanel.class.getResource("/crs-pencil.png")).getImage() , new Point(1, 30), "custom cursor");
