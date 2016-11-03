@@ -22,6 +22,7 @@ public class Prefs {
 	public static final String FILE_LOOP_LAST_USED_NAME = "lastfile";
 	public static final String FILE_SESSION_LAST_USED_NAME = "lastsession";
 	public static final String THEME = "theme";
+	public static final String ANIMATE = "animate";
 	public static final String RECENT_SESSION_LIST="recentsessions";
 	public static final String RECENT_LOOP_LIST="recentloops";
 	public static final String CONTROLLER_POS="ctrlpos";
