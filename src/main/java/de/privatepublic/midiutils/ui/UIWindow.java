@@ -104,12 +104,15 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			LOG.warn("Could not set look and feel", e);
 		}
 		initialize();
-		frmDimidimi.setVisible(true);
 		
 		session.registerAsReceiver(this);
 		session.emitSettingsUpdated();
 		session.emitLoopUpdated();
 		LOG.info("User interface built.");
+	}
+	
+	public void setVisible(boolean visible) {
+		frmDimidimi.setVisible(visible);		
 	}
 	
 	public void closeWindow() {
@@ -757,30 +760,34 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	
 	@Override
 	public void settingsUpdated() {
-		comboQuantize.setSelectedIndex(session.getQuantizationIndex());
-		comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
-		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		toggleMidiIn.setSelected(session.isMidiInputOn());
-		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
-		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
-		if (Prefs.get(Prefs.THEME, 0)==0) {
-			Theme.CURRENT = Theme.BRIGHT;
-			menuItemTheme.setSelected(false);
-		}
-		else {
-			Theme.CURRENT = Theme.DARK;
-			menuItemTheme.setSelected(true);
-		}
-		if (Prefs.get(Prefs.ANIMATE, 0)==0) {
-			menuItemAnimate.setSelected(LoopDisplayPanel.ANIMATE);
-		}
-		else {
-			menuItemAnimate.setSelected(LoopDisplayPanel.ANIMATE);
-		}
-		if (session.getSessionName()!=null && titleExtension==null) { 
-			titleExtension = session.getSessionName();
-		}
-		frmDimidimi.setTitle(getWindowTitle());
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				comboQuantize.setSelectedIndex(session.getQuantizationIndex());
+				comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
+				textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
+				toggleMidiIn.setSelected(session.isMidiInputOn());
+				comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
+				comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
+				if (Prefs.get(Prefs.THEME, 0)==0) {
+					Theme.CURRENT = Theme.BRIGHT;
+					menuItemTheme.setSelected(false);
+				}
+				else {
+					Theme.CURRENT = Theme.DARK;
+					menuItemTheme.setSelected(true);
+				}
+				if (Prefs.get(Prefs.ANIMATE, 0)==0) {
+					menuItemAnimate.setSelected(LoopDisplayPanel.ANIMATE);
+				}
+				else {
+					menuItemAnimate.setSelected(LoopDisplayPanel.ANIMATE);
+				}
+				if (session.getSessionName()!=null && titleExtension==null) { 
+					titleExtension = session.getSessionName();
+				}
+				frmDimidimi.setTitle(getWindowTitle());
+			}
+		});
 	}
 	
 	@Override

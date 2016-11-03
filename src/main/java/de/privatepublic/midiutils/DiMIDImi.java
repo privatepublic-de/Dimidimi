@@ -41,12 +41,12 @@ public class DiMIDImi {
 			public void run() {
 				try {
 					controllerWindow = new ControllerWindow();
+					createSession();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
-		createSession();
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 		    public void run() {
 		    	LOG.info("Shutting down ...");

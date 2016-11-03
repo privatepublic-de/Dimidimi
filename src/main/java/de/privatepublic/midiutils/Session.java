@@ -41,6 +41,7 @@ public class Session implements PerformanceReceiver {
 					window = new UIWindow(Session.this);
 					emitLoopUpdated();
 					registerAsReceiver(Session.this);
+					window.setVisible(true);
 				} catch (Exception e) {
 					LOG.error("Could not create UIWindow", e);
 				}
@@ -54,9 +55,10 @@ public class Session implements PerformanceReceiver {
 			public void run() {
 				try {
 					window = new UIWindow(Session.this);
-					applyStorageData(data);
+					applyStorageData(data);					
 					emitLoopUpdated();
 					registerAsReceiver(Session.this);
+					window.setVisible(true);
 				} catch (Exception e) {
 					LOG.error("Could not create UIWindow", e);
 				}
@@ -278,16 +280,16 @@ public class Session implements PerformanceReceiver {
 	}
 	
 	private void applyStorageData(StorageContainer data) {
-		clearPattern();
-		for (Note n: data.getNotes()) {
-			getNotesList().add(n);
-		}
 		setQuantizationIndex(data.getQuantization());
 		setTransposeIndex(data.getTranspose());
 		setLengthQuarters(data.getLength());
 		setMidiChannelIn(data.getMidiChannelIn());
 		setMidiChannelOut(data.getMidiChannelOut());
 		setMidiInputOn(data.isMidiChannelInActive());
+		clearPattern();
+		for (Note n: data.getNotes()) {
+			getNotesList().add(n);
+		}
 		data.copyList(data.getPitchBend(), pitchBendList);
 		data.copyList(data.getModWheel(), ccList);
 		Map<String, Integer> wpos = data.getWindowPos();
