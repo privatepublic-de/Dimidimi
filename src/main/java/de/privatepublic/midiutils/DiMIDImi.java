@@ -77,6 +77,7 @@ public class DiMIDImi {
 	public static Session createSession() {
 		Session session = new Session();
 		SESSIONS.add(session);
+		session.registerAsReceiver(controllerWindow);
 		DiMIDImi.updateSettingsOnAllSessions();
 		LOG.info("Created new session {}", session.hashCode());
 		return session;
@@ -85,6 +86,7 @@ public class DiMIDImi {
 	public static Session createSession(StorageContainer data, String sessionName) {
 		Session session = new Session(data, sessionName);
 		SESSIONS.add(session);
+		session.registerAsReceiver(controllerWindow);
 		DiMIDImi.updateSettingsOnAllSessions();
 		LOG.info("Created new session {}", session.hashCode());
 		return session;

@@ -34,12 +34,12 @@ public class Session implements PerformanceReceiver {
 	
 	public Session() {
 		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
-		midiChannelOut = Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1);
+		setMidiChannelOut(Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1));
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					window = new UIWindow(Session.this);
-					// new PerformanceHandler(Session.this);
+					emitLoopUpdated();
 					registerAsReceiver(Session.this);
 				} catch (Exception e) {
 					LOG.error("Could not create UIWindow", e);
@@ -56,8 +56,6 @@ public class Session implements PerformanceReceiver {
 					window = new UIWindow(Session.this);
 					applyStorageData(data);
 					emitLoopUpdated();
-					emitSettingsUpdated();
-					// new PerformanceHandler(Session.this);
 					registerAsReceiver(Session.this);
 				} catch (Exception e) {
 					LOG.error("Could not create UIWindow", e);
@@ -88,8 +86,10 @@ public class Session implements PerformanceReceiver {
 
 	// 0 - based
 	public void setMidiChannelIn(int midiChannelIn) {
-		this.midiChannelIn = midiChannelIn;
-		Prefs.put(Prefs.MIDI_IN_CHANNEL, midiChannelIn);
+		if (this.midiChannelIn!=midiChannelIn) {
+			this.midiChannelIn = midiChannelIn;
+			Prefs.put(Prefs.MIDI_IN_CHANNEL, midiChannelIn);
+		}
 	}
 
 	// 0 - based
@@ -99,18 +99,20 @@ public class Session implements PerformanceReceiver {
 
 	// 0 - based
 	public void setMidiChannelOut(int midiChannelOut) {
-		int oldOut = midiChannelOut;
-		this.midiChannelOut = midiChannelOut;
-		MidiHandler.instance().sendAllNotesOffMidi(this, oldOut);
-		
-		colorNote = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
-	    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
-	    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
-	    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
-		
-		Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
-		emitSettingsUpdated();
-		emitRefreshLoopDisplay();
+		int oldOut = this.midiChannelOut;
+		if (oldOut!=midiChannelOut) {
+			this.midiChannelOut = midiChannelOut;
+			MidiHandler.instance().sendAllNotesOffMidi(this, oldOut>-1?oldOut:midiChannelOut);
+			
+			colorNote = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
+		    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+		    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
+		    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+			
+			Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
+			emitSettingsUpdated();
+			emitRefreshLoopDisplay();
+		}
 	}
 
 
@@ -591,8 +593,8 @@ public class Session implements PerformanceReceiver {
 
 	private int lengthQuarters = 8;
 	private int maxTicks = lengthQuarters*TICK_COUNT_BASE;
-	private int midiChannelIn = 0; // 0 - based
-	private int midiChannelOut = 0;// 0 - based
+	private int midiChannelIn = -1; // 0 - based
+	private int midiChannelOut = -1;// 0 - based
 	private boolean midiInputOn = true;
 	private boolean isMuted = false;
 	private boolean isSoloed = false;

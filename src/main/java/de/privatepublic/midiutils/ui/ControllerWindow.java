@@ -134,9 +134,9 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		contentPane.setBorder(new EmptyBorder(5, 0, 5, 0));
 		contentPane.setLayout(new GridBagLayout());
 		windowPane.add(scrollPane);
-		for (Session session:DiMIDImi.getSessions()) {
-			session.registerAsReceiver(this);
-		}
+//		for (Session session:DiMIDImi.getSessions()) {
+//			session.registerAsReceiver(this);
+//		}
 	}
 	
 	private void allOff(Toggle what) {
