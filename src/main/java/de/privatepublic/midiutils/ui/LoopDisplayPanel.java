@@ -67,10 +67,12 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private Point insertNotePos;
 	private Rectangle selectRectangle = new Rectangle();
 	private Note draggedNote = null;
+	private boolean metaKeyPressed = false;
 	
 	private float noteHeight;
 	private float tickwidth;
 	private static final int MARGIN_SEMIS = 1;
+	private static final int META_KEY = InputEvent.ALT_DOWN_MASK;
 	private int highestNote = 96-MARGIN_SEMIS;
 	private int lowestNote = 12+MARGIN_SEMIS;
 	
@@ -90,12 +92,20 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			
 			@Override
 			public void keyReleased(KeyEvent e) {
-				LOG.debug("Up {}", e.getModifiersEx());
+				if ((e.getModifiersEx()&META_KEY)==0) {
+					metaKeyPressed = false;
+					setCursor(Cursor.getDefaultCursor());
+					repaint();
+				}
 			}
 			
 			@Override
 			public void keyPressed(KeyEvent e) {
-				LOG.debug("Down {}", e.getModifiersEx());
+				if ((e.getModifiersEx()&META_KEY)!=0) {
+					metaKeyPressed = true;
+					setCursor(PEN_CURSOR);
+					repaint();
+				}
 			}
 		});
 		setFocusable(true);
@@ -107,7 +117,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				isSelectionDrag = false;
 				draggedNote = null;
 				
-				if ((e.getModifiersEx() & InputEvent.ALT_DOWN_MASK)!=0) {
+				if (metaKeyPressed) {
 					setCursor(Cursor.getDefaultCursor());
 					if (findHitNote(session.getNotesList(), e.getPoint())==null) {
 						int value = (int)(highestNote+MARGIN_SEMIS-(e.getY()-noteHeight/2)/noteHeight);
@@ -226,14 +236,13 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						repaint();
 					}
 				}
-				insertNotePos = null;
 				if (resizeNote!=null) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
 				}
 				else if (isDragging || isListHit(session.getNotesList(), e.getPoint())) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				}
-				else if ((e.getModifiersEx() & InputEvent.ALT_DOWN_MASK)!=0) {
+				else if (metaKeyPressed) {
 					setCursor(PEN_CURSOR);
 					insertNotePos = new Point(e.getPoint());
 					repaint();
@@ -500,7 +509,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			}
 		}
 		
-		if ((insertNotePos!=null)) {
+		if ((insertNotePos!=null && metaKeyPressed)) {
 			int value = (int)(highestNote+MARGIN_SEMIS-(insertNotePos.y-noteHeight/2)/noteHeight);
 			String notetext = Note.getConcreteNoteName(value);
 			boolean isBlackKey = notetext.length()>1;
