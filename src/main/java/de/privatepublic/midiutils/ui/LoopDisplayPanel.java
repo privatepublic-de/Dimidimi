@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -102,6 +103,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if ((e.getModifiersEx()&META_KEY)!=0) {
+					Point mouse = MouseInfo.getPointerInfo().getLocation();
+					Point comp = getLocationOnScreen();
+					insertNotePos = new Point(mouse.x-comp.x, mouse.y-comp.y);
 					metaKeyPressed = true;
 					setCursor(PEN_CURSOR);
 					repaint();
