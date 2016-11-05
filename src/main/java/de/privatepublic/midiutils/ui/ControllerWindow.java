@@ -36,6 +36,7 @@ import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
+import java.awt.FlowLayout;
 
 public class ControllerWindow extends JDialog implements SettingsUpdateReceiver {
 
@@ -68,8 +69,30 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		setContentPane(windowPane);
 		windowPane.setLayout(new BorderLayout(0, 0));
 		
+		panel_2 = new JPanel();
+		FlowLayout flowLayout = (FlowLayout) panel_2.getLayout();
+		flowLayout.setAlignment(FlowLayout.RIGHT);
+		windowPane.add(panel_2, BorderLayout.NORTH);
+		
+		toggleAlwaysOnTop = new JCheckBox("Stay on top:");
+		panel_2.add(toggleAlwaysOnTop);
+		toggleAlwaysOnTop.setToolTipText("Controller window always on top");
+		toggleAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
+		toggleAlwaysOnTop.setSelected(isAlwaysOnTop());
+		toggleAlwaysOnTop.setFont(toggleAlwaysOnTop.getFont().deriveFont(toggleAlwaysOnTop.getFont().getSize() - 2f));
+		toggleAlwaysOnTop.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				setAlwaysOnTop(toggleAlwaysOnTop.isSelected());
+			}
+		});
+		
 		panel_1 = new JPanel();
+		FlowLayout flowLayout_1 = (FlowLayout) panel_1.getLayout();
 		windowPane.add(panel_1, BorderLayout.SOUTH);
+		
+		lblAll = new JLabel("All:");
+		panel_1.add(lblAll);
 		
 		btnAllMuteOff = new JButton("Mute");
 		btnAllMuteOff.setIcon(IC_NEXT_CYCLE_OFF);
@@ -81,23 +104,10 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		panel_1.add(btnAllSoloOff);
 		btnAllSoloOff.setToolTipText("All Solo Off");
 		
-		btnNext = new JButton("Next");
-		btnNext.setIcon(IC_EMPTY);
+		btnNext = new JCheckBox("Next cycle");
+		// btnNext.setIcon(IC_EMPTY);
 		btnNext.setToolTipText("Toggle All Next Cycle");
 		panel_1.add(btnNext);
-		
-		chckbxAlwaysOnTop = new JCheckBox("Stay on top:");
-		chckbxAlwaysOnTop.setToolTipText("Controller window always on top");
-		panel_1.add(chckbxAlwaysOnTop);
-		chckbxAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
-		chckbxAlwaysOnTop.setSelected(isAlwaysOnTop());
-		chckbxAlwaysOnTop.setFont(chckbxAlwaysOnTop.getFont().deriveFont(chckbxAlwaysOnTop.getFont().getSize() - 2f));
-		chckbxAlwaysOnTop.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				setAlwaysOnTop(chckbxAlwaysOnTop.isSelected());
-			}
-		});
 		btnAllSoloOff.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -507,8 +517,10 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 	private static final int HEIGHT_PADDING = 48;
 	private JButton btnAllSoloOff;
 	private JButton btnAllMuteOff;
-	private JCheckBox chckbxAlwaysOnTop;
+	private JCheckBox toggleAlwaysOnTop;
 	private JPanel panel_1;
-	private JButton btnNext;
+	private JCheckBox btnNext;
+	private JPanel panel_2;
+	private JLabel lblAll;
 	
 }
