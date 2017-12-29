@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
@@ -38,9 +40,21 @@ public class MidiHandler {
 	private ShortMessage resetPositionMessage = new ShortMessage();
 //	private Session session;
 	
+	private MIDIReceiver internalReceiver = new MIDIReceiver(new MidiDeviceWrapper());
+	private ShortMessage msgClock = new ShortMessage();
+	private ShortMessage msgStart = new ShortMessage();
+	private ShortMessage msgStop = new ShortMessage();
 	
 	
 	private MidiHandler() {
+
+		try {
+			msgClock.setMessage(ShortMessage.TIMING_CLOCK, 0 ,0);
+			msgStart.setMessage(ShortMessage.START, 0, 0);
+			msgStop.setMessage(ShortMessage.STOP, 0, 0);
+		} catch (InvalidMidiDataException e1) {
+			e1.printStackTrace();
+		}
 		
 //		this.session = session;
 //		this.pos = pos;
@@ -110,6 +124,37 @@ public class MidiHandler {
 		});
 		LOG.info("Available MIDI devices: {} in, {} out", inputDeviceList.size(), outputDeviceList.size());
 		//session.emitSettingsUpdated();
+	}
+	
+	private Timer internalClockTimer;
+	
+	public void startInternalClock(double bpm) {
+		long interval = Math.round(((60000/bpm)/4)/6);
+		if (internalClockTimer!=null) {
+			internalClockTimer.cancel();
+		}
+		internalClockTimer = new Timer();
+		internalReceiver.send(msgStart, 0);
+		internalClockTimer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+					internalReceiver.send(msgClock, 0);
+			}
+		}, interval, interval);
+	}
+	
+	public void setInteralClockSpeed(double bpm) {
+		if (internalClockTimer!=null) { // if it's running, restart with new speed
+			startInternalClock(bpm);
+		}
+	}
+	
+	public void stopInternalClock() {
+		if (internalClockTimer!=null) {
+			internalClockTimer.cancel();
+			internalClockTimer = null;
+		}
+		internalReceiver.send(msgStop, 0);
 	}
 	
 	public void storeSelectedOutDevices() {
@@ -184,7 +229,9 @@ public class MidiHandler {
 					session.emitActive(true, pos);
 					break;
 				case ShortMessage.TIMING_CLOCK:
-					session.emitClock(pos%session.getMaxTicks());
+					if (ACTIVE) {
+						session.emitClock(pos%session.getMaxTicks());
+					}
 					break;
 				}
 				if (message instanceof ShortMessage && device.isActiveForInput() && session.isMidiInputOn()) {

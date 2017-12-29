@@ -347,7 +347,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		g.setColor(Theme.CURRENT.getColorBackground());
 		g.fillRect(0, 0, width, height);
 		// draw midi out channel text
-		String channelText = "#"+((session!=null?session.getMidiChannelOut():0)+1);
+		String channelText = ""+((session!=null?session.getMidiChannelOut():0)+1);
 		g.setColor(Theme.CURRENT.getColorMidiOutBig());
 		float fontSize = 20.0f;
 	    Font font = Theme.CURRENT.getFontMidiBig().deriveFont(fontSize);
@@ -356,7 +356,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    textAttributes.put(TextAttribute.SIZE, fontSize);
 	    g.setFont(Theme.CURRENT.getFontMidiBig().deriveFont(textAttributes));
 	    int fwidth = g.getFontMetrics(g.getFont()).stringWidth(channelText);
-	    g.drawString(channelText, width-fwidth, height);
+	    fheight = g.getFontMetrics(g.getFont()).getHeight();
+	    g.drawString(channelText, width/2-fwidth/2, height-height/5);
 	    g.setFont(Theme.CURRENT.getFontNotes());
 	    
 		// draw grid

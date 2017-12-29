@@ -3,10 +3,10 @@ package de.privatepublic.midiutils.ui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -22,23 +22,26 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.DiMIDImi;
+import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
-import java.awt.FlowLayout;
 
-public class ControllerWindow extends JDialog implements SettingsUpdateReceiver {
+public class ControllerWindow extends JDialog implements SettingsUpdateReceiver, PerformanceReceiver {
 
 	private static final long serialVersionUID = 3196404892575349167L;
 	
@@ -48,9 +51,10 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 	private JPanel contentPane;
 	private Map<Integer, PanelComponent> panelComponents = new HashMap<Integer, PanelComponent>();
 
+	private int bpm = 100;
 
 	public ControllerWindow() {
-		setType(Window.Type.UTILITY);
+		setType(Type.UTILITY);
 		
 		String posprefs = Prefs.get(Prefs.CONTROLLER_POS, null);
 		if (posprefs!=null) {
@@ -60,7 +64,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 			setVisible("true".equals(parts[5]));
 		}
 		else {
-			setBounds(100, 100, 450, 300);
+			setBounds(100, 100, 540, 300);
 		}
 		setTitle("dimidimi Control");
 		
@@ -71,19 +75,61 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		
 		panel_2 = new JPanel();
 		FlowLayout flowLayout = (FlowLayout) panel_2.getLayout();
-		flowLayout.setAlignment(FlowLayout.RIGHT);
+		flowLayout.setHgap(0);
 		windowPane.add(panel_2, BorderLayout.NORTH);
 		
-		toggleAlwaysOnTop = new JCheckBox("Stay on top:");
+		btnStart = new JButton("▶");
+		btnStart.setToolTipText("Start");
+		panel_2.add(btnStart);
+		
+		btnStop = new JButton("◼");
+		btnStop.setToolTipText("Stop");
+		btnStop.setEnabled(false);
+		panel_2.add(btnStop);
+		
+		slider = new JSlider();
+		
+		slider.setValue(100);
+		slider.setMinimum(20);
+		slider.setMaximum(180);
+		slider.setToolTipText("BPM");
+		panel_2.add(slider);
+		
+		lblBpm = new JLabel("100 BPM");
+		panel_2.add(lblBpm);
+		
+		toggleAlwaysOnTop = new JCheckBox("On top");
+		toggleAlwaysOnTop.setMargin(new Insets(1, 24, 0, 1));
 		panel_2.add(toggleAlwaysOnTop);
 		toggleAlwaysOnTop.setToolTipText("Controller window always on top");
-		toggleAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
+		toggleAlwaysOnTop.setHorizontalTextPosition(SwingConstants.RIGHT);
 		toggleAlwaysOnTop.setSelected(isAlwaysOnTop());
 		toggleAlwaysOnTop.setFont(toggleAlwaysOnTop.getFont().deriveFont(toggleAlwaysOnTop.getFont().getSize() - 2f));
 		toggleAlwaysOnTop.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				setAlwaysOnTop(toggleAlwaysOnTop.isSelected());
+			}
+		});
+		
+		slider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				bpm = slider.getValue();
+				lblBpm.setText((bpm<100?"0":"")+bpm+" BPM");
+				MidiHandler.instance().setInteralClockSpeed(slider.getValue());	
+			}
+		});
+		
+		btnStart.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MidiHandler.instance().startInternalClock(slider.getValue());
+			}
+		});
+		btnStop.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MidiHandler.instance().stopInternalClock();
 			}
 		});
 		
@@ -144,6 +190,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		contentPane.setBorder(new EmptyBorder(5, 0, 5, 0));
 		contentPane.setLayout(new GridBagLayout());
 		windowPane.add(scrollPane);
+		
 //		for (Session session:DiMIDImi.getSessions()) {
 //			session.registerAsReceiver(this);
 //		}
@@ -166,6 +213,10 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 		}
 	}
 
+	public int getBPM() {
+		return bpm;
+	}
+	
 	@Override
 	public void settingsUpdated() {
 		EventQueue.invokeLater(new Runnable() {
@@ -181,7 +232,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 								contentPane.add(panel.getPanel(), gbc);
 								panel.getPanel().revalidate();
 								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
-								targetWidth = Math.max(targetWidth, 410);
+								targetWidth = Math.max(targetWidth, 540);
 								int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
 								Dimension currSize = getMaximumSize();
 							    setMaximumSize(new Dimension(targetWidth, currSize.height));
@@ -522,5 +573,41 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver 
 	private JCheckBox btnNext;
 	private JPanel panel_2;
 	private JLabel lblAll;
+	private JButton btnStart;
+	private JButton btnStop;
+	private JSlider slider;
+	private JLabel lblBpm;
+
+
+	@Override
+	public void noteOn(int noteNumber, int velocity, int pos) {
+	}
+
+	@Override
+	public void noteOff(int notenumber, int pos) {
+	}
+
+	@Override
+	public void receiveClock(int pos) {
+	}
+
+	@Override
+	public void receiveActive(boolean active, int pos) {
+		btnStart.setEnabled(!active);
+		btnStop.setEnabled(active);
+	}
+
+	@Override
+	public void receiveCC(int cc, int val, int pos) {
+	}
+
+	@Override
+	public void receivePitchBend(int val, int pos) {
+	}
+
+	@Override
+	public void stateChange(boolean mute, boolean solo, QueuedState queuedMute,
+			QueuedState queuedSolo) {
+	}
 	
 }

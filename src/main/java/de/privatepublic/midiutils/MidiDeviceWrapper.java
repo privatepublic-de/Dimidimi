@@ -20,6 +20,7 @@ public class MidiDeviceWrapper implements Identifiable {
 	private boolean isActiveForOutput;
 	private boolean isActiveForInput;
 	private String identifier;
+	private String description;
 
 	public MidiDeviceWrapper(Info info, MidiDevice device) {
 		this.info = info;
@@ -34,6 +35,12 @@ public class MidiDeviceWrapper implements Identifiable {
 		} catch (MidiUnavailableException e) {
 			// has no transmitter
 		}
+		description = info.getDescription()+" ("+info.getName()+")"; 
+		getIdentifier();
+	}
+	
+	public MidiDeviceWrapper() {
+		description = "*internal*";
 		getIdentifier();
 	}
 	
@@ -42,7 +49,7 @@ public class MidiDeviceWrapper implements Identifiable {
 	 * Human readable device description.
 	 */
 	public String toString() {
-		return info.getDescription()+" ("+info.getName()+")";
+		return description;
 	}
 	
 	public Info getInfo() {
