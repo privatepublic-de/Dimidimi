@@ -400,19 +400,16 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			}
 		}
 		FontMetrics fm = g.getFontMetrics();
-		for (int i=0;i<highestNote-lowestNote;i++) {
-			int y = (int)(((MARGIN_SEMIS)+(highestNote-lowestNote-i))*noteHeight);
+		for (int i=lowestNote;i<highestNote+1;i++) {
+			int index = (highestNote+MARGIN_SEMIS)-i;
+			int notey = Math.round(index*noteHeight-noteHeight/2);
+			String notetext = session.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i)+" "+(i/12-2);
+			int ty = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
 			g.setColor(Theme.CURRENT.getColorOctaves());
-			g.drawLine(0, y, width, y);
+			g.drawLine(0, notey, width, notey);
 			g.setColor(Theme.CURRENT.getColorActiveQuarter());
-			if (useDrumLayout) {
-				g.drawString(Note.getConcreteDrumNoteName(lowestNote+i), 5, y-((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
-			}
-			else {
-				g.drawString(Note.getConcreteNoteName(lowestNote+i)+" "+((lowestNote+i)/12-2), 5, y-((noteHeight - fm.getHeight()) / 2) + fm.getAscent());	
-			}
+			g.drawString(notetext, 5, ty);
 		}
-		
 		
 		// draw playhead
 		g.setColor(Theme.CURRENT.getColorPlayhead());
