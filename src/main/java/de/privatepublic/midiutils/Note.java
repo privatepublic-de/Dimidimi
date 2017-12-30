@@ -111,13 +111,16 @@ public class Note {
 		return isPlayed;
 	}
 
-	public void setPlayed(boolean isPlayed, int withNumber) {
-		this.isPlayed = isPlayed;
-		if (isPlayed) {
-			this.playedNoteNumber = withNumber;
-		}
+	public void setPlayed(int withNumber) {
+		this.isPlayed = true;
+		this.playedNoteNumber = withNumber;
 	}
 	
+	public void setUnPlayed() {
+		this.isPlayed = false;
+	}
+	
+	@JsonIgnore
 	public int getPlayedNoteNumber() {
 		return playedNoteNumber;
 	}
