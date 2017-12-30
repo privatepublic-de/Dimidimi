@@ -89,8 +89,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JLabel lblDimidimiLooper;
 	private JCheckBoxMenuItem menuItemTheme;
 	private JCheckBoxMenuItem menuItemAnimate;
+	private JCheckBox chckbxDrumsLayout;
 	private Session session;
 	private String titleExtension = null;
+	private JCheckBox chckbxMetronome;
 
 	public UIWindow(Session session) {
 		this.session = session;
@@ -246,6 +248,19 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, -8, SpringLayout.EAST, panel);
 		buttonNewSession.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panel.add(buttonNewSession);
+		
+		chckbxDrumsLayout = new JCheckBox("Drums");
+		sl_panel.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 6, SpringLayout.EAST, comboBoxTranspose);
+		sl_panel.putConstraint(SpringLayout.SOUTH, chckbxDrumsLayout, 0, SpringLayout.SOUTH, lblNumberOfQuarters);
+		panel.add(chckbxDrumsLayout);
+		
+		chckbxDrumsLayout.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.setDrums(chckbxDrumsLayout.isSelected());
+			}
+		});
+		
 		buttonNewSession.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				session.setMidiInputOn(false);
@@ -343,6 +358,16 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		panelMidi.setLayout(sl_panelMidi);
+		
+		chckbxMetronome = new JCheckBox("Metronome");
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, chckbxMetronome, -4, SpringLayout.NORTH, lblIn);
+		sl_panelMidi.putConstraint(SpringLayout.WEST, chckbxMetronome, 0, SpringLayout.WEST, panelMidi);
+		chckbxMetronome.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				session.setMetronomeEnabled(chckbxMetronome.isSelected());
+			}
+		});
+		panelMidi.add(chckbxMetronome);
 		
 		panelMidi.add(lblIn);
 		
@@ -768,6 +793,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				toggleMidiIn.setSelected(session.isMidiInputOn());
 				comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 				comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
+				chckbxDrumsLayout.setSelected(session.isDrums());
 				if (Prefs.get(Prefs.THEME, 0)==0) {
 					Theme.CURRENT = Theme.BRIGHT;
 					menuItemTheme.setSelected(false);
@@ -820,6 +846,4 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		// TODO Auto-generated method stub
 		
 	}
-	
-	
 }

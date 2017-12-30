@@ -45,6 +45,7 @@ import javax.swing.event.ChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Note;
 import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
@@ -127,7 +128,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						int value = (int)(highestNote+MARGIN_SEMIS-(e.getY()-noteHeight/2)/noteHeight);
 						int pos = (int)(e.getX()/tickwidth);
 						Note n = new Note(value, 96, pos);
-						n.setPosEnd((pos+12)%session.getMaxTicks());
+						n.setPosEnd((pos+5)%session.getMaxTicks());
 						int qstart = n.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex());
 						int qend = n.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex());
 						n.setPosStart(qstart);
@@ -262,6 +263,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					int distX = e.getX()-dragStart.x;
 					int ticksOffset = (int)(distX/tickwidth);
 					resizeNote.setPosEnd((resizeNote.getStoredPosEnd()+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+					MidiHandler.instance().sendNoteOffMidi(session, resizeNote.getNoteNumber());
 					refreshLoopDisplay();
 					return;
 				}
@@ -337,6 +339,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	
 	@Override
 	public void paint(Graphics go) {
+		
+		boolean useDrumLayout = session!=null && session.isDrums();
+		
 		Graphics2D g = (Graphics2D)go;
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
@@ -346,6 +351,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		noteHeight = height*(1f/displayNoteCount);
 		g.setColor(Theme.CURRENT.getColorBackground());
 		g.fillRect(0, 0, width, height);
+		
 		// draw midi out channel text
 		String channelText = ""+((session!=null?session.getMidiChannelOut():0)+1);
 		g.setColor(Theme.CURRENT.getColorMidiOutBig());
@@ -362,10 +368,10 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    
 		// draw grid
 	    g.setStroke(STROKE_1);
-		
 		if (session==null) {
 			return;
 		}
+		
 		boolean is3based = session.getLengthQuarters()%3==0;
 		int activeQuarter = pos/Session.TICK_COUNT_BASE;
 		float quarterwidth = width*((float)Session.TICK_COUNT_BASE/session.getMaxTicks());
@@ -393,12 +399,20 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.fillRect(xpos, 0, Math.round(sixthwidth), height/30);
 			}
 		}
-		g.setColor(Theme.CURRENT.getColorOctaves());
-		for (int i=0;i<11;i++) {
-			int y = (int)(((highestNote+MARGIN_SEMIS)-i*12)*noteHeight);
+		FontMetrics fm = g.getFontMetrics();
+		for (int i=0;i<highestNote-lowestNote;i++) {
+			int y = (int)(((MARGIN_SEMIS)+(highestNote-lowestNote-i))*noteHeight);
+			g.setColor(Theme.CURRENT.getColorOctaves());
 			g.drawLine(0, y, width, y);
-			g.drawString(Note.getConcreteNoteName(i*12)+(i-1), 2, y);
+			g.setColor(Theme.CURRENT.getColorActiveQuarter());
+			if (useDrumLayout) {
+				g.drawString(Note.getConcreteDrumNoteName(lowestNote+i), 5, y-((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
+			}
+			else {
+				g.drawString(Note.getConcreteNoteName(lowestNote+i)+" "+((lowestNote+i)/12-2), 5, y-((noteHeight - fm.getHeight()) / 2) + fm.getAscent());	
+			}
 		}
+		
 		
 		// draw playhead
 		g.setColor(Theme.CURRENT.getColorPlayhead());
@@ -421,7 +435,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			g.setStroke(STROKE_1);
 			
 			if (note.isPlayed()) {
-				noteColor = Theme.CURRENT.getColorPlayedNote();
+				noteColor = session.getNoteColorPlayed();
 				noteColorLight = noteColor;
 			}
 			
@@ -496,12 +510,13 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			// draw scale
 			int x = getNotePositionsRect(selectedNotes.get(0))[0].x;;
 			int lasty = -10;
+//			FontMetrics fm = g.getFontMetrics();
 			for (int i=lowestNote;i<highestNote+1;i++) {
 				int index = (highestNote+MARGIN_SEMIS)-i;
 				int notey = Math.round(index*noteHeight-noteHeight/2);
-				String notetext = Note.getConcreteNoteName(i);
+				String notetext = session.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i);
 				boolean isBlackKey = notetext.length()>1;
-				FontMetrics fm = g.getFontMetrics();
+				
 				Rectangle2D rect = fm.getStringBounds(notetext, g);
 				int y = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
 				if (Math.abs(y-lasty)>=rect.getHeight()) {
@@ -516,18 +531,16 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		
 		if ((insertNotePos!=null && metaKeyPressed)) {
 			int value = (int)(highestNote+MARGIN_SEMIS-(insertNotePos.y-noteHeight/2)/noteHeight);
-			String notetext = Note.getConcreteNoteName(value);
-			boolean isBlackKey = notetext.length()>1;
-			FontMetrics fm = g.getFontMetrics();
+			String notetext = session.isDrums()?Note.getConcreteDrumNoteName(value):Note.getConcreteNoteName(value);
 			Rectangle2D rect = fm.getStringBounds(notetext, g);
 			int y = insertNotePos.y;
-			int x = insertNotePos.x-24; // cursor size
+			int x = insertNotePos.x-32; // cursor size
 			if (x<0) {
 				x = insertNotePos.x+24;
 			}
-			g.setColor(isBlackKey?Color.BLACK:Color.WHITE);
+			g.setColor(Color.BLACK);
 			g.fillRect(x+(int)rect.getX()+2, y+(int)rect.getY(), (int)rect.getWidth()+6, (int)rect.getHeight());
-			g.setColor(isBlackKey?Color.WHITE:Color.BLACK);	
+			g.setColor(Color.WHITE);	
 			g.drawString(notetext, x+4, y);
 		}
 		
@@ -598,6 +611,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	}
 	
 	private void calculateNoteExtents() {
+		if (session!=null && session.isDrums()) {
+			lowestNote = 35;
+			highestNote = 49; 
+			return;
+		}
 		int maxNote = 12;
 		int minNote = 96+12; 
 		for (Note dc:session.getNotesList()) {

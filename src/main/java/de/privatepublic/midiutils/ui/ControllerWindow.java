@@ -64,7 +64,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 			setVisible("true".equals(parts[5]));
 		}
 		else {
-			setBounds(100, 100, 540, 300);
+			setBounds(100, 100, 500, 300);
 		}
 		setTitle("dimidimi Control");
 		
@@ -232,7 +232,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 								contentPane.add(panel.getPanel(), gbc);
 								panel.getPanel().revalidate();
 								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
-								targetWidth = Math.max(targetWidth, 540);
+								targetWidth = Math.max(targetWidth, 500);
 								int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
 								Dimension currSize = getMaximumSize();
 							    setMaximumSize(new Dimension(targetWidth, currSize.height));

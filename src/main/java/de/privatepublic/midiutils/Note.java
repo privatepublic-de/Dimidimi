@@ -128,6 +128,14 @@ public class Note {
 		return NOTE_NAMES[number%12];
 	}
 	
+	public static String getConcreteDrumNoteName(int number) { // TODO Name
+		if (number<35 || number>49) {
+			return "?? " + NOTE_NAMES[number%12];	
+		} else {
+			return DRUM_NAMES[number-35];
+		}
+	}
+	
 	public void storeCurrent() {
 		storedPosStart = posStart;
 		storedPosEnd = posEnd;
@@ -151,7 +159,7 @@ public class Note {
 	
 	private static final int[] Q_STEPS = new int[]{ 0, 48, 24, 12, 6, 3, 48/3, 24/3, 12/3};
 	private static final int[] T_STEPS = new int[]{ 24, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -24};
-	// private static final String[] NOTE_NAMES = new String[] {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
-	private static final String[] NOTE_NAMES = new String[] {"C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"};
+	private static final String[] NOTE_NAMES = new String[] {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
+	private static final String[] DRUM_NAMES = new String[] {"BD0", "BD1", "Rim", "SD", "Cl1", "Cl2", "Cow", "HH", "Clv", "HH2", "TM1", "OH", "TM2", "TM3", "Cym", "TM4"};;
 	
 }

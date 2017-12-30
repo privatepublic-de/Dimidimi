@@ -15,6 +15,7 @@ public class StorageContainer {
 	private int midiChannelIn;
 	private int midiChannelOut;
 	private boolean midiChannelInActive;
+	private boolean isDrums;
 	private Map<String, Integer> windowPos;
 	private List<Integer> pitchBend;
 	private List<Integer> modWheel;
@@ -35,6 +36,7 @@ public class StorageContainer {
 		this.windowPos = new HashMap<String, Integer>();
 		this.pitchBend =  asList(session.getPitchBendList());
 		this.modWheel = asList(session.getCcList());
+		this.isDrums = session.isDrums();
 		Rectangle bounds = session.getWindow().getScreenPosition();
 		windowPos.put("x", bounds.x);
 		windowPos.put("y", bounds.y);
@@ -103,6 +105,16 @@ public class StorageContainer {
 	public void setMidiChannelInActive(boolean midiChannelInActive) {
 		this.midiChannelInActive = midiChannelInActive;
 	}
+
+	public boolean isDrums() {
+		return isDrums;
+	}
+
+
+	public void setDrums(boolean isDrums) {
+		this.isDrums = isDrums;
+	}
+
 
 	public Map<String, Integer> getWindowPos() {
 		return windowPos;

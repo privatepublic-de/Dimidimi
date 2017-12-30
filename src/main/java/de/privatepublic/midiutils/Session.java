@@ -107,6 +107,7 @@ public class Session implements PerformanceReceiver {
 			MidiHandler.instance().sendAllNotesOffMidi(this, oldOut>-1?oldOut:midiChannelOut);
 			
 			colorNote = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
+			colorNotePlayed = Color.getHSBColor(midiChannelOut/16f, .25f, 1);
 		    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
 		    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
 		    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
@@ -172,6 +173,23 @@ public class Session implements PerformanceReceiver {
 	public void setSessionName(String sessionName) {
 		this.sessionName = sessionName;
 	}
+	
+	public boolean isDrums() {
+		return isDrums;
+	}
+	
+	public void setDrums(boolean drummode) {
+		isDrums = drummode;
+		emitRefreshLoopDisplay();
+	}
+
+	public boolean isMetronomeEnabled() {
+		return isMetronomeEnabled;
+	}
+
+	public void setMetronomeEnabled(boolean isMetronomeEnabled) {
+		this.isMetronomeEnabled = isMetronomeEnabled;
+	}
 
 	public boolean isMuted() {
 		return isMuted;
@@ -234,6 +252,10 @@ public class Session implements PerformanceReceiver {
 		return selected?colorNoteBrightSelected:colorNoteBright;
 	}
 	
+	public Color getNoteColorPlayed() {
+		return colorNotePlayed;
+	}
+	
 
 	public void clearPattern() {
 		for (Note dc:getNotesList()) {
@@ -286,6 +308,7 @@ public class Session implements PerformanceReceiver {
 		setMidiChannelIn(data.getMidiChannelIn());
 		setMidiChannelOut(data.getMidiChannelOut());
 		setMidiInputOn(data.isMidiChannelInActive());
+		setDrums(data.isDrums());
 		clearPattern();
 		for (Note n: data.getNotes()) {
 			getNotesList().add(n);
@@ -463,8 +486,28 @@ public class Session implements PerformanceReceiver {
 		}
 	}
 	
+	int lastMetronomeNote = 0;
+	
 	@Override
 	public void receiveClock(int pos) {
+		
+		if (lastMetronomeNote>0) {
+			MidiHandler.instance().sendNoteOffMidi(this, lastMetronomeNote);
+		}
+		
+		if (isMetronomeEnabled() && pos%24==0) { // is a quarter note
+			boolean is3based = getLengthQuarters()%3==0;
+			int q = pos/6;
+			boolean accented = ((is3based && q%12==0) || (!is3based && q%16==0));
+			if (isDrums()) {
+				lastMetronomeNote = accented?42:37;				
+			}
+			else {
+				lastMetronomeNote = accented?81:69;	
+			}
+			MidiHandler.instance().sendNoteOnMidi(this, lastMetronomeNote, 127); 
+		}
+		
 		if (pos==0) {
 			overrideCC = overridePitchBend = false;
 		}
@@ -600,6 +643,8 @@ public class Session implements PerformanceReceiver {
 	private boolean midiInputOn = true;
 	private boolean isMuted = false;
 	private boolean isSoloed = false;
+	private boolean isDrums = false;
+	private boolean isMetronomeEnabled = false;
 	private QueuedState queuedMuteState = QueuedState.NO_CHANGE;
 	private QueuedState queuedSoloState = QueuedState.NO_CHANGE;
 	private int quantizationIndex = 0;
@@ -617,6 +662,7 @@ public class Session implements PerformanceReceiver {
 	private Color colorNote;
 	private Color colorNoteBright;
 	private Color colorNoteSelected;
+	private Color colorNotePlayed;
 	private Color colorNoteBrightSelected;
 
 	private List<LoopUpdateReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<LoopUpdateReceiver>();
