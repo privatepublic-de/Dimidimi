@@ -471,9 +471,11 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.setStroke(new BasicStroke(tickwidth));
 				g.drawLine(rects[rightindex].x+rects[rightindex].width, 0, rects[rightindex].x+rects[rightindex].width, height);
 			}
-			if (note.isPlayed() && ANIMATE) {
-				int length = note.getPosStart()>note.getPosEnd()?note.getPosEnd()+session.getMaxTicks()-note.getPosStart():note.getPosEnd()-note.getPosStart();
-				int position = note.getPosStart()>note.getPosEnd()?pos-note.getPosStart()+session.getMaxTicks():pos-note.getPosStart();
+			if (ANIMATE && note.isPlayed()) {
+				int start = note.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex());
+				int end = note.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex());
+				int length = start>end?end+session.getMaxTicks()-start:end-start;
+				int position = start>end?pos-start+session.getMaxTicks():pos-start;
 				float percent = position/(float)length;
 				int offset = (int)((1-(percent-1)*(percent-1))*noteHeight*.5);
 				g.setColor(session.getNoteColorHighlighted(false));
