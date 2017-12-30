@@ -537,12 +537,13 @@ public class Session implements PerformanceReceiver {
 				continue;
 			}
 			if (isAudible && pos==note.getTransformedPosStart(getMaxTicks(), getQuantizationIndex())) {
-				note.setPlayed(true);
-				MidiHandler.instance().sendNoteOnMidi(this, note.getTransformedNoteNumber(getTransposeIndex()), note.getVelocity());
+				int playnumber = note.getTransformedNoteNumber(getTransposeIndex());
+				note.setPlayed(true, playnumber);
+				MidiHandler.instance().sendNoteOnMidi(this, playnumber, note.getVelocity());
 			}
 			if (pos==note.getTransformedPosEnd(getMaxTicks(), getQuantizationIndex()) && note.isPlayed()) {
-				MidiHandler.instance().sendNoteOffMidi(this, note.getTransformedNoteNumber(getTransposeIndex()));
-				note.setPlayed(false);
+				MidiHandler.instance().sendNoteOffMidi(this, note.getPlayedNoteNumber());
+				note.setPlayed(false, 0);
 			}
 		}
 		

@@ -16,6 +16,7 @@ public class Note {
 	private int velocity;
 	private boolean isCompleted;
 	private boolean isPlayed;
+	private int playedNoteNumber;
 
 	private int qoffset = 0;
 	
@@ -110,8 +111,15 @@ public class Note {
 		return isPlayed;
 	}
 
-	public void setPlayed(boolean isPlayed) {
+	public void setPlayed(boolean isPlayed, int withNumber) {
 		this.isPlayed = isPlayed;
+		if (isPlayed) {
+			this.playedNoteNumber = withNumber;
+		}
+	}
+	
+	public int getPlayedNoteNumber() {
+		return playedNoteNumber;
 	}
 	
 	@JsonIgnore

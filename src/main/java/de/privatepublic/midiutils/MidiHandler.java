@@ -353,7 +353,7 @@ public class MidiHandler {
 		try {
 			for (Note note: session.getNotesList()) {
 				if (note.isPlayed()) {
-					note.setPlayed(false);
+					note.setPlayed(false, 0);
 					message.setMessage(ShortMessage.NOTE_OFF, channel, note.getTransformedNoteNumber(session.getTransposeIndex()), 0);
 					sendMessage(message);
 				}
