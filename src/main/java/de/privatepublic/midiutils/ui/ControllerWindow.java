@@ -75,7 +75,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 		
 		panel_2 = new JPanel();
 		FlowLayout flowLayout = (FlowLayout) panel_2.getLayout();
-		flowLayout.setHgap(0);
+		flowLayout.setHgap(3);
 		windowPane.add(panel_2, BorderLayout.NORTH);
 		
 		btnStart = new JButton("▶");
@@ -98,11 +98,11 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 		lblBpm = new JLabel("100 BPM");
 		panel_2.add(lblBpm);
 		
-		toggleAlwaysOnTop = new JCheckBox("On top");
+		toggleAlwaysOnTop = new JCheckBox("Sticky");
 		toggleAlwaysOnTop.setMargin(new Insets(1, 24, 0, 1));
 		panel_2.add(toggleAlwaysOnTop);
 		toggleAlwaysOnTop.setToolTipText("Controller window always on top");
-		toggleAlwaysOnTop.setHorizontalTextPosition(SwingConstants.RIGHT);
+		toggleAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
 		toggleAlwaysOnTop.setSelected(isAlwaysOnTop());
 		toggleAlwaysOnTop.setFont(toggleAlwaysOnTop.getFont().deriveFont(toggleAlwaysOnTop.getFont().getSize() - 2f));
 		toggleAlwaysOnTop.addItemListener(new ItemListener() {

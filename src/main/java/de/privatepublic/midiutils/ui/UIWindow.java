@@ -251,7 +251,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		chckbxDrumsLayout = new JCheckBox("Drums");
 		sl_panel.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 6, SpringLayout.EAST, comboBoxTranspose);
-		sl_panel.putConstraint(SpringLayout.SOUTH, chckbxDrumsLayout, 0, SpringLayout.SOUTH, lblNumberOfQuarters);
+		sl_panel.putConstraint(SpringLayout.SOUTH, chckbxDrumsLayout, 4, SpringLayout.SOUTH, lblNumberOfQuarters);
 		panel.add(chckbxDrumsLayout);
 		
 		chckbxDrumsLayout.addActionListener(new ActionListener() {
