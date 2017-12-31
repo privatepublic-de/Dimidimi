@@ -111,6 +111,8 @@ public class Session implements PerformanceReceiver {
 		    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
 		    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
 		    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+		    
+		    colorChannel = Color.getHSBColor(midiChannelOut/16f, .1f, .2f);
 			
 			Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
 			emitSettingsUpdated();
@@ -254,6 +256,10 @@ public class Session implements PerformanceReceiver {
 	
 	public Color getNoteColorPlayed() {
 		return colorNotePlayed;
+	}
+	
+	public Color getChannelColor() {
+		return colorChannel;
 	}
 	
 
@@ -665,6 +671,7 @@ public class Session implements PerformanceReceiver {
 	private Color colorNoteSelected;
 	private Color colorNotePlayed;
 	private Color colorNoteBrightSelected;
+	private Color colorChannel;
 
 	private List<LoopUpdateReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<LoopUpdateReceiver>();
 	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();

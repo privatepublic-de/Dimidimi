@@ -340,7 +340,6 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	@Override
 	public void paint(Graphics go) {
 		
-		boolean useDrumLayout = session!=null && session.isDrums();
 		
 		Graphics2D g = (Graphics2D)go;
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -354,7 +353,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		
 		// draw midi out channel text
 		String channelText = ""+((session!=null?session.getMidiChannelOut():0)+1);
-		g.setColor(Theme.CURRENT.getColorMidiOutBig());
+		g.setColor(session!=null?session.getChannelColor():Theme.CURRENT.getColorMidiOutBig());  
 		float fontSize = 20.0f;
 	    Font font = Theme.CURRENT.getFontMidiBig().deriveFont(fontSize);
 	    int fheight = g.getFontMetrics(font).getHeight();
