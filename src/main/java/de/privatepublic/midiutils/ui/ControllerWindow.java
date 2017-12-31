@@ -365,6 +365,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 			
 			chckbxTriggerOnEnd = new JCheckBox("Next cycle");
 			panel.add(chckbxTriggerOnEnd);
+			chckbxTriggerOnEnd.setOpaque(false);
 			chckbxTriggerOnEnd.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ev) {
 					if(ev.getStateChange()==ItemEvent.SELECTED){
