@@ -334,6 +334,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		if (session!=null) {
 			session.registerAsReceiver(this);
 		}
+		
+		LOG.debug("Created LoopDisplayPanel.");
 	}
 	
 	
@@ -621,8 +623,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			maxNote = Math.max(dc.getTransformedNoteNumber(session.getTransposeIndex()), maxNote);
 		}
 		if (session.getNotesList().size()==0) {
-			minNote = 12 + MARGIN_SEMIS;
-			maxNote = 96+12 - MARGIN_SEMIS;
+			minNote = 12*3 - MARGIN_SEMIS;
+			maxNote = 12*5 + MARGIN_SEMIS;
 		}
 		if (maxNote-minNote<12) {
 			int add = (12-(maxNote-minNote))/2;
