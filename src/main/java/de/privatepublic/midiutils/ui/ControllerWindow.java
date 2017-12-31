@@ -40,12 +40,20 @@ import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
+import javax.swing.BoxLayout;
+import java.awt.Component;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.SpringLayout;
+import java.awt.CardLayout;
 
 public class ControllerWindow extends JDialog implements SettingsUpdateReceiver, PerformanceReceiver {
 
 	private static final long serialVersionUID = 3196404892575349167L;
 	
 	private static final Logger LOG = LoggerFactory.getLogger(ControllerWindow.class);
+	
+	private static final int STANDARD_WIDTH = 300;
 	
 	private JPanel windowPane;
 	private JPanel contentPane;
@@ -64,7 +72,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 			setVisible("true".equals(parts[5]));
 		}
 		else {
-			setBounds(100, 100, 500, 300);
+			setBounds(100, 100, STANDARD_WIDTH, 300);
 		}
 		setTitle("dimidimi Control");
 		
@@ -73,69 +81,11 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 		setContentPane(windowPane);
 		windowPane.setLayout(new BorderLayout(0, 0));
 		
-		panel_2 = new JPanel();
-		FlowLayout flowLayout = (FlowLayout) panel_2.getLayout();
-		flowLayout.setHgap(3);
-		windowPane.add(panel_2, BorderLayout.NORTH);
-		
-		btnStart = new JButton("▶");
-		btnStart.setToolTipText("Start");
-		panel_2.add(btnStart);
-		
-		btnStop = new JButton("◼");
-		btnStop.setToolTipText("Stop");
-		btnStop.setEnabled(false);
-		panel_2.add(btnStop);
-		
-		slider = new JSlider();
-		
-		slider.setValue(100);
-		slider.setMinimum(20);
-		slider.setMaximum(180);
-		slider.setToolTipText("BPM");
-		panel_2.add(slider);
-		
-		lblBpm = new JLabel("100 BPM");
-		panel_2.add(lblBpm);
-		
-		toggleAlwaysOnTop = new JCheckBox("Sticky");
-		toggleAlwaysOnTop.setMargin(new Insets(1, 24, 0, 1));
-		panel_2.add(toggleAlwaysOnTop);
-		toggleAlwaysOnTop.setToolTipText("Controller window always on top");
-		toggleAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
-		toggleAlwaysOnTop.setSelected(isAlwaysOnTop());
-		toggleAlwaysOnTop.setFont(toggleAlwaysOnTop.getFont().deriveFont(toggleAlwaysOnTop.getFont().getSize() - 2f));
-		toggleAlwaysOnTop.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				setAlwaysOnTop(toggleAlwaysOnTop.isSelected());
-			}
-		});
-		
-		slider.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				bpm = slider.getValue();
-				lblBpm.setText((bpm<100?"0":"")+bpm+" BPM");
-				MidiHandler.instance().setInteralClockSpeed(slider.getValue());	
-			}
-		});
-		
-		btnStart.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				MidiHandler.instance().startInternalClock(slider.getValue());
-			}
-		});
-		btnStop.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				MidiHandler.instance().stopInternalClock();
-			}
-		});
-		
 		panel_1 = new JPanel();
+		
+		
 		FlowLayout flowLayout_1 = (FlowLayout) panel_1.getLayout();
-		windowPane.add(panel_1, BorderLayout.SOUTH);
+		windowPane.add(panel_1, BorderLayout.NORTH);
 		
 		lblAll = new JLabel("All:");
 		panel_1.add(lblAll);
@@ -190,6 +140,74 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 		contentPane.setBorder(new EmptyBorder(5, 0, 5, 0));
 		contentPane.setLayout(new GridBagLayout());
 		windowPane.add(scrollPane);
+		panel_2 = new JPanel();
+		windowPane.add(panel_2, BorderLayout.SOUTH);
+		panel_2.setLayout(new BorderLayout(0, 0));
+		
+		panel_3 = new JPanel();
+		panel_2.add(panel_3, BorderLayout.NORTH);
+		
+		btnStart = new JButton("▶");
+		btnStart.setToolTipText("Start");
+		
+		btnStop = new JButton("◼");
+		btnStop.setToolTipText("Stop");
+		btnStop.setEnabled(false);
+		
+		toggleAlwaysOnTop = new JCheckBox("Stay on top");
+		toggleAlwaysOnTop.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		toggleAlwaysOnTop.setMargin(new Insets(1, 24, 0, 1));
+		toggleAlwaysOnTop.setToolTipText("Controller window always on top");
+		toggleAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
+		toggleAlwaysOnTop.setSelected(isAlwaysOnTop());
+		toggleAlwaysOnTop.setFont(toggleAlwaysOnTop.getFont().deriveFont(toggleAlwaysOnTop.getFont().getSize() - 2f));
+		panel_3.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		panel_3.add(btnStart);
+		panel_3.add(btnStop);
+		panel_3.add(toggleAlwaysOnTop);
+		toggleAlwaysOnTop.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				setAlwaysOnTop(toggleAlwaysOnTop.isSelected());
+			}
+		});
+		btnStop.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MidiHandler.instance().stopInternalClock();
+			}
+		});
+		
+		btnStart.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				MidiHandler.instance().startInternalClock(slider.getValue());
+			}
+		});
+		
+		panel_4 = new JPanel();
+		FlowLayout flowLayout = (FlowLayout) panel_4.getLayout();
+		flowLayout.setVgap(0);
+		panel_2.add(panel_4, BorderLayout.SOUTH);
+		
+		slider = new JSlider();
+		panel_4.add(slider);
+		
+		slider.setValue(100);
+		slider.setMinimum(20);
+		slider.setMaximum(180);
+		slider.setToolTipText("BPM");
+		
+		lblBpm = new JLabel("100 BPM");
+		panel_4.add(lblBpm);
+		
+		slider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				bpm = slider.getValue();
+				lblBpm.setText((bpm<100?"0":"")+bpm+" BPM");
+				MidiHandler.instance().setInteralClockSpeed(slider.getValue());	
+			}
+		});
 		
 //		for (Session session:DiMIDImi.getSessions()) {
 //			session.registerAsReceiver(this);
@@ -232,7 +250,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 								contentPane.add(panel.getPanel(), gbc);
 								panel.getPanel().revalidate();
 								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
-								targetWidth = Math.max(targetWidth, 500);
+								targetWidth = Math.max(targetWidth, STANDARD_WIDTH);
 								int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
 								Dimension currSize = getMaximumSize();
 							    setMaximumSize(new Dimension(targetWidth, currSize.height));
@@ -577,6 +595,8 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 	private JButton btnStop;
 	private JSlider slider;
 	private JLabel lblBpm;
+	private JPanel panel_3;
+	private JPanel panel_4;
 
 
 	@Override
