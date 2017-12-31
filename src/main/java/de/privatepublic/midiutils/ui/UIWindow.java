@@ -110,7 +110,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		session.registerAsReceiver(this);
 		session.emitSettingsUpdated();
 		session.emitLoopUpdated();
-		LOG.info("User interface built.");
+		LOG.debug("User interface built.");
 	}
 	
 	public void setVisible(boolean visible) {
@@ -429,8 +429,56 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JMenuBar buildMenu() {
 		JMenuBar menuBar = new JMenuBar();
 		JMenu menu = new JMenu("File");
+		JMenuItem  menuItem;
+		JMenu recentSub;
 		
-		JMenuItem  menuItem = new JMenuItem("New Loop");
+		menuItem = new JMenuItem("Open Session...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = GUIUtils.loadDialog("Load Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
+				if (selectedFile!=null) {
+					GUIUtils.loadSession(selectedFile, frmDimidimi);
+				}
+			}
+		});
+		menu.add(menuItem);
+		recentSub = new JMenu("Recent Sessions");
+		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_SESSION_LIST, new RecentMenuActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				super.actionPerformed(e);
+				String filename = Prefs.getList(Prefs.RECENT_SESSION_LIST).get(selectedIndex);
+				if (!Prefs.LIST_ENTRY_EMPTY_MARKER.equals(filename)) {
+					GUIUtils.loadSession(new File(filename), frmDimidimi);
+				}
+			}
+		}));
+		menu.add(recentSub);
+		
+		menu.addSeparator();
+		menuItem = new JMenuItem("Save Session as...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = GUIUtils.saveDialog("Save Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
+				if (selectedFile!=null) {
+					try {
+						DiMIDImi.saveSession(selectedFile);
+						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
+					} catch (IOException e1) {
+						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
+		        		LOG.error("Could not write file", e1);
+					}
+					Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
+				}
+			}
+		});
+		menu.add(menuItem);
+		
+		
+		menu.addSeparator();
+		menuItem = new JMenuItem("New Loop");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 		menuItem.addActionListener(new ActionListener() {
 			@Override
@@ -457,7 +505,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
-		JMenu recentSub = new JMenu("Recent Loops");
+		recentSub = new JMenu("Recent Loops");
 		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_LOOP_LIST, new RecentMenuActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -503,51 +551,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				closeWindow();
-			}
-		});
-		menu.add(menuItem);
-		
-		menu.addSeparator();
-		menuItem = new JMenuItem("Open Session...");
-		menuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File selectedFile = GUIUtils.loadDialog("Load Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
-				if (selectedFile!=null) {
-					GUIUtils.loadSession(selectedFile, frmDimidimi);
-				}
-			}
-		});
-		menu.add(menuItem);
-		recentSub = new JMenu("Recent Sessions");
-		recentSub.addMenuListener(new RecentMenuListener(Prefs.RECENT_SESSION_LIST, new RecentMenuActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				super.actionPerformed(e);
-				String filename = Prefs.getList(Prefs.RECENT_SESSION_LIST).get(selectedIndex);
-				if (!Prefs.LIST_ENTRY_EMPTY_MARKER.equals(filename)) {
-					GUIUtils.loadSession(new File(filename), frmDimidimi);
-				}
-			}
-		}));
-		menu.add(recentSub);
-		
-		menu.addSeparator();
-		menuItem = new JMenuItem("Save Session as...");
-		menuItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File selectedFile = GUIUtils.saveDialog("Save Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
-				if (selectedFile!=null) {
-					try {
-						DiMIDImi.saveSession(selectedFile);
-						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
-					} catch (IOException e1) {
-						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
-		        		LOG.error("Could not write file", e1);
-					}
-					Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
-				}
 			}
 		});
 		menu.add(menuItem);
