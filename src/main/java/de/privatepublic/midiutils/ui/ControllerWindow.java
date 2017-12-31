@@ -1,11 +1,12 @@
 package de.privatepublic.midiutils.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,16 +16,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
@@ -40,20 +42,14 @@ import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
-import javax.swing.BoxLayout;
-import java.awt.Component;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.SpringLayout;
-import java.awt.CardLayout;
 
-public class ControllerWindow extends JDialog implements SettingsUpdateReceiver, PerformanceReceiver {
+public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, PerformanceReceiver {
 
 	private static final long serialVersionUID = 3196404892575349167L;
 	
 	private static final Logger LOG = LoggerFactory.getLogger(ControllerWindow.class);
 	
-	private static final int STANDARD_WIDTH = 300;
+	private static final int STANDARD_WIDTH = 250;
 	
 	private JPanel windowPane;
 	private JPanel contentPane;
@@ -62,12 +58,13 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 	private int bpm = 100;
 
 	public ControllerWindow() {
+		setFocusableWindowState(false);
 		setType(Type.UTILITY);
 		
 		String posprefs = Prefs.get(Prefs.CONTROLLER_POS, null);
 		if (posprefs!=null) {
 			String[] parts = posprefs.split(",");
-			setBounds(Integer.parseInt(parts[0]),Integer.parseInt(parts[1]),Integer.parseInt(parts[2]),Integer.parseInt(parts[3]));
+			setBounds(Integer.parseInt(parts[0]),Integer.parseInt(parts[1]),STANDARD_WIDTH,Integer.parseInt(parts[3]));
 			setAlwaysOnTop("true".equals(parts[4]));
 			setVisible("true".equals(parts[5]));
 		}
@@ -83,8 +80,6 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 		
 		panel_1 = new JPanel();
 		
-		
-		FlowLayout flowLayout_1 = (FlowLayout) panel_1.getLayout();
 		windowPane.add(panel_1, BorderLayout.NORTH);
 		
 		lblAll = new JLabel("All:");
@@ -131,14 +126,13 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 		});
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.setBorder(null);
 		
 		contentPane = new JPanel();
 		contentPane.setBackground(Theme.CURRENT.getColorBackground());
 		scrollPane.setViewportView(contentPane);
 		contentPane.setBorder(new EmptyBorder(5, 0, 5, 0));
-		contentPane.setLayout(new GridBagLayout());
+		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
 		windowPane.add(scrollPane);
 		panel_2 = new JPanel();
 		windowPane.add(panel_2, BorderLayout.SOUTH);
@@ -191,12 +185,14 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 		panel_2.add(panel_4, BorderLayout.SOUTH);
 		
 		slider = new JSlider();
+		slider.setMinorTickSpacing(10);
+		slider.setPaintTicks(true);
 		panel_4.add(slider);
 		
 		slider.setValue(100);
 		slider.setMinimum(20);
 		slider.setMaximum(180);
-		slider.setToolTipText("BPM");
+		slider.setToolTipText("Tempo BPM");
 		
 		lblBpm = new JLabel("100 BPM");
 		panel_4.add(lblBpm);
@@ -209,9 +205,7 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 			}
 		});
 		
-//		for (Session session:DiMIDImi.getSessions()) {
-//			session.registerAsReceiver(this);
-//		}
+		LOG.debug("Created controller window.");
 	}
 	
 	private void allOff(Toggle what) {
@@ -334,7 +328,10 @@ public class ControllerWindow extends JDialog implements SettingsUpdateReceiver,
 			
 			panel = new JPanel();
 			panel.setPreferredSize(null);
-			label = new JLabel("", SwingConstants.RIGHT);
+//			panel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+//			panel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+			panel.setBorder(BorderFactory.createLineBorder(Theme.CURRENT.getColorBackground(), 2, false));
+			label = new JLabel("", SwingConstants.LEFT);
 			label.setPreferredSize(new Dimension(30, 24));
 //			label.setOpaque(true);
 			panel.add(label);
