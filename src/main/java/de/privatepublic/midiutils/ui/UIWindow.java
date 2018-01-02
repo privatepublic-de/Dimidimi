@@ -216,14 +216,14 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		btnApply.setEnabled(false);
 		
 		comboQuantize = new JComboBox(QUANTIZE);
-		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 0, SpringLayout.EAST, btnApply);
+		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, btnApply);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER, panel);
 		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboQuantize);
 		comboQuantize.setMaximumRowCount(12);
 		
 		JLabel lblTranspose = new JLabel("Transpose");
-		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 0, SpringLayout.EAST, comboQuantize);
+		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 12, SpringLayout.EAST, comboQuantize);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
 		panel.add(lblTranspose);
 		
@@ -240,14 +240,14 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.add(btnClear);
 		
 		JButton buttonNewSession = new JButton("+");
+		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -6, SpringLayout.WEST, buttonNewSession);
 		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, 0, SpringLayout.EAST, panel);
-		sl_panel.putConstraint(SpringLayout.EAST, btnClear, 0, SpringLayout.WEST, buttonNewSession);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewSession, 0, SpringLayout.VERTICAL_CENTER, panel);
 		buttonNewSession.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panel.add(buttonNewSession);
 		
 		chckbxDrumsLayout = new JCheckBox("Drums");
-		sl_panel.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 0, SpringLayout.EAST, comboBoxTranspose);
+		sl_panel.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 6, SpringLayout.EAST, comboBoxTranspose);
 		sl_panel.putConstraint(SpringLayout.SOUTH, chckbxDrumsLayout, 3, SpringLayout.SOUTH, lblTranspose);
 		panel.add(chckbxDrumsLayout);
 		
@@ -345,8 +345,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, 0, SpringLayout.WEST, comboMidiIn);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, 0, SpringLayout.WEST, comboMidiOut);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -6, SpringLayout.WEST, comboMidiOut);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -6, SpringLayout.WEST, comboMidiIn);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, 0, SpringLayout.EAST, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
