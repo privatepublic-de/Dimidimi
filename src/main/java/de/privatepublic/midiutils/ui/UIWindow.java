@@ -75,8 +75,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	
 	private static final String APP_TITLE = "dimidimi Looper";
 	
-	private static final String[] MIDI_CHANNELS = new String[]{"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"};
-	private static final String[] QUANTIZE = new String[]{"off","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
+	private static final String[] MIDI_CHANNELS_IN = new String[]{"In: 1","In: 2","In: 3","In: 4","In: 5","In: 6","In: 7","In: 8","In: 9","In: 10","In: 11","In: 12","In: 13","In: 14","In: 15","In: 16"};
+	private static final String[] MIDI_CHANNELS_OUT = new String[]{"Out: 1","Out: 2","Out: 3","Out: 4","Out: 5","Out: 6","Out: 7","Out: 8","Out: 9","Out: 10","Out: 11","Out: 12","Out: 13","Out: 14","Out: 15","Out: 16"};
+	private static final String[] QUANTIZE = new String[]{"unquantized","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
 	private static final String[] TRANSPOSE = new String[]{"+24", "+12","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","0","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-24"};
 	
 	private JFrame frmDimidimi;
@@ -209,30 +210,25 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
 		
 		JButton btnApply = new JButton("Apply");
-		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 6, SpringLayout.EAST, textFieldLength);
+		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 0, SpringLayout.EAST, textFieldLength);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, btnApply, 0, SpringLayout.VERTICAL_CENTER, panel);
 		panel.add(btnApply);
 		btnApply.setEnabled(false);
 		
-		JLabel lblQuantizeTo = new JLabel("Quantize");
-		sl_panel.putConstraint(SpringLayout.WEST, lblQuantizeTo, 12, SpringLayout.EAST, btnApply);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblQuantizeTo, 0, SpringLayout.VERTICAL_CENTER, panel);
-		panel.add(lblQuantizeTo);
-		
 		comboQuantize = new JComboBox(QUANTIZE);
-		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, lblQuantizeTo);
+		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 0, SpringLayout.EAST, btnApply);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER, panel);
 		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboQuantize);
 		comboQuantize.setMaximumRowCount(12);
 		
 		JLabel lblTranspose = new JLabel("Transpose");
-		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 12, SpringLayout.EAST, comboQuantize);
+		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 0, SpringLayout.EAST, comboQuantize);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
 		panel.add(lblTranspose);
 		
 		comboBoxTranspose = new JComboBox(TRANSPOSE);
-		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 6, SpringLayout.EAST, lblTranspose);
+		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 0, SpringLayout.EAST, lblTranspose);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboBoxTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
 		comboBoxTranspose.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboBoxTranspose);
@@ -244,15 +240,15 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.add(btnClear);
 		
 		JButton buttonNewSession = new JButton("+");
-		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -6, SpringLayout.WEST, buttonNewSession);
+		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, 0, SpringLayout.EAST, panel);
+		sl_panel.putConstraint(SpringLayout.EAST, btnClear, 0, SpringLayout.WEST, buttonNewSession);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewSession, 0, SpringLayout.VERTICAL_CENTER, panel);
-		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, -8, SpringLayout.EAST, panel);
 		buttonNewSession.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panel.add(buttonNewSession);
 		
 		chckbxDrumsLayout = new JCheckBox("Drums");
-		sl_panel.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 6, SpringLayout.EAST, comboBoxTranspose);
-		sl_panel.putConstraint(SpringLayout.SOUTH, chckbxDrumsLayout, 4, SpringLayout.SOUTH, lblNumberOfQuarters);
+		sl_panel.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 0, SpringLayout.EAST, comboBoxTranspose);
+		sl_panel.putConstraint(SpringLayout.SOUTH, chckbxDrumsLayout, 3, SpringLayout.SOUTH, lblTranspose);
 		panel.add(chckbxDrumsLayout);
 		
 		chckbxDrumsLayout.addActionListener(new ActionListener() {
@@ -333,29 +329,26 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		
-		lblDimidimiLooper = new JLabel(APP_TITLE);
+		lblDimidimiLooper = new JLabel("dimidimi");
 		panelTitle.add(lblDimidimiLooper);
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
 		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-32.png")));
 		
-		JLabel lblIn = new JLabel("Channel:  In");
+		JLabel lblIn = new JLabel("MIDI:");
 		
-		comboMidiIn = new JComboBox(MIDI_CHANNELS);
+		comboMidiIn = new JComboBox(MIDI_CHANNELS_IN);
 		comboMidiIn.setMaximumRowCount(16);
 		
 		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
 		
-		JLabel lblOut = new JLabel("Out");
-		
-		comboMidiOut = new JComboBox(MIDI_CHANNELS);
+		comboMidiOut = new JComboBox(MIDI_CHANNELS_OUT);
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -10, SpringLayout.WEST, lblOut);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblOut, -5, SpringLayout.WEST, comboMidiOut);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, 0, SpringLayout.WEST, comboMidiIn);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, 0, SpringLayout.WEST, comboMidiOut);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, 0, SpringLayout.EAST, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		panelMidi.setLayout(sl_panelMidi);
@@ -373,8 +366,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(lblIn);
 		
 		toggleMidiIn = new JToggleButton();
-		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMidiIn, -5, SpringLayout.WEST, comboMidiIn);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -5, SpringLayout.WEST, toggleMidiIn);
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, toggleMidiIn, -4, SpringLayout.NORTH, chckbxMetronome);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMidiIn, -6, SpringLayout.WEST, lblIn);
+		toggleMidiIn.setText("Record");
 		toggleMidiIn.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
 		toggleMidiIn.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_red_circle.png")));
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
@@ -387,7 +381,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		toggleMidiIn.setToolTipText("Record Notes from selected Channel");
 		panelMidi.add(toggleMidiIn);
 		panelMidi.add(comboMidiIn);
-		panelMidi.add(lblOut);
 		
 		panelMidi.add(comboMidiOut);
 		panelLoop.setLayout(new BorderLayout(0, 0));
