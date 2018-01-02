@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
 import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.MidiDeviceWrapper;
 import de.privatepublic.midiutils.MidiHandler;
+import de.privatepublic.midiutils.Note;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.Session.QueuedState;
@@ -607,6 +608,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		menu.addSeparator();
 		
 		menuItem = new JMenuItem("Half Speed");
 		menuItem.addActionListener(new ActionListener() {
@@ -625,7 +627,32 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		menu.add(menuItem);
+		menu.addSeparator();
 		
+		menuItem = new JMenuItem("Apply quantisation");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for (Note note: session.getNotesList()) {
+					note.setPosStart(note.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex()));
+					note.setPosEnd(note.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex()));
+				}
+				session.emitRefreshLoopDisplay();
+			}
+		});
+		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Apply transposition");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for (Note note: session.getNotesList()) {
+					note.setNoteNumber(note.getTransformedNoteNumber(session.getTransposeIndex()));
+				}
+				session.emitRefreshLoopDisplay();
+			}
+		});
+		menu.add(menuItem);
 		menuBar.add(menu);
 		
 		menu = new JMenu("MIDI");
