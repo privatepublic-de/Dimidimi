@@ -65,6 +65,14 @@ import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
+import javax.swing.JToolBar;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.EtchedBorder;
+import java.awt.Insets;
+import javax.swing.JSeparator;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JSpinner;
+import javax.swing.border.SoftBevelBorder;
 
 public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
@@ -76,7 +84,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private static final String APP_TITLE = "dimidimi Looper";
 	
 	private static final String[] MIDI_CHANNELS = new String[]{"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16"};
-	private static final String[] QUANTIZE = new String[]{"off","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
+	private static final String[] QUANTIZE = new String[]{"unquantized","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
 	private static final String[] TRANSPOSE = new String[]{"+24", "+12","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","0","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-24"};
 	
 	private JFrame frmDimidimi;
@@ -87,13 +95,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JComboBox<String> comboMidiIn;
 	private JComboBox<String> comboMidiOut;
 	private JToggleButton toggleMidiIn;
-	private JLabel lblDimidimiLooper;
 	private JCheckBoxMenuItem menuItemTheme;
 	private JCheckBoxMenuItem menuItemAnimate;
-	private JCheckBox chckbxDrumsLayout;
+	private JToggleButton chckbxDrumsLayout;
 	private Session session;
 	private String titleExtension = null;
-	private JCheckBox chckbxMetronome;
+	private JToggleButton chckbxMetronome;
 
 	public UIWindow(Session session) {
 		this.session = session;
@@ -155,11 +162,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelLoop.setBackground(Color.WHITE);
 		panelLoop.setBorder(new LineBorder(Color.GRAY));
 		
-		JPanel panelMidi = new JPanel();
-		panelMidi.setBorder(null);
-		
-		JPanel panelTitle = new JPanel();
-		
 		JPanel panel = new JPanel();
 		GroupLayout groupLayout = new GroupLayout(frmDimidimi.getContentPane());
 		groupLayout.setHorizontalGroup(
@@ -167,141 +169,37 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
-						.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 992, Short.MAX_VALUE)
-						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 992, Short.MAX_VALUE)
-						.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
-							.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, 777, Short.MAX_VALUE)))
+						.addComponent(panel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
+						.addComponent(panelLoop, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE))
 					.addContainerGap())
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(panelTitle, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 416, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 353, Short.MAX_VALUE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
-					.addGap(6))
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap())
 		);
-		SpringLayout sl_panel = new SpringLayout();
-		panel.setLayout(sl_panel);
+		panel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		
-		JLabel lblNumberOfQuarters = new JLabel("Length");
-		sl_panel.putConstraint(SpringLayout.WEST, lblNumberOfQuarters, 0, SpringLayout.WEST, panel);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblNumberOfQuarters, 0, SpringLayout.VERTICAL_CENTER, panel);
+		JLabel lblNumberOfQuarters = new JLabel("Len");
 		panel.add(lblNumberOfQuarters);
 		
+		JButton btnApply = new JButton(" ✓ ");
+		btnApply.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
+		
 		textFieldLength = new JTextField();
-		sl_panel.putConstraint(SpringLayout.WEST, textFieldLength, 6, SpringLayout.EAST, lblNumberOfQuarters);
-		textFieldLength.setToolTipText("Loop length in quarter notes");
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, textFieldLength, 0, SpringLayout.VERTICAL_CENTER, panel);
-		textFieldLength.setAlignmentX(Component.LEFT_ALIGNMENT);
+		lblNumberOfQuarters.setLabelFor(textFieldLength);
 		panel.add(textFieldLength);
+		textFieldLength.setToolTipText("Loop length in quarter notes");
+		textFieldLength.setAlignmentX(Component.LEFT_ALIGNMENT);
 		textFieldLength.setHorizontalAlignment(SwingConstants.CENTER);
 		
 		textFieldLength.setText("4");
 		textFieldLength.setColumns(3);
 		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		
-		JButton btnApply = new JButton("Apply");
-		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 6, SpringLayout.EAST, textFieldLength);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, btnApply, 0, SpringLayout.VERTICAL_CENTER, panel);
-		panel.add(btnApply);
-		btnApply.setEnabled(false);
-		
-		JLabel lblQuantizeTo = new JLabel("Quantize");
-		sl_panel.putConstraint(SpringLayout.WEST, lblQuantizeTo, 12, SpringLayout.EAST, btnApply);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblQuantizeTo, 0, SpringLayout.VERTICAL_CENTER, panel);
-		panel.add(lblQuantizeTo);
-		
-		comboQuantize = new JComboBox(QUANTIZE);
-		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, lblQuantizeTo);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER, panel);
-		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
-		panel.add(comboQuantize);
-		comboQuantize.setMaximumRowCount(12);
-		
-		JLabel lblTranspose = new JLabel("Transpose");
-		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 12, SpringLayout.EAST, comboQuantize);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
-		panel.add(lblTranspose);
-		
-		comboBoxTranspose = new JComboBox(TRANSPOSE);
-		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 6, SpringLayout.EAST, lblTranspose);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboBoxTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
-		comboBoxTranspose.setAlignmentX(Component.LEFT_ALIGNMENT);
-		panel.add(comboBoxTranspose);
-		comboBoxTranspose.setMaximumRowCount(27);
-		comboBoxTranspose.setSelectedIndex(13);
-		
-		JButton btnClear = new JButton("Clear");
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, btnClear, 0, SpringLayout.VERTICAL_CENTER, panel);
-		panel.add(btnClear);
-		
-		JButton buttonNewSession = new JButton("+");
-		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -6, SpringLayout.WEST, buttonNewSession);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewSession, 0, SpringLayout.VERTICAL_CENTER, panel);
-		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, -8, SpringLayout.EAST, panel);
-		buttonNewSession.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		panel.add(buttonNewSession);
-		
-		chckbxDrumsLayout = new JCheckBox("Drums");
-		sl_panel.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 6, SpringLayout.EAST, comboBoxTranspose);
-		sl_panel.putConstraint(SpringLayout.SOUTH, chckbxDrumsLayout, 4, SpringLayout.SOUTH, lblNumberOfQuarters);
-		panel.add(chckbxDrumsLayout);
-		
-		chckbxDrumsLayout.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				session.setDrums(chckbxDrumsLayout.isSelected());
-			}
-		});
-		
-		buttonNewSession.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				session.setMidiInputOn(false);
-				DiMIDImi.createSession();
-			}
-		});
-		
-		btnClear.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				session.clearPattern();
-			}
-		});
-		((JLabel)comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
-		
-		comboBoxTranspose.addActionListener(new ActionListener(){
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				session.setTransposeIndex(comboBoxTranspose.getSelectedIndex());
-				session.emitRefreshLoopDisplay();
-			}});
-		
-		comboQuantize.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				session.setQuantizationIndex(comboQuantize.getSelectedIndex());
-				session.emitRefreshLoopDisplay();
-			}});
-		
-		
-		
-		btnApply.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnApply.setEnabled(false);
-				int numberQuarters = Integer.parseInt(textFieldLength.getText());
-				session.setLengthQuarters(numberQuarters);
-				session.emitRefreshLoopDisplay();
-			}
-		});
 		textFieldLength.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void removeUpdate(DocumentEvent e) {
@@ -321,10 +219,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				try {
 					int value = Integer.parseInt(textFieldLength.getText());
 					if (value>0 && value!=session.getLengthQuarters() && value<=Session.MAX_NUMBER_OF_QUARTERS){
-						btnApply.setEnabled(true);	 
+						btnApply.setEnabled(true);
 					}
 					else {
-						btnApply.setEnabled(false);	
+						btnApply.setEnabled(false);
 					}
 				}
 				catch(NumberFormatException e) {
@@ -333,51 +231,56 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		
-		lblDimidimiLooper = new JLabel(APP_TITLE);
-		panelTitle.add(lblDimidimiLooper);
-		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
-		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-32.png")));
 		
-		JLabel lblIn = new JLabel("Channel:  In");
+		panel.add(btnApply);
+		btnApply.setEnabled(false);
 		
-		comboMidiIn = new JComboBox(MIDI_CHANNELS);
-		comboMidiIn.setMaximumRowCount(16);
 		
-		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
 		
-		JLabel lblOut = new JLabel("Out");
-		
-		comboMidiOut = new JComboBox(MIDI_CHANNELS);
-		comboMidiOut.setMaximumRowCount(16);
-		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
-		SpringLayout sl_panelMidi = new SpringLayout();
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -10, SpringLayout.WEST, lblOut);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblOut, -5, SpringLayout.WEST, comboMidiOut);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, 0, SpringLayout.EAST, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		panelMidi.setLayout(sl_panelMidi);
-		
-		chckbxMetronome = new JCheckBox("Metronome");
-		sl_panelMidi.putConstraint(SpringLayout.NORTH, chckbxMetronome, -4, SpringLayout.NORTH, lblIn);
-		sl_panelMidi.putConstraint(SpringLayout.WEST, chckbxMetronome, 0, SpringLayout.WEST, panelMidi);
-		chckbxMetronome.addActionListener(new ActionListener() {
+		btnApply.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.setMetronomeEnabled(chckbxMetronome.isSelected());
+				btnApply.setEnabled(false);
+				int numberQuarters = Integer.parseInt(textFieldLength.getText());
+				session.setLengthQuarters(numberQuarters);
+				session.emitRefreshLoopDisplay();
 			}
 		});
-		panelMidi.add(chckbxMetronome);
 		
-		panelMidi.add(lblIn);
+		comboQuantize = new JComboBox(QUANTIZE);
+		panel.add(comboQuantize);
+		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
+		comboQuantize.setMaximumRowCount(12);
+		
+		JLabel lblTranspose = new JLabel("Transp");
+		panel.add(lblTranspose);
+		
+		comboBoxTranspose = new JComboBox(TRANSPOSE);
+		lblTranspose.setLabelFor(comboBoxTranspose);
+		panel.add(comboBoxTranspose);
+		comboBoxTranspose.setAlignmentX(Component.LEFT_ALIGNMENT);
+		comboBoxTranspose.setMaximumRowCount(27);
+		comboBoxTranspose.setSelectedIndex(13);
+		
+		chckbxDrumsLayout = new JToggleButton("Drums");
+		chckbxDrumsLayout.setBorder(new EmptyBorder(0, 0, 0, 0));
+		chckbxDrumsLayout.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
+		chckbxDrumsLayout.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_check.png")));
+		panel.add(chckbxDrumsLayout);
+		
+		chckbxDrumsLayout.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.setDrums(chckbxDrumsLayout.isSelected());
+			}
+		});
 		
 		toggleMidiIn = new JToggleButton();
-		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMidiIn, -5, SpringLayout.WEST, comboMidiIn);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -5, SpringLayout.WEST, toggleMidiIn);
+		toggleMidiIn.setBorder(new EmptyBorder(0, 0, 0, 0));
+		toggleMidiIn.setText("Record");
+		panel.add(toggleMidiIn);
 		toggleMidiIn.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
 		toggleMidiIn.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_red_circle.png")));
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		toggleMidiIn.setSelected(true);
 		toggleMidiIn.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
@@ -385,17 +288,34 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			}
 		});
 		toggleMidiIn.setToolTipText("Record Notes from selected Channel");
-		panelMidi.add(toggleMidiIn);
-		panelMidi.add(comboMidiIn);
-		panelMidi.add(lblOut);
 		
-		panelMidi.add(comboMidiOut);
-		panelLoop.setLayout(new BorderLayout(0, 0));
-		loopDisplayPanel = new LoopDisplayPanel(session);
-		loopDisplayPanel.setBackground(Color.WHITE);
-		panelLoop.add(loopDisplayPanel);
-		loopDisplayPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-		frmDimidimi.getContentPane().setLayout(groupLayout);
+		comboMidiIn = new JComboBox(MIDI_CHANNELS);
+		panel.add(comboMidiIn);
+		comboMidiIn.setMaximumRowCount(16);
+		
+		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
+		
+		comboMidiOut = new JComboBox(MIDI_CHANNELS);
+		panel.add(comboMidiOut);
+		comboMidiOut.setMaximumRowCount(16);
+		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
+		
+		chckbxMetronome = new JToggleButton("Metronome");
+		chckbxMetronome.setBorder(new EmptyBorder(0, 0, 0, 0));
+		chckbxMetronome.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
+		chckbxMetronome.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_check.png")));
+		panel.add(chckbxMetronome);
+		chckbxMetronome.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				session.setMetronomeEnabled(chckbxMetronome.isSelected());
+			}
+		});
+		comboMidiOut.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int midiOut = comboMidiOut.getSelectedIndex();
+				session.setMidiChannelOut(midiOut);
+			}});
 		
 		
 		comboMidiIn.addActionListener(new ActionListener() {
@@ -404,12 +324,27 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				int midiIn = comboMidiIn.getSelectedIndex();
 				session.setMidiChannelIn(midiIn);
 			}});
-		comboMidiOut.addActionListener(new ActionListener() {
+		((JLabel)comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
+		
+		comboBoxTranspose.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				int midiOut = comboMidiOut.getSelectedIndex();
-				session.setMidiChannelOut(midiOut);
+				session.setTransposeIndex(comboBoxTranspose.getSelectedIndex());
+				session.emitRefreshLoopDisplay();
 			}});
+		
+		comboQuantize.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.setQuantizationIndex(comboQuantize.getSelectedIndex());
+				session.emitRefreshLoopDisplay();
+			}});
+		panelLoop.setLayout(new BorderLayout(0, 0));
+		loopDisplayPanel = new LoopDisplayPanel(session);
+		loopDisplayPanel.setBackground(Color.WHITE);
+		panelLoop.add(loopDisplayPanel);
+		loopDisplayPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		frmDimidimi.getContentPane().setLayout(groupLayout);
 		
 	}
 	
