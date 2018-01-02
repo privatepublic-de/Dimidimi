@@ -91,7 +91,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JLabel lblDimidimiLooper;
 	private JCheckBoxMenuItem menuItemTheme;
 	private JCheckBoxMenuItem menuItemAnimate;
-	private JCheckBox chckbxDrumsLayout;
+	private JToggleButton chckbxDrumsLayout;
 	private Session session;
 	private String titleExtension = null;
 	private JCheckBox chckbxMetronome;
@@ -246,18 +246,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		buttonNewSession.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panel.add(buttonNewSession);
 		
-		chckbxDrumsLayout = new JCheckBox("Drums");
-		sl_panel.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 6, SpringLayout.EAST, comboBoxTranspose);
-		sl_panel.putConstraint(SpringLayout.SOUTH, chckbxDrumsLayout, 3, SpringLayout.SOUTH, lblTranspose);
-		panel.add(chckbxDrumsLayout);
-		
-		chckbxDrumsLayout.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				session.setDrums(chckbxDrumsLayout.isSelected());
-			}
-		});
-		
 		buttonNewSession.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				session.setMidiInputOn(false);
@@ -355,7 +343,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		chckbxMetronome = new JCheckBox("Metronome");
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, chckbxMetronome, -4, SpringLayout.NORTH, lblIn);
-		sl_panelMidi.putConstraint(SpringLayout.WEST, chckbxMetronome, 0, SpringLayout.WEST, panelMidi);
 		chckbxMetronome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				session.setMetronomeEnabled(chckbxMetronome.isSelected());
@@ -366,6 +353,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(lblIn);
 		
 		toggleMidiIn = new JToggleButton();
+		sl_panelMidi.putConstraint(SpringLayout.EAST, chckbxMetronome, 0, SpringLayout.WEST, toggleMidiIn);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, toggleMidiIn, -4, SpringLayout.NORTH, chckbxMetronome);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMidiIn, -6, SpringLayout.WEST, lblIn);
 		toggleMidiIn.setText("Record");
@@ -383,6 +371,20 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.add(comboMidiIn);
 		
 		panelMidi.add(comboMidiOut);
+		
+		chckbxDrumsLayout = new JToggleButton("Drums");
+		chckbxDrumsLayout.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
+		chckbxDrumsLayout.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_check.png")));
+		sl_panelMidi.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 0, SpringLayout.WEST, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.SOUTH, chckbxDrumsLayout, 0, SpringLayout.SOUTH, toggleMidiIn);
+		panelMidi.add(chckbxDrumsLayout);
+		
+		chckbxDrumsLayout.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				session.setDrums(chckbxDrumsLayout.isSelected());
+			}
+		});
 		panelLoop.setLayout(new BorderLayout(0, 0));
 		loopDisplayPanel = new LoopDisplayPanel(session);
 		loopDisplayPanel.setBackground(Color.WHITE);
