@@ -25,6 +25,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -444,15 +445,21 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					g.setColor(Theme.CURRENT.getColorSelectedNoteOutline());
 					g.fillRect(rect.x-quartheight, rect.y-quartheight, rect.width+halfheight, rect.height+halfheight);
 				}
+				
 				g.setColor(noteColor);
 				g.fillRect(rect.x, rect.y, rect.width, rect.height);
+//				RoundRectangle2D roundrect = new RoundRectangle2D.Float(rect.x, rect.y, rect.width, rect.height, 6, 6);
+//				g.fill(roundrect);
 				
 				int veloHeight = Math.round(note.getVelocity()/127f * (noteHeight-1));
 				g.setColor(noteColorLight);
 				g.fillRect(rect.x, rect.y, rect.width, rect.height-veloHeight);
+//				g.fill(new RoundRectangle2D.Float(rect.x, rect.y, rect.width, rect.height-veloHeight, 6, 6));
 				
-				g.setColor(noteColor);
+//				g.setColor(noteColor);
 				g.drawRect(rect.x, rect.y, rect.width, rect.height);
+//				g.draw(roundrect);
+				
 			}
 			int rightindex = rects.length-1;			
 			if (isSingleSelection && isSelected || note==draggedNote) {
