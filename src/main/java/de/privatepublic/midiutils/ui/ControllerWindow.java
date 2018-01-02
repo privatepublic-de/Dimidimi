@@ -1,7 +1,6 @@
 package de.privatepublic.midiutils.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -25,6 +24,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
@@ -331,7 +331,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 //			panel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 //			panel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
 			panel.setBorder(BorderFactory.createLineBorder(Theme.CURRENT.getColorBackground(), 2, false));
-			label = new JLabel("", SwingConstants.LEFT);
+			label = new JLabel("", SwingConstants.RIGHT);
 			label.setPreferredSize(new Dimension(30, 24));
 //			label.setOpaque(true);
 			panel.add(label);
