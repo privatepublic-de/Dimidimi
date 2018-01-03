@@ -9,12 +9,14 @@ import java.lang.reflect.Field;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 
+import de.privatepublic.midiutils.Prefs;
+
 public class Theme {
 	
 	public static final Theme DARK = new Theme("/theme_dark.properties");
 	public static final Theme BRIGHT = new Theme("/theme_bright.properties");
 	
-	public static Theme CURRENT = Theme.DARK;
+	public static Theme CURRENT = Prefs.get(Prefs.THEME, 0)>0?Theme.DARK:Theme.BRIGHT;
 	
 	private Font fontNotes = new Font(Font.SANS_SERIF, Font.BOLD, 12); 
 	private Font fontMidiBig = new Font(Font.SANS_SERIF, Font.BOLD, 12);

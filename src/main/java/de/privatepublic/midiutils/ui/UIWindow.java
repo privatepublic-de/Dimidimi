@@ -222,8 +222,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.add(comboQuantize);
 		comboQuantize.setMaximumRowCount(12);
 		
-		JLabel lblTranspose = new JLabel("Transpose");
+		JLabel lblTranspose = new JLabel("Transp.");
 		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 12, SpringLayout.EAST, comboQuantize);
+		sl_panel.putConstraint(SpringLayout.SOUTH, lblTranspose, 0, SpringLayout.SOUTH, lblNumberOfQuarters);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
 		panel.add(lblTranspose);
 		

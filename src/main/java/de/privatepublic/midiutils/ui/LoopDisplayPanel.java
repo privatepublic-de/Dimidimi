@@ -25,7 +25,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.RoundRectangle2D;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;

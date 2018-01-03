@@ -26,7 +26,7 @@ import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.ui.Theme;
 import de.privatepublic.midiutils.ui.UIWindow;
 
-public class Session implements PerformanceReceiver {
+public class Session implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Session.class);
 	
@@ -35,6 +35,7 @@ public class Session implements PerformanceReceiver {
 	public Session() {
 		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
 		setMidiChannelOut(Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1));
+		updateColors();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -55,7 +56,8 @@ public class Session implements PerformanceReceiver {
 			public void run() {
 				try {
 					window = new UIWindow(Session.this);
-					applyStorageData(data);					
+					applyStorageData(data);
+					updateColors();
 					emitLoopUpdated();
 					registerAsReceiver(Session.this);
 					window.setVisible(true);
@@ -104,17 +106,17 @@ public class Session implements PerformanceReceiver {
 		int oldOut = this.midiChannelOut;
 		if (oldOut!=midiChannelOut) {
 			this.midiChannelOut = midiChannelOut;
-			MidiHandler.instance().sendAllNotesOffMidi(this, oldOut>-1?oldOut:midiChannelOut);
-		}
 			Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
-			colorNote = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
-			colorNotePlayed = Color.getHSBColor(midiChannelOut/16f, .25f, 1);
-		    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
-		    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
-		    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
-		    colorChannel = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getColorChannelSaturation(), Theme.CURRENT.getColorChannelBrightness());
+			MidiHandler.instance().sendAllNotesOffMidi(this, oldOut>-1?oldOut:midiChannelOut);
 			emitSettingsUpdated();
 			emitRefreshLoopDisplay();
+		}
+		colorNote = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
+		colorNotePlayed = Color.getHSBColor(midiChannelOut/16f, .25f, 1);
+	    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+	    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
+	    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+	    colorChannel = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getColorChannelSaturation(), Theme.CURRENT.getColorChannelBrightness());
 	}
 
 
@@ -690,5 +692,20 @@ public class Session implements PerformanceReceiver {
 	static {
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
+	
+	
+	@Override
+	public void settingsUpdated() {
+		updateColors();
+	}
 
+	private void updateColors() {
+		LOG.debug("Setting colors for #{} bright: {}", midiChannelOut, Theme.CURRENT==Theme.BRIGHT);
+		colorNote = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
+		colorNotePlayed = Color.getHSBColor(midiChannelOut/16f, .25f, 1);
+	    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+	    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
+	    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+	    colorChannel = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getColorChannelSaturation(), Theme.CURRENT.getColorChannelBrightness());
+	}
 }

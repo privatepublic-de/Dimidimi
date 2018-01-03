@@ -99,8 +99,8 @@ public class Prefs {
 	}
 	
 	
-	
 	public static interface Identifiable {
 		public String getIdentifier();
-	} 
+	}
+	
 }
