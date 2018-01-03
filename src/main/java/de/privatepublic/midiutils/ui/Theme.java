@@ -40,6 +40,8 @@ public class Theme {
 	private Color colorModWheel = Color.WHITE;
 	private Color colorPitchBend = Color.GREEN;
 	private float noteLightColorBrightnessFactor = .6f;
+	private float colorChannelSaturation=.1f;
+	private float colorChannelBrightness=.2f;
 	
 	public Theme(String fileName) {
 		try {
@@ -173,6 +175,22 @@ public class Theme {
 	}
 	public float getOctaveColorBrightness() {
 		return octaveColorBrightness;
+	}
+
+	public float getColorChannelSaturation() {
+		return colorChannelSaturation;
+	}
+
+	public void setColorChannelSaturation(float colorChannelSaturation) {
+		this.colorChannelSaturation = colorChannelSaturation;
+	}
+
+	public float getColorChannelBrightness() {
+		return colorChannelBrightness;
+	}
+
+	public void setColorChannelBrightness(float colorChannelBrightness) {
+		this.colorChannelBrightness = colorChannelBrightness;
 	}
 		
 }

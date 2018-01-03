@@ -752,6 +752,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void itemStateChanged(ItemEvent e) {
 				Theme selectedTheme = menuItemTheme.isSelected()?Theme.DARK:Theme.BRIGHT;
 				if (selectedTheme!=Theme.CURRENT) {
+					Theme.CURRENT = selectedTheme;
 					Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
 					DiMIDImi.updateSettingsOnAllSessions();
 				}

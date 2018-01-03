@@ -279,6 +279,9 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 							refreshView();
 						}
 					}
+					for (PanelComponent pc: panelComponents.values()) {
+						pc.updateColors();
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -442,7 +445,12 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 		public void updateLabelText() {
 			label.setText("#"+(session.getMidiChannelOut()+1));
-			panel.setBackground(session.getNoteColor(false));
+		}
+		
+		public void updateColors() {
+			boolean light = Theme.CURRENT==Theme.BRIGHT;
+			panel.setBackground(light?session.getNoteColorPlayed():session.getNoteColor(false));
+			panel.setBorder(BorderFactory.createLineBorder(Theme.CURRENT.getColorBackground(), 2, false));
 		}
 		
 		public JPanel getPanel() {
