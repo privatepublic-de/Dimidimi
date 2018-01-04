@@ -20,6 +20,8 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 
 import javax.swing.GroupLayout;
@@ -66,6 +68,8 @@ import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
+import javax.swing.JSlider;
+
 public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UIWindow.class);
@@ -81,7 +85,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private static final String[] TRANSPOSE = new String[]{"+24", "+12","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","0","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-24"};
 	
 	private JFrame frmDimidimi;
-	private JTextField textFieldLength;
 	private LoopDisplayPanel loopDisplayPanel;
 	private JComboBox<String> comboQuantize;
 	private JComboBox<String> comboBoxTranspose;
@@ -167,13 +170,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			groupLayout.createParallelGroup(Alignment.TRAILING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addContainerGap()
-					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
-						.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 992, Short.MAX_VALUE)
-						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 992, Short.MAX_VALUE)
-						.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
+						.addComponent(panel, GroupLayout.DEFAULT_SIZE, 1016, Short.MAX_VALUE)
+						.addGroup(groupLayout.createSequentialGroup()
 							.addComponent(panelTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, 777, Short.MAX_VALUE)))
+							.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, 864, Short.MAX_VALUE)))
 					.addContainerGap())
 		);
 		groupLayout.setVerticalGroup(
@@ -184,47 +187,23 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 						.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addComponent(panelTitle, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 353, Short.MAX_VALUE)
+					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 377, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 48, GroupLayout.PREFERRED_SIZE)
 					.addGap(6))
 		);
 		SpringLayout sl_panel = new SpringLayout();
 		panel.setLayout(sl_panel);
 		
-		JLabel lblNumberOfQuarters = new JLabel("Length");
-		sl_panel.putConstraint(SpringLayout.WEST, lblNumberOfQuarters, 0, SpringLayout.WEST, panel);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblNumberOfQuarters, 0, SpringLayout.VERTICAL_CENTER, panel);
-		panel.add(lblNumberOfQuarters);
-		
-		textFieldLength = new JTextField();
-		sl_panel.putConstraint(SpringLayout.WEST, textFieldLength, 6, SpringLayout.EAST, lblNumberOfQuarters);
-		textFieldLength.setToolTipText("Loop length in quarter notes");
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, textFieldLength, 0, SpringLayout.VERTICAL_CENTER, panel);
-		textFieldLength.setAlignmentX(Component.LEFT_ALIGNMENT);
-		panel.add(textFieldLength);
-		textFieldLength.setHorizontalAlignment(SwingConstants.CENTER);
-		
-		textFieldLength.setText("4");
-		textFieldLength.setColumns(3);
-		textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
-		
-		JButton btnApply = new JButton("Apply");
-		sl_panel.putConstraint(SpringLayout.WEST, btnApply, 0, SpringLayout.EAST, textFieldLength);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, btnApply, 0, SpringLayout.VERTICAL_CENTER, panel);
-		panel.add(btnApply);
-		btnApply.setEnabled(false);
-		
 		comboQuantize = new JComboBox(QUANTIZE);
-		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, btnApply);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER, panel);
 		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboQuantize);
 		comboQuantize.setMaximumRowCount(12);
 		
 		JLabel lblTranspose = new JLabel("Transp.");
-		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 12, SpringLayout.EAST, comboQuantize);
-		sl_panel.putConstraint(SpringLayout.SOUTH, lblTranspose, 0, SpringLayout.SOUTH, lblNumberOfQuarters);
+		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 6, SpringLayout.EAST, comboQuantize);
+		sl_panel.putConstraint(SpringLayout.SOUTH, lblTranspose, -16, SpringLayout.SOUTH, panel);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
 		panel.add(lblTranspose);
 		
@@ -246,6 +225,27 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewSession, 0, SpringLayout.VERTICAL_CENTER, panel);
 		buttonNewSession.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panel.add(buttonNewSession);
+		
+		slider = new JSlider();
+		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, slider);
+		slider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				int quarters = Math.max(slider.getValue(), 1);
+				slider.setToolTipText("Loop length: "+quarters+" quarter note"+(quarters>1?"s":""));
+				session.setLengthQuarters(quarters);
+				session.emitRefreshLoopDisplay();
+			}
+		});
+		slider.setSnapToTicks(true);
+		slider.setPaintLabels(true);
+		slider.setValue(8);
+		slider.setMinimum(0);
+		slider.setMaximum(32);
+		slider.setLabelTable(LENGTH_LABELS);
+		slider.setMinorTickSpacing(1);
+		slider.setMajorTickSpacing(4);
+		slider.setPaintTicks(true);
+		panel.add(slider);
 		
 		buttonNewSession.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -275,48 +275,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				session.setQuantizationIndex(comboQuantize.getSelectedIndex());
 				session.emitRefreshLoopDisplay();
 			}});
-		
-		
-		
-		btnApply.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				btnApply.setEnabled(false);
-				int numberQuarters = Integer.parseInt(textFieldLength.getText());
-				session.setLengthQuarters(numberQuarters);
-				session.emitRefreshLoopDisplay();
-			}
-		});
-		textFieldLength.getDocument().addDocumentListener(new DocumentListener() {
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				checkInput();
-			}
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				checkInput();
-			}
-			
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				checkInput();
-			}
-			
-			private void checkInput() {
-				try {
-					int value = Integer.parseInt(textFieldLength.getText());
-					if (value>0 && value!=session.getLengthQuarters() && value<=Session.MAX_NUMBER_OF_QUARTERS){
-						btnApply.setEnabled(true);	 
-					}
-					else {
-						btnApply.setEnabled(false);	
-					}
-				}
-				catch(NumberFormatException e) {
-					btnApply.setEnabled(false);
-				}
-			}
-		});
 		
 		lblDimidimiLooper = new JLabel("dimidimi");
 		panelTitle.add(lblDimidimiLooper);
@@ -816,7 +774,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void run() {
 				comboQuantize.setSelectedIndex(session.getQuantizationIndex());
 				comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
-				textFieldLength.setText(String.valueOf(session.getLengthQuarters()));
+				slider.setValue(session.getLengthQuarters());
 				toggleMidiIn.setSelected(session.isMidiInputOn());
 				comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 				comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
@@ -873,4 +831,20 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		// TODO Auto-generated method stub
 		
 	}
+	
+	private static final Dictionary<Integer, JLabel> LENGTH_LABELS = new Hashtable<Integer, JLabel>();
+	private JSlider slider;
+	
+	static {
+		LENGTH_LABELS.put(0, new JLabel("♩"));
+        LENGTH_LABELS.put(4, new JLabel("4"));
+        LENGTH_LABELS.put(8, new JLabel("8"));
+        LENGTH_LABELS.put(12, new JLabel("12"));
+        LENGTH_LABELS.put(16, new JLabel("16"));
+        LENGTH_LABELS.put(20, new JLabel("20"));
+        LENGTH_LABELS.put(24, new JLabel("24"));
+        LENGTH_LABELS.put(28, new JLabel("28"));
+        LENGTH_LABELS.put(32, new JLabel("32"));
+	}
+	
 }
