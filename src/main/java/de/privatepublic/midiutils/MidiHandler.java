@@ -215,7 +215,7 @@ public class MidiHandler {
 //				pos++;
 //				break;
 			}
-			for (Session session:DiMIDImi.getSessions()) {
+			for (Loop session:DiMIDImi.getSessions()) {
 				switch(status) {
 				case ShortMessage.STOP:
 					sendAllNotesOffMidi(session, false);
@@ -275,17 +275,17 @@ public class MidiHandler {
 		}
 	}
 
-	private void noteOn(Session session, int noteNumber, int velocity) {
+	private void noteOn(Loop session, int noteNumber, int velocity) {
 		session.emitNoteOn(noteNumber, velocity, pos);
 		sendNoteOnMidi(session, noteNumber, velocity);
 	}
 
-	private void noteOff(Session session, int noteNumber) {
+	private void noteOff(Loop session, int noteNumber) {
 		session.emitNoteOff(noteNumber, pos);
 		sendNoteOffMidi(session, noteNumber);
 	}
 
-	public void sendNoteOnMidi(Session session, int noteNumber, int velocity) {
+	public void sendNoteOnMidi(Loop session, int noteNumber, int velocity) {
 		try {
 			ShortMessage message = new ShortMessage();
 			message.setMessage(ShortMessage.NOTE_ON, session.getMidiChannelOut(), noteNumber, velocity);
@@ -295,7 +295,7 @@ public class MidiHandler {
 		}
 	}
 
-	public void sendNoteOffMidi(Session session, int noteNumber) {
+	public void sendNoteOffMidi(Loop session, int noteNumber) {
 		try {
 			ShortMessage message = new ShortMessage();
 			message.setMessage(ShortMessage.NOTE_OFF, session.getMidiChannelOut(), noteNumber, 0);
@@ -305,7 +305,7 @@ public class MidiHandler {
 		}
 	}
 	
-	public void sendCC(Session session, int val) {
+	public void sendCC(Loop session, int val) {
 		try {
 			ShortMessage message = new ShortMessage();
 			message.setMessage(ShortMessage.CONTROL_CHANGE, session.getMidiChannelOut(), 1, val);
@@ -315,7 +315,7 @@ public class MidiHandler {
 		}
 	}
 
-	public void sendPitchBend(Session session, int val) {
+	public void sendPitchBend(Loop session, int val) {
 		try {
 			ShortMessage message = new ShortMessage();
 			val = Math.min(val + 0x2000, 0x3fff);
@@ -336,19 +336,19 @@ public class MidiHandler {
 	}
 	
 	
-	public void sendAllNotesOffMidi(Session session) {
+	public void sendAllNotesOffMidi(Loop session) {
 		sendAllNotesOffMidi(session, session.getMidiChannelOut(), false);
 	}
 	
-	public void sendAllNotesOffMidi(Session session, boolean panic) {
+	public void sendAllNotesOffMidi(Loop session, boolean panic) {
 		sendAllNotesOffMidi(session, session.getMidiChannelOut(), panic);
 	}
 	
-	public void sendAllNotesOffMidi(Session session, int channel) {
+	public void sendAllNotesOffMidi(Loop session, int channel) {
 		sendAllNotesOffMidi(session, channel, false);
 	}
 	
-	public void sendAllNotesOffMidi(Session session, int channel, boolean panic) {
+	public void sendAllNotesOffMidi(Loop session, int channel, boolean panic) {
 		ShortMessage message = new ShortMessage();		
 		try {
 			for (Note note: session.getNotesList()) {

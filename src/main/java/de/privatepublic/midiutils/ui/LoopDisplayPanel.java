@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Note;
-import de.privatepublic.midiutils.Session;
+import de.privatepublic.midiutils.Loop;
 import de.privatepublic.midiutils.events.LoopUpdateReceiver;
 
 public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
@@ -57,7 +57,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	
 	public static boolean ANIMATE;
 	
-	private Session session;
+	private Loop session;
 	
 	private int pos = 0;
 	
@@ -82,7 +82,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
 	
 	
-	public LoopDisplayPanel(Session session) {
+	public LoopDisplayPanel(Loop session) {
 		super();
 		textAttributes.put(TextAttribute.TRACKING, -0.1f);
 		this.session = session;
@@ -374,8 +374,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		}
 		
 		boolean is3based = session.getLengthQuarters()%3==0;
-		int activeQuarter = pos/Session.TICK_COUNT_BASE;
-		float quarterwidth = width*((float)Session.TICK_COUNT_BASE/session.getMaxTicks());
+		int activeQuarter = pos/Loop.TICK_COUNT_BASE;
+		float quarterwidth = width*((float)Loop.TICK_COUNT_BASE/session.getMaxTicks());
 		float sixthwidth = quarterwidth/4f; 
 		tickwidth = (float)width/session.getMaxTicks();
 		for (int i=0;i<session.getLengthQuarters()*4;i++) {
@@ -492,7 +492,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		// draw pitchbend and mod
 	    g.setStroke(STROKE_3);
 	    final int centery = 64;//-0x2000/129;
-	    for (int i=0;i<session.getLengthQuarters()*Session.TICK_COUNT_BASE;++i) {
+	    for (int i=0;i<session.getLengthQuarters()*Loop.TICK_COUNT_BASE;++i) {
 	    	int xpos = Math.round(i*tickwidth);
 	    	int mod = session.getCcList()[i];
 	    	int pb = (-session.getPitchBendList()[i])/129;

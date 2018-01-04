@@ -26,22 +26,22 @@ import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.ui.Theme;
 import de.privatepublic.midiutils.ui.UIWindow;
 
-public class Session implements PerformanceReceiver, SettingsUpdateReceiver {
+public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Session.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Loop.class);
 	
 	private static int SOLOCOUNT = 0;
 	
-	public Session() {
+	public Loop() {
 		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
 		setMidiChannelOut(Prefs.get(Prefs.MIDI_OUT_CHANNEL, 1));
 		updateColors();
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					window = new UIWindow(Session.this);
+					window = new UIWindow(Loop.this);
 					emitLoopUpdated();
-					registerAsReceiver(Session.this);
+					registerAsReceiver(Loop.this);
 					window.setVisible(true);
 				} catch (Exception e) {
 					LOG.error("Could not create UIWindow", e);
@@ -50,16 +50,16 @@ public class Session implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 	}
 	
-	public Session(StorageContainer data, String sessionName) {
+	public Loop(StorageContainer data, String sessionName) {
 		setSessionName(sessionName);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					window = new UIWindow(Session.this);
+					window = new UIWindow(Loop.this);
 					applyStorageData(data);
 					updateColors();
 					emitLoopUpdated();
-					registerAsReceiver(Session.this);
+					registerAsReceiver(Loop.this);
 					window.setVisible(true);
 				} catch (Exception e) {
 					LOG.error("Could not create UIWindow", e);

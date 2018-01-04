@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.Prefs;
-import de.privatepublic.midiutils.Session;
+import de.privatepublic.midiutils.Loop;
 
 public class GUIUtils {
 
@@ -101,7 +101,7 @@ public class GUIUtils {
     	Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
 	}
 	
-	public static String loadLoop(File selectedFile, Session session, Component frmDimidimi) {
+	public static String loadLoop(File selectedFile, Loop session, Component frmDimidimi) {
 		Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
     	try {
     		session.loadLoop(selectedFile);

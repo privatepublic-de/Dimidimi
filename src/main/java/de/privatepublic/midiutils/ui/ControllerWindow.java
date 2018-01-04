@@ -37,8 +37,8 @@ import org.slf4j.LoggerFactory;
 import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Prefs;
-import de.privatepublic.midiutils.Session;
-import de.privatepublic.midiutils.Session.QueuedState;
+import de.privatepublic.midiutils.Loop;
+import de.privatepublic.midiutils.Loop.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
@@ -235,7 +235,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 				try {
 					contentPane.setBackground(Theme.CURRENT.getColorBackground());
 					if (panelComponents.size()<=DiMIDImi.getSessions().size()) {
-						for (Session session:DiMIDImi.getSessions()) {
+						for (Loop session:DiMIDImi.getSessions()) {
 							PanelComponent panel = panelComponents.get(session.hashCode());
 							if (panel==null) {
 								panel = new PanelComponent(session);
@@ -260,7 +260,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 						Integer removeKey = null;
 						for (Integer key:panelComponents.keySet()) {
 							boolean exists = false;
-							for (Session session:DiMIDImi.getSessions()) {
+							for (Loop session:DiMIDImi.getSessions()) {
 								if (session.hashCode()==key) {
 									exists = true;
 									break;
@@ -318,14 +318,14 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		}
 		
 		private JPanel panel;
-		private Session session;
+		private Loop session;
 		private JLabel label;
 		private BlinkToggleButton btnMute;
 		private BlinkToggleButton btnSolo;
 		private JCheckBox chckbxTriggerOnEnd;
 		private boolean onNextCycle = false;
 		
-		public PanelComponent(Session session) {
+		public PanelComponent(Loop session) {
 			this.session = session;
 			
 			panel = new JPanel();

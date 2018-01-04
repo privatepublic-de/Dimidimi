@@ -60,8 +60,8 @@ import de.privatepublic.midiutils.MidiDeviceWrapper;
 import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Note;
 import de.privatepublic.midiutils.Prefs;
-import de.privatepublic.midiutils.Session;
-import de.privatepublic.midiutils.Session.QueuedState;
+import de.privatepublic.midiutils.Loop;
+import de.privatepublic.midiutils.Loop.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
@@ -90,11 +90,11 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JCheckBoxMenuItem menuItemTheme;
 	private JCheckBoxMenuItem menuItemAnimate;
 	private JToggleButton chckbxDrumsLayout;
-	private Session session;
+	private Loop session;
 	private String titleExtension = null;
 	private JCheckBox chckbxMetronome;
 
-	public UIWindow(Session session) {
+	public UIWindow(Loop session) {
 		this.session = session;
 		try {
 			System.setProperty("apple.laf.useScreenMenuBar", "true");

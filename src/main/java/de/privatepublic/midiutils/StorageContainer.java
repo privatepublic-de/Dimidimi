@@ -25,7 +25,7 @@ public class StorageContainer {
 	}
 	
 	
-	public StorageContainer(Session session) {
+	public StorageContainer(Loop session) {
 		this.notes = session.getNotesList();
 		this.transpose = session.getTransposeIndex();
 		this.quantization = session.getQuantizationIndex();

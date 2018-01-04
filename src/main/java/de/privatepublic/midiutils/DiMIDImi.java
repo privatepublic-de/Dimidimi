@@ -29,7 +29,7 @@ public class DiMIDImi {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DiMIDImi.class);
 	
-	private static final List<Session> SESSIONS = new CopyOnWriteArrayList<Session>();
+	private static final List<Loop> LOOPS = new CopyOnWriteArrayList<Loop>();
 	
 	private static ControllerWindow controllerWindow;
 	
@@ -62,43 +62,43 @@ public class DiMIDImi {
 	
 	public static void updateSettingsOnAllSessions() {
 		LOG.info("Updating settings for all sessions");
-		for (Session session: SESSIONS) {
+		for (Loop session: LOOPS) {
 			session.emitSettingsUpdated();
 		}
 	}
 	
 	public static void updateLoopsOnAllSessions() {
 		LOG.info("Updating loops for all sessions");
-		for (Session session: SESSIONS) {
+		for (Loop session: LOOPS) {
 			session.emitLoopUpdated();
 		}
 	}
 	
-	public static Session createSession() {
-		Session session = new Session();
-		SESSIONS.add(session);
+	public static Loop createSession() {
+		Loop session = new Loop();
+		LOOPS.add(session);
 		session.registerAsReceiver(controllerWindow);
 		DiMIDImi.updateSettingsOnAllSessions();
 		LOG.info("Created new session {}", session.hashCode());
 		return session;
 	}
 	
-	public static Session createSession(StorageContainer data, String sessionName) {
-		Session session = new Session(data, sessionName);
-		SESSIONS.add(session);
+	public static Loop createSession(StorageContainer data, String sessionName) {
+		Loop session = new Loop(data, sessionName);
+		LOOPS.add(session);
 		session.registerAsReceiver(controllerWindow);
 		DiMIDImi.updateSettingsOnAllSessions();
 		LOG.info("Created new session {}", session.hashCode());
 		return session;
 	}
 	
-	public static void removeSession(Session session) {
-		if (SESSIONS.contains(session)) {
-			SESSIONS.remove(session);
+	public static void removeSession(Loop session) {
+		if (LOOPS.contains(session)) {
+			LOOPS.remove(session);
 			session.destroy();
 			DiMIDImi.updateSettingsOnAllSessions();
 			LOG.info("Removed session {}", session.hashCode());
-			if (SESSIONS.size()==0) {
+			if (LOOPS.size()==0) {
 				System.exit(0);
 			}
 		}
@@ -106,7 +106,7 @@ public class DiMIDImi {
 	
 	public static void removeAllSessions() {
 		LOG.info("Removing all sessions");
-		for (Session session: SESSIONS) {
+		for (Loop session: LOOPS) {
 			session.getWindow().closeWindow();
 		}
 	}
@@ -114,7 +114,7 @@ public class DiMIDImi {
 	public static void saveSession(File file) throws JsonGenerationException, JsonMappingException, IOException {
 		List<StorageContainer> dataList = new ArrayList<StorageContainer>();
 		String sessionName = FilenameUtils.getBaseName(file.getName());
-		for (Session session: SESSIONS) {
+		for (Loop session: LOOPS) {
 			StorageContainer data = new StorageContainer(session);
 			dataList.add(data);
 			session.setSessionName(sessionName);
@@ -125,20 +125,20 @@ public class DiMIDImi {
 	
 	
 	public static void loadSession(File file) throws JsonParseException, JsonMappingException, IOException {
-		List<Session> sessionsToClose = new ArrayList<Session>(SESSIONS);
+		List<Loop> sessionsToClose = new ArrayList<Loop>(LOOPS);
 		List<StorageContainer> list = Arrays.asList(mapper.readValue(file, StorageContainer[].class));
 		String sessionName = FilenameUtils.getBaseName(file.getName());
 		for (StorageContainer data:list) {
 			createSession(data, sessionName);
 		}
-		for (Session session:sessionsToClose) {
+		for (Loop session:sessionsToClose) {
 			session.getWindow().closeWindow();
 		}
 		LOG.info("Loaded session {}", file.getPath());
 	}
 	
-	public static List<Session> getSessions() {
-		return SESSIONS;
+	public static List<Loop> getSessions() {
+		return LOOPS;
 	}
 
 	public static void arrangeSessionWindows() {
@@ -153,7 +153,7 @@ public class DiMIDImi {
 		int maxrows = height / minheight;
 		int numcols = maxcols;
 		int numrows = maxrows;
-		int number = SESSIONS.size();
+		int number = LOOPS.size();
 		switch(number) {
 		case 1:
 			// maximize single window
@@ -180,7 +180,7 @@ public class DiMIDImi {
 		int row = 0;
 		int col = 0;
 		int rowiteration = 0;
-		for (Session session: SESSIONS) {
+		for (Loop session: LOOPS) {
 			Rectangle pos = new Rectangle(rect.x+20*rowiteration+col*wwidth, rect.y+20*rowiteration+row*wheight, wwidth-20, wheight-20);
 			session.getWindow().setScreenPosition(pos);
 			col = (col+1)%numcols;
