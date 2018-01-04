@@ -406,9 +406,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			int notey = Math.round(index*noteHeight-noteHeight/2);
 			String notetext = session.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i)+" "+(i/12-2);
 			int ty = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
-			g.setColor(Theme.CURRENT.getColorOctaves());
+			g.setColor(Theme.CURRENT.getColorGrid());
 			g.drawLine(0, notey, width, notey);
-			g.setColor(Theme.CURRENT.getColorActiveQuarter());
+			g.setColor(Theme.CURRENT.getNoteLabels());
 			g.drawString(notetext, 5, ty);
 		}
 		
@@ -516,19 +516,16 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			// draw scale
 			int x = getNotePositionsRect(selectedNotes.get(0))[0].x;;
 			int lasty = -10;
-//			FontMetrics fm = g.getFontMetrics();
 			for (int i=lowestNote;i<highestNote+1;i++) {
 				int index = (highestNote+MARGIN_SEMIS)-i;
 				int notey = Math.round(index*noteHeight-noteHeight/2);
 				String notetext = session.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i);
-				boolean isBlackKey = notetext.length()>1;
-				
 				Rectangle2D rect = fm.getStringBounds(notetext, g);
 				int y = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
 				if (Math.abs(y-lasty)>=rect.getHeight()) {
-					g.setColor(isBlackKey?Color.BLACK:Color.WHITE);
+					g.setColor(Theme.CURRENT.getColorBackground());
 					g.fillRect(x+(int)rect.getX()+2, y+(int)rect.getY(), (int)rect.getWidth()+6, (int)rect.getHeight());
-					g.setColor(isBlackKey?Color.WHITE:Color.BLACK);	
+					g.setColor(Theme.CURRENT.getNoteLabels());	
 					g.drawString(notetext, x+4, y);
 					lasty = y;
 				}
@@ -537,6 +534,12 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		
 		if ((insertNotePos!=null && metaKeyPressed)) {
 			int value = (int)(highestNote+MARGIN_SEMIS-(insertNotePos.y-noteHeight/2)/noteHeight);
+			
+			int notey = Math.round((highestNote+MARGIN_SEMIS-value)*noteHeight - noteHeight/2);
+			g.setStroke(STROKE_1);
+			g.setColor(Theme.CURRENT.getColorSelectionRectangle());
+			g.drawRect(0, notey, width, (int)noteHeight);
+			
 			String notetext = session.isDrums()?Note.getConcreteDrumNoteName(value):Note.getConcreteNoteName(value);
 			Rectangle2D rect = fm.getStringBounds(notetext, g);
 			int y = insertNotePos.y;
@@ -544,9 +547,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			if (x<0) {
 				x = insertNotePos.x+24;
 			}
-			g.setColor(Color.BLACK);
+			g.setColor(Theme.CURRENT.getColorBackground());
 			g.fillRect(x+(int)rect.getX()+2, y+(int)rect.getY(), (int)rect.getWidth()+6, (int)rect.getHeight());
-			g.setColor(Color.WHITE);	
+			g.setColor(Theme.CURRENT.getNoteLabels());	
 			g.drawString(notetext, x+4, y);
 		}
 		

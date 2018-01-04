@@ -26,7 +26,7 @@ public class Theme {
 	private Color colorActiveQuarter = Color.decode("#666666");
 	private Color colorPlayhead = Color.decode("#cccccc");
 	private Color colorPlayedNote = colorGridIntense;
-	private Color colorOctaves = colorGrid;
+	private Color colorNoteLabels = colorGrid;
 	private Color colorSelectedNoteOutline = new Color(.6f, .6f, .6f, .6f);
 	private Color colorSelectedNoteText = Color.WHITE;
 	private Color colorClockOn = Color.getHSBColor(.58f, .8f, 1f);
@@ -37,8 +37,6 @@ public class Theme {
 	private Color colorMuted = new Color(0x80ffffff,true);
 	private float noteColorSaturation = .6f;
 	private float noteColorBrightness = 1f;
-	private float octaveColorSaturation = .6f;
-	private float octaveColorBrightness = .5f;
 	private Color colorModWheel = Color.WHITE;
 	private Color colorPitchBend = Color.GREEN;
 	private float noteLightColorBrightnessFactor = .6f;
@@ -127,8 +125,8 @@ public class Theme {
 	public Color getColorPlayedNote() {
 		return colorPlayedNote;
 	}
-	public Color getColorOctaves() {
-		return colorOctaves;
+	public Color getNoteLabels() {
+		return colorNoteLabels;
 	}
 	public Color getColorSelectedNoteOutline() {
 		return colorSelectedNoteOutline;
@@ -171,12 +169,6 @@ public class Theme {
 	}
 	public float getNoteLightColorBrightnessFactor() {
 		return noteLightColorBrightnessFactor;
-	}
-	public float getOctaveColorSaturation() {
-		return octaveColorSaturation;
-	}
-	public float getOctaveColorBrightness() {
-		return octaveColorBrightness;
 	}
 
 	public float getColorChannelSaturation() {
