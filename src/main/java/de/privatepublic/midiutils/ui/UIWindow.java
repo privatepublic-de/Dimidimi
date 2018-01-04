@@ -38,18 +38,15 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SpringLayout;
-import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
@@ -67,8 +64,6 @@ import de.privatepublic.midiutils.Session;
 import de.privatepublic.midiutils.Session.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
-
-import javax.swing.JSlider;
 
 public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
@@ -103,7 +98,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		this.session = session;
 		try {
 			System.setProperty("apple.laf.useScreenMenuBar", "true");
-            System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Test");
+            System.setProperty("com.apple.mrj.application.apple.menu.about.name", APP_TITLE);
 			UIManager.setLookAndFeel(
 					UIManager.getSystemLookAndFeelClassName());
 		} 
@@ -196,6 +191,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.setLayout(sl_panel);
 		
 		comboQuantize = new JComboBox(QUANTIZE);
+		comboQuantize.setToolTipText("Note quantization");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER, panel);
 		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboQuantize);
@@ -208,6 +204,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.add(lblTranspose);
 		
 		comboBoxTranspose = new JComboBox(TRANSPOSE);
+		comboBoxTranspose.setToolTipText("Transpose semitones");
 		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 0, SpringLayout.EAST, lblTranspose);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboBoxTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
 		comboBoxTranspose.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -216,10 +213,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboBoxTranspose.setSelectedIndex(13);
 		
 		JButton btnClear = new JButton("Clear");
+		btnClear.setToolTipText("Clear loop");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, btnClear, 0, SpringLayout.VERTICAL_CENTER, panel);
 		panel.add(btnClear);
 		
 		JButton buttonNewSession = new JButton("+");
+		buttonNewSession.setToolTipText("Create new loop window");
 		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -6, SpringLayout.WEST, buttonNewSession);
 		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, 0, SpringLayout.EAST, panel);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewSession, 0, SpringLayout.VERTICAL_CENTER, panel);
@@ -284,11 +283,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		JLabel lblIn = new JLabel("MIDI:");
 		
 		comboMidiIn = new JComboBox(MIDI_CHANNELS_IN);
+		comboMidiIn.setToolTipText("MIDI Channel In");
 		comboMidiIn.setMaximumRowCount(16);
 		
 		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
 		
 		comboMidiOut = new JComboBox(MIDI_CHANNELS_OUT);
+		comboMidiOut.setToolTipText("MIDI Channel Out");
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
@@ -301,6 +302,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelMidi.setLayout(sl_panelMidi);
 		
 		chckbxMetronome = new JCheckBox("Metronome");
+		chckbxMetronome.setToolTipText("Turn on metronome");
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, chckbxMetronome, -4, SpringLayout.NORTH, lblIn);
 		chckbxMetronome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -325,13 +327,14 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				session.setMidiInputOn(toggleMidiIn.isSelected());
 			}
 		});
-		toggleMidiIn.setToolTipText("Record Notes from selected Channel");
+		toggleMidiIn.setToolTipText("Record notes from selected channel");
 		panelMidi.add(toggleMidiIn);
 		panelMidi.add(comboMidiIn);
 		
 		panelMidi.add(comboMidiOut);
 		
 		chckbxDrumsLayout = new JToggleButton("Drums");
+		chckbxDrumsLayout.setToolTipText("Use drum view");
 		chckbxDrumsLayout.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
 		chckbxDrumsLayout.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_check.png")));
 		sl_panelMidi.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 0, SpringLayout.WEST, panelMidi);
@@ -836,7 +839,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JSlider slider;
 	
 	static {
-		LENGTH_LABELS.put(0, new JLabel("♩"));
+		LENGTH_LABELS.put(0, new JLabel("Len"));
         LENGTH_LABELS.put(4, new JLabel("4"));
         LENGTH_LABELS.put(8, new JLabel("8"));
         LENGTH_LABELS.put(12, new JLabel("12"));
