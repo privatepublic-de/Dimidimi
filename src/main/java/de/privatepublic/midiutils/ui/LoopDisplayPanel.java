@@ -48,16 +48,16 @@ import org.slf4j.LoggerFactory;
 import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Note;
 import de.privatepublic.midiutils.Loop;
-import de.privatepublic.midiutils.events.LoopUpdateReceiver;
+import de.privatepublic.midiutils.events.NotesUpdatedReceiver;
 
-public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
+public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 
 	private static final long serialVersionUID = -592444184016477559L;
 	private static final Logger LOG = LoggerFactory.getLogger(LoopDisplayPanel.class);
 	
 	public static boolean ANIMATE;
 	
-	private Loop session;
+	private Loop loop;
 	
 	private int pos = 0;
 	
@@ -82,10 +82,10 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
 	
 	
-	public LoopDisplayPanel(Loop session) {
+	public LoopDisplayPanel(Loop loop) {
 		super();
 		textAttributes.put(TextAttribute.TRACKING, -0.1f);
-		this.session = session;
+		this.loop = loop;
 		
 		addKeyListener(new KeyListener() {
 			@Override
@@ -124,21 +124,21 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				
 				if (metaKeyPressed) {
 					setCursor(Cursor.getDefaultCursor());
-					if (findHitNote(session.getNotesList(), e.getPoint())==null) {
+					if (findHitNote(loop.getNotesList(), e.getPoint())==null) {
 						int value = (int)(highestNote+MARGIN_SEMIS-(e.getY()-noteHeight/2)/noteHeight);
 						int pos = (int)(e.getX()/tickwidth);
 						Note n = new Note(value, 96, pos);
-						n.setPosEnd((pos+5)%session.getMaxTicks());
-						int qstart = n.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex());
-						int qend = n.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex());
+						n.setPosEnd((pos+5)%loop.getMaxTicks());
+						int qstart = n.getPosStart(loop);
+						int qend = n.getPosEnd(loop);
 						n.setPosStart(qstart);
 						n.setPosEnd(qend);
-						session.getNotesList().add(n);
+						loop.getNotesList().add(n);
 						selectedNotes.clear();
 						n.storeCurrent();
 						draggedNote = n;
 						selectedNotes.add(n);
-						refreshLoopDisplay();
+						onRefreshLoopDisplay();
 					}
 				}
 				else {
@@ -168,7 +168,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						}
 						else {
 							selectedNotes.clear();
-							hitNote = findHitNote(session.getNotesList(), dragStart);
+							hitNote = findHitNote(loop.getNotesList(), dragStart);
 							if (hitNote!=null) {
 								selectedNotes.add(hitNote);
 								hitNote.storeCurrent();
@@ -222,7 +222,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					int mx = e.getX();
 					int my = e.getY();
 					Note found2resize = null;
-					for (Note note:session.getNotesList()) {
+					for (Note note:loop.getNotesList()) {
 						if (note.isCompleted()) {
 							Rectangle[] rects = getNotePositionsRect(note);
 							int posy = Math.round(rects[0].y+noteHeight/2);
@@ -244,7 +244,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				if (resizeNote!=null) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
 				}
-				else if (isDragging || isListHit(session.getNotesList(), e.getPoint())) {
+				else if (isDragging || isListHit(loop.getNotesList(), e.getPoint())) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				}
 				else if (metaKeyPressed) {
@@ -262,9 +262,9 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				if (resizeNote!=null) {
 					int distX = e.getX()-dragStart.x;
 					int ticksOffset = (int)(distX/tickwidth);
-					resizeNote.setPosEnd((resizeNote.getStoredPosEnd()+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
-					MidiHandler.instance().sendNoteOffMidi(session, resizeNote.getNoteNumber());
-					refreshLoopDisplay();
+					resizeNote.setPosEnd((resizeNote.getStoredPosEnd()+ticksOffset+loop.getMaxTicks())%loop.getMaxTicks());
+					MidiHandler.instance().sendNoteOffMidi(loop, resizeNote.getNoteNumber());
+					onRefreshLoopDisplay();
 					return;
 				}
 				if (isSelectionDrag) {
@@ -287,7 +287,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					selectRectangle.width = rw;
 					selectRectangle.height = rh;
 					selectedNotes.clear();
-					for (Note note: session.getNotesList()) {
+					for (Note note: loop.getNotesList()) {
 						for (Rectangle nr: getNotePositionsRect(note)) {
 							if (selectRectangle.intersects(nr)) {
 								selectedNotes.add(note);
@@ -308,10 +308,10 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 							note.setNoteNumber(note.getStoredNoteNumber()+noteOffset);
 
 							int ticksOffset = (int)(distX/tickwidth);
-							note.setPosStart((note.getStoredPosStart()+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
-							note.setPosEnd((note.getStoredPosEnd()+ticksOffset+session.getMaxTicks())%session.getMaxTicks());
+							note.setPosStart((note.getStoredPosStart()+ticksOffset+loop.getMaxTicks())%loop.getMaxTicks());
+							note.setPosEnd((note.getStoredPosEnd()+ticksOffset+loop.getMaxTicks())%loop.getMaxTicks());
 						}
-						refreshLoopDisplay();
+						onRefreshLoopDisplay();
 					}
 				}
 			}
@@ -326,13 +326,13 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 						vel = Math.min(Math.max(vel-wheelinc, 0), 127);
 						note.setVelocity(vel);
 					}
-					refreshLoopDisplay();
+					onRefreshLoopDisplay();
 				}
 			}
 		});
 		
-		if (session!=null) {
-			session.registerAsReceiver(this);
+		if (loop!=null) {
+			loop.registerAsReceiver(this);
 		}
 		
 		LOG.debug("Created LoopDisplayPanel.");
@@ -354,8 +354,8 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		g.fillRect(0, 0, width, height);
 		
 		// draw midi out channel text
-		String channelText = ""+((session!=null?session.getMidiChannelOut():0)+1);
-		g.setColor(session!=null?session.getChannelColor():Theme.CURRENT.getColorMidiOutBig());  
+		String channelText = ""+((loop!=null?loop.getMidiChannelOut():0)+1);
+		g.setColor(loop!=null?loop.getChannelColor():Theme.CURRENT.getColorMidiOutBig());  
 		float fontSize = 20.0f;
 	    Font font = Theme.CURRENT.getFontMidiBig().deriveFont(fontSize);
 	    int fheight = g.getFontMetrics(font).getHeight();
@@ -369,16 +369,16 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    
 		// draw grid
 	    g.setStroke(STROKE_1);
-		if (session==null) {
+		if (loop==null) {
 			return;
 		}
 		
-		boolean is3based = session.getLengthQuarters()%3==0;
+		boolean is3based = loop.getLengthQuarters()%3==0;
 		int activeQuarter = pos/Loop.TICK_COUNT_BASE;
-		float quarterwidth = width*((float)Loop.TICK_COUNT_BASE/session.getMaxTicks());
+		float quarterwidth = width*((float)Loop.TICK_COUNT_BASE/loop.getMaxTicks());
 		float sixthwidth = quarterwidth/4f; 
-		tickwidth = (float)width/session.getMaxTicks();
-		for (int i=0;i<session.getLengthQuarters()*4;i++) {
+		tickwidth = (float)width/loop.getMaxTicks();
+		for (int i=0;i<loop.getLengthQuarters()*4;i++) {
 			int xpos = (int)(i*sixthwidth);
 			g.setColor(Theme.CURRENT.getColorGrid());
 			g.drawLine(xpos, 0, xpos, height);
@@ -404,7 +404,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		for (int i=lowestNote;i<highestNote+1;i++) {
 			int index = (highestNote+MARGIN_SEMIS)-i;
 			int notey = Math.round(index*noteHeight-noteHeight/2);
-			String notetext = session.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i)+" "+(i/12-2);
+			String notetext = loop.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i)+" "+(i/12-2);
 			int ty = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
 			g.setColor(Theme.CURRENT.getColorGrid());
 			g.drawLine(0, notey, width, notey);
@@ -414,7 +414,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		
 		// draw playhead
 		g.setColor(Theme.CURRENT.getColorPlayhead());
-		float playheadx = width*((float)pos/session.getMaxTicks());
+		float playheadx = width*((float)pos/loop.getMaxTicks());
 		
 		g.fillRect((int)(playheadx-tickwidth/2), 0, (int)tickwidth, height);
 
@@ -424,16 +424,16 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		
 		boolean isSingleSelection = selectedNotes.size()==1;
 		
-		for (Note note:session.getNotesList()) {
+		for (Note note:loop.getNotesList()) {
 			boolean isSelected = selectedNotes.contains(note);
 			
-			Color noteColor = session.getNoteColor(isSelected);
-			Color noteColorLight = session.getNoteColorHighlighted(isSelected);
+			Color noteColor = loop.getNoteColor(isSelected);
+			Color noteColorLight = loop.getNoteColorHighlighted(isSelected);
 			
 			g.setStroke(STROKE_1);
 			
 			if (note.isPlayed()) {
-				noteColor = session.getNoteColorPlayed();
+				noteColor = loop.getNoteColorPlayed();
 				noteColorLight = noteColor;
 			}
 			
@@ -476,13 +476,13 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				g.drawLine(rects[rightindex].x+rects[rightindex].width, 0, rects[rightindex].x+rects[rightindex].width, height);
 			}
 			if (ANIMATE && note.isPlayed()) {
-				int start = note.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex());
-				int end = note.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex());
-				int length = start>end?end+session.getMaxTicks()-start:end-start;
-				int position = start>end?pos-start+session.getMaxTicks():pos-start;
+				int start = note.getPosStart(loop);
+				int end = note.getPosEnd(loop);
+				int length = start>end?end+loop.getMaxTicks()-start:end-start;
+				int position = start>end?pos-start+loop.getMaxTicks():pos-start;
 				float percent = position/(float)length;
 				int offset = (int)((1-(percent-1)*(percent-1))*noteHeight*.5);
-				g.setColor(session.getNoteColorHighlighted(false));
+				g.setColor(loop.getNoteColorHighlighted(false));
 				for (Rectangle rect:rects) {
 					g.drawRect(rect.x-offset, rect.y-offset, rect.width+offset*2, rect.height+offset*2);
 				}
@@ -492,10 +492,10 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 		// draw pitchbend and mod
 	    g.setStroke(STROKE_3);
 	    final int centery = 64;//-0x2000/129;
-	    for (int i=0;i<session.getLengthQuarters()*Loop.TICK_COUNT_BASE;++i) {
+	    for (int i=0;i<loop.getLengthQuarters()*Loop.TICK_COUNT_BASE;++i) {
 	    	int xpos = Math.round(i*tickwidth);
-	    	int mod = session.getCcList()[i];
-	    	int pb = (-session.getPitchBendList()[i])/129;
+	    	int mod = loop.getCcList()[i];
+	    	int pb = (-loop.getPitchBendList()[i])/129;
 	    	g.setColor(Theme.CURRENT.getColorPitchBend());
 	    	if (pb<0) {
 	    		g.fillRect(xpos, centery+pb, Math.round(tickwidth)+1, Math.abs(pb));
@@ -507,7 +507,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	    	g.drawLine(xpos, height-mod, xpos, height);
 	    }
 	    
-	    if (!session.isAudible()) {
+	    if (!loop.isAudible()) {
 	    	g.setColor(Theme.CURRENT.getColorMuted());
 			g.fillRect(0, 0, width, height);
 	    }
@@ -519,7 +519,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			for (int i=lowestNote;i<highestNote+1;i++) {
 				int index = (highestNote+MARGIN_SEMIS)-i;
 				int notey = Math.round(index*noteHeight-noteHeight/2);
-				String notetext = session.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i);
+				String notetext = loop.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i);
 				Rectangle2D rect = fm.getStringBounds(notetext, g);
 				int y = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
 				if (Math.abs(y-lasty)>=rect.getHeight()) {
@@ -540,7 +540,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 			g.setColor(Theme.CURRENT.getColorSelectionRectangle());
 			g.drawRect(0, notey, width, (int)noteHeight);
 			
-			String notetext = session.isDrums()?Note.getConcreteDrumNoteName(value):Note.getConcreteNoteName(value);
+			String notetext = loop.isDrums()?Note.getConcreteDrumNoteName(value):Note.getConcreteNoteName(value);
 			Rectangle2D rect = fm.getStringBounds(notetext, g);
 			int y = insertNotePos.y;
 			int x = insertNotePos.x-32; // cursor size
@@ -562,10 +562,10 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	
 	
 	private Rectangle[] getNotePositionsRect(Note note) {
-		int index = (highestNote+MARGIN_SEMIS)-note.getTransformedNoteNumber(session.getTransposeIndex());
+		int index = (highestNote+MARGIN_SEMIS)-note.getNoteNumber(loop);
 		int notey = Math.round(index*noteHeight-noteHeight/2);
-		int notestartx = Math.round(note.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex())*tickwidth);
-		int noteendx = Math.round(note.isCompleted()?note.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex())*tickwidth:pos*tickwidth);
+		int notestartx = Math.round(note.getPosStart(loop)*tickwidth);
+		int noteendx = Math.round(note.isCompleted()?note.getPosEnd(loop)*tickwidth:pos*tickwidth);
 		int height = Math.round(noteHeight*.85f);
 		if (noteendx>=notestartx) {
 			return new Rectangle[] {new Rectangle(notestartx, notey, noteendx-notestartx, height) };
@@ -608,30 +608,30 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 	}
 
 	@Override
-	public void loopUpdated() {
+	public void onNotesUpdated() {
 		calculateNoteExtents();
 		repaint();
 	}
 
 	@Override
-	public void refreshLoopDisplay() {
+	public void onRefreshLoopDisplay() {
 		calculateNoteExtents();
 		repaint();
 	}
 	
 	private void calculateNoteExtents() {
-		if (session!=null && session.isDrums()) {
+		if (loop!=null && loop.isDrums()) {
 			lowestNote = 35;
 			highestNote = 49; 
 			return;
 		}
 		int maxNote = 12;
 		int minNote = 96+12; 
-		for (Note dc:session.getNotesList()) {
-			minNote = Math.min(dc.getTransformedNoteNumber(session.getTransposeIndex()), minNote);
-			maxNote = Math.max(dc.getTransformedNoteNumber(session.getTransposeIndex()), maxNote);
+		for (Note dc:loop.getNotesList()) {
+			minNote = Math.min(dc.getNoteNumber(loop), minNote);
+			maxNote = Math.max(dc.getNoteNumber(loop), maxNote);
 		}
-		if (session.getNotesList().size()==0) {
+		if (loop.getNotesList().size()==0) {
 			minNote = 12*3 - MARGIN_SEMIS;
 			maxNote = 12*5 + MARGIN_SEMIS;
 		}
@@ -653,7 +653,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					for (Note selectedNote: selectedNotes) {
-						session.clearNote(selectedNote);
+						loop.clearNote(selectedNote);
 					}
 					selectedNotes.clear();
 				}
@@ -679,7 +679,7 @@ public class LoopDisplayPanel extends JPanel implements LoopUpdateReceiver {
 					for (Note selectedNote: selectedNotes) {
 						selectedNote.setVelocity(veloslider.getValue());
 					}
-					session.emitRefreshLoopDisplay();;
+					loop.emitRefreshLoopDisplay();;
 				}
 			});
 	        add(veloslider);

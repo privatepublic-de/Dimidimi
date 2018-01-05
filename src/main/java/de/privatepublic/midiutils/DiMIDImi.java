@@ -41,7 +41,7 @@ public class DiMIDImi {
 			public void run() {
 				try {
 					controllerWindow = new ControllerWindow();
-					createSession();
+					createLoop();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -60,88 +60,88 @@ public class DiMIDImi {
 		 });
 	}
 	
-	public static void updateSettingsOnAllSessions() {
-		LOG.info("Updating settings for all sessions");
-		for (Loop session: LOOPS) {
-			session.emitSettingsUpdated();
+	public static void updateSettingsOnAllLoops() {
+		LOG.info("Updating settings for all loops");
+		for (Loop loop: LOOPS) {
+			loop.emitSettingsUpdated();
 		}
 	}
 	
-	public static void updateLoopsOnAllSessions() {
-		LOG.info("Updating loops for all sessions");
-		for (Loop session: LOOPS) {
-			session.emitLoopUpdated();
+	public static void updateNotesOnAllLoops() {
+		LOG.info("Updating notes for all loops");
+		for (Loop loop: LOOPS) {
+			loop.emitLoopUpdated();
 		}
 	}
 	
-	public static Loop createSession() {
-		Loop session = new Loop();
-		LOOPS.add(session);
-		session.registerAsReceiver(controllerWindow);
-		DiMIDImi.updateSettingsOnAllSessions();
-		LOG.info("Created new session {}", session.hashCode());
-		return session;
+	public static Loop createLoop() {
+		Loop loop = new Loop();
+		LOOPS.add(loop);
+		loop.registerAsReceiver(controllerWindow);
+		DiMIDImi.updateSettingsOnAllLoops();
+		LOG.info("Created new loop {}", loop.hashCode());
+		return loop;
 	}
 	
-	public static Loop createSession(StorageContainer data, String sessionName) {
-		Loop session = new Loop(data, sessionName);
-		LOOPS.add(session);
-		session.registerAsReceiver(controllerWindow);
-		DiMIDImi.updateSettingsOnAllSessions();
-		LOG.info("Created new session {}", session.hashCode());
-		return session;
+	public static Loop createLoop(StorageContainer data, String name) {
+		Loop loop = new Loop(data, name);
+		LOOPS.add(loop);
+		loop.registerAsReceiver(controllerWindow);
+		DiMIDImi.updateSettingsOnAllLoops();
+		LOG.info("Created new loop {}", loop.hashCode());
+		return loop;
 	}
 	
-	public static void removeSession(Loop session) {
-		if (LOOPS.contains(session)) {
-			LOOPS.remove(session);
-			session.destroy();
-			DiMIDImi.updateSettingsOnAllSessions();
-			LOG.info("Removed session {}", session.hashCode());
+	public static void removeLoop(Loop loop) {
+		if (LOOPS.contains(loop)) {
+			LOOPS.remove(loop);
+			loop.destroy();
+			DiMIDImi.updateSettingsOnAllLoops();
+			LOG.info("Removed loop {}", loop.hashCode());
 			if (LOOPS.size()==0) {
 				System.exit(0);
 			}
 		}
 	}
 	
-	public static void removeAllSessions() {
-		LOG.info("Removing all sessions");
-		for (Loop session: LOOPS) {
-			session.getWindow().closeWindow();
+	public static void removeAllLoops() {
+		LOG.info("Removing all loops");
+		for (Loop loop: LOOPS) {
+			loop.getWindow().closeWindow();
 		}
 	}
 	
-	public static void saveSession(File file) throws JsonGenerationException, JsonMappingException, IOException {
+	public static void saveLoop(File file) throws JsonGenerationException, JsonMappingException, IOException {
 		List<StorageContainer> dataList = new ArrayList<StorageContainer>();
-		String sessionName = FilenameUtils.getBaseName(file.getName());
-		for (Loop session: LOOPS) {
-			StorageContainer data = new StorageContainer(session);
+		String name = FilenameUtils.getBaseName(file.getName());
+		for (Loop loop: LOOPS) {
+			StorageContainer data = new StorageContainer(loop);
 			dataList.add(data);
-			session.setSessionName(sessionName);
+			loop.setName(name);
 		}
 		mapper.writeValue(file, dataList);
-		LOG.info("Saved session {}", file.getPath());
+		LOG.info("Saved loop {}", file.getPath());
 	}
 	
 	
-	public static void loadSession(File file) throws JsonParseException, JsonMappingException, IOException {
-		List<Loop> sessionsToClose = new ArrayList<Loop>(LOOPS);
+	public static void loadLoop(File file) throws JsonParseException, JsonMappingException, IOException {
+		List<Loop> loopsToClose = new ArrayList<Loop>(LOOPS);
 		List<StorageContainer> list = Arrays.asList(mapper.readValue(file, StorageContainer[].class));
-		String sessionName = FilenameUtils.getBaseName(file.getName());
+		String name = FilenameUtils.getBaseName(file.getName());
 		for (StorageContainer data:list) {
-			createSession(data, sessionName);
+			createLoop(data, name);
 		}
-		for (Loop session:sessionsToClose) {
-			session.getWindow().closeWindow();
+		for (Loop loop:loopsToClose) {
+			loop.getWindow().closeWindow();
 		}
-		LOG.info("Loaded session {}", file.getPath());
+		LOG.info("Loaded loop {}", file.getPath());
 	}
 	
-	public static List<Loop> getSessions() {
+	public static List<Loop> getLoops() {
 		return LOOPS;
 	}
 
-	public static void arrangeSessionWindows() {
+	public static void arrangeLoopWindows() {
 		Rectangle rect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
 		int width = rect.width;
 		int height = rect.height;
@@ -180,9 +180,9 @@ public class DiMIDImi {
 		int row = 0;
 		int col = 0;
 		int rowiteration = 0;
-		for (Loop session: LOOPS) {
+		for (Loop loop: LOOPS) {
 			Rectangle pos = new Rectangle(rect.x+20*rowiteration+col*wwidth, rect.y+20*rowiteration+row*wheight, wwidth-20, wheight-20);
-			session.getWindow().setScreenPosition(pos);
+			loop.getWindow().setScreenPosition(pos);
 			col = (col+1)%numcols;
 			if (col==0) {
 				row = (row+1)%numrows;

@@ -38,7 +38,6 @@ public class MidiHandler {
 	private ArrayList<MidiDeviceWrapper> inputDeviceList = new ArrayList<MidiDeviceWrapper>();
 	private int pos;
 	private ShortMessage resetPositionMessage = new ShortMessage();
-//	private Session session;
 	
 	private MIDIReceiver internalReceiver = new MIDIReceiver(new MidiDeviceWrapper());
 	private ShortMessage msgClock = new ShortMessage();
@@ -56,8 +55,6 @@ public class MidiHandler {
 			e1.printStackTrace();
 		}
 		
-//		this.session = session;
-//		this.pos = pos;
 		
 		List<String> prefInIds = Prefs.getPrefIdentifierList(Prefs.MIDI_IN_DEVICES);
 		List<String> prefOutIds = Prefs.getPrefIdentifierList(Prefs.MIDI_OUT_DEVICES);
@@ -123,7 +120,6 @@ public class MidiHandler {
 			}
 		});
 		LOG.info("Available MIDI devices: {} in, {} out", inputDeviceList.size(), outputDeviceList.size());
-		//session.emitSettingsUpdated();
 	}
 	
 	private Timer internalClockTimer;
@@ -215,50 +211,50 @@ public class MidiHandler {
 //				pos++;
 //				break;
 			}
-			for (Loop session:DiMIDImi.getSessions()) {
+			for (Loop loop:DiMIDImi.getLoops()) {
 				switch(status) {
 				case ShortMessage.STOP:
-					sendAllNotesOffMidi(session, false);
-					session.emitActive(false, pos);
-					session.emitRefreshLoopDisplay();
+					sendAllNotesOffMidi(loop, false);
+					loop.emitActive(false, pos);
+					loop.emitRefreshLoopDisplay();
 					break;
 				case ShortMessage.START:
-					session.emitActive(true, pos);
+					loop.emitActive(true, pos);
 					break;
 				case ShortMessage.CONTINUE:
-					session.emitActive(true, pos);
+					loop.emitActive(true, pos);
 					break;
 				case ShortMessage.TIMING_CLOCK:
 					if (ACTIVE) {
-						session.emitClock(pos%session.getMaxTicks());
+						loop.emitClock(pos%loop.getMaxTicks());
 					}
 					break;
 				}
-				if (message instanceof ShortMessage && device.isActiveForInput() && session.isMidiInputOn()) {
+				if (message instanceof ShortMessage && device.isActiveForInput() && loop.isMidiInputOn()) {
 					final ShortMessage msg = (ShortMessage)message;
 					final int channel = msg.getChannel();
-					if (channel==session.getMidiChannelIn()) {
+					if (channel==loop.getMidiChannelIn()) {
 						int command = msg.getCommand();
 						final int data1 = msg.getData1();
 						final int data2 = msg.getData2();
 						switch(command) {
 						case ShortMessage.NOTE_ON:
 							if (data2==0) {
-								noteOff(session, data1);
+								noteOff(loop, data1);
 							}
 							else {
-								noteOn(session, data1, data2);
+								noteOn(loop, data1, data2);
 							}
 							break;
 						case ShortMessage.NOTE_OFF:
-							noteOff(session, data1);
+							noteOff(loop, data1);
 							break;
 						case ShortMessage.CONTROL_CHANGE:
-							session.emitCC(data1, data2, pos);
+							loop.emitCC(data1, data2, pos);
 							break;
 						case ShortMessage.PITCH_BEND:
 							int val = ((data1 & 0x7f) + ((data2 & 0x7f)<<7)) - 0x2000;
-							session.emitPitchBend(val, pos);
+							loop.emitPitchBend(val, pos);
 							break;
 						}
 					}
@@ -275,51 +271,51 @@ public class MidiHandler {
 		}
 	}
 
-	private void noteOn(Loop session, int noteNumber, int velocity) {
-		session.emitNoteOn(noteNumber, velocity, pos);
-		sendNoteOnMidi(session, noteNumber, velocity);
+	private void noteOn(Loop loop, int noteNumber, int velocity) {
+		loop.emitNoteOn(noteNumber, velocity, pos);
+		sendNoteOnMidi(loop, noteNumber, velocity);
 	}
 
-	private void noteOff(Loop session, int noteNumber) {
-		session.emitNoteOff(noteNumber, pos);
-		sendNoteOffMidi(session, noteNumber);
+	private void noteOff(Loop loop, int noteNumber) {
+		loop.emitNoteOff(noteNumber, pos);
+		sendNoteOffMidi(loop, noteNumber);
 	}
 
-	public void sendNoteOnMidi(Loop session, int noteNumber, int velocity) {
+	public void sendNoteOnMidi(Loop loop, int noteNumber, int velocity) {
 		try {
 			ShortMessage message = new ShortMessage();
-			message.setMessage(ShortMessage.NOTE_ON, session.getMidiChannelOut(), noteNumber, velocity);
+			message.setMessage(ShortMessage.NOTE_ON, loop.getMidiChannelOut(), noteNumber, velocity);
 			sendMessage(message);
 		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void sendNoteOffMidi(Loop session, int noteNumber) {
+	public void sendNoteOffMidi(Loop loop, int noteNumber) {
 		try {
 			ShortMessage message = new ShortMessage();
-			message.setMessage(ShortMessage.NOTE_OFF, session.getMidiChannelOut(), noteNumber, 0);
+			message.setMessage(ShortMessage.NOTE_OFF, loop.getMidiChannelOut(), noteNumber, 0);
 			sendMessage(message);
 		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void sendCC(Loop session, int val) {
+	public void sendCC(Loop loop, int val) {
 		try {
 			ShortMessage message = new ShortMessage();
-			message.setMessage(ShortMessage.CONTROL_CHANGE, session.getMidiChannelOut(), 1, val);
+			message.setMessage(ShortMessage.CONTROL_CHANGE, loop.getMidiChannelOut(), 1, val);
 			sendMessage(message);
 		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void sendPitchBend(Loop session, int val) {
+	public void sendPitchBend(Loop loop, int val) {
 		try {
 			ShortMessage message = new ShortMessage();
 			val = Math.min(val + 0x2000, 0x3fff);
-			message.setMessage(ShortMessage.PITCH_BEND, session.getMidiChannelOut(), val & 0x7f, (val>>7) & 0x7f);
+			message.setMessage(ShortMessage.PITCH_BEND, loop.getMidiChannelOut(), val & 0x7f, (val>>7) & 0x7f);
 			sendMessage(message);
 		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();
@@ -336,22 +332,22 @@ public class MidiHandler {
 	}
 	
 	
-	public void sendAllNotesOffMidi(Loop session) {
-		sendAllNotesOffMidi(session, session.getMidiChannelOut(), false);
+	public void sendAllNotesOffMidi(Loop loop) {
+		sendAllNotesOffMidi(loop, loop.getMidiChannelOut(), false);
 	}
 	
-	public void sendAllNotesOffMidi(Loop session, boolean panic) {
-		sendAllNotesOffMidi(session, session.getMidiChannelOut(), panic);
+	public void sendAllNotesOffMidi(Loop loop, boolean panic) {
+		sendAllNotesOffMidi(loop, loop.getMidiChannelOut(), panic);
 	}
 	
-	public void sendAllNotesOffMidi(Loop session, int channel) {
-		sendAllNotesOffMidi(session, channel, false);
+	public void sendAllNotesOffMidi(Loop loop, int channel) {
+		sendAllNotesOffMidi(loop, channel, false);
 	}
 	
-	public void sendAllNotesOffMidi(Loop session, int channel, boolean panic) {
+	public void sendAllNotesOffMidi(Loop loop, int channel, boolean panic) {
 		ShortMessage message = new ShortMessage();		
 		try {
-			for (Note note: session.getNotesList()) {
+			for (Note note: loop.getNotesList()) {
 				if (note.isPlayed()) {
 					message.setMessage(ShortMessage.NOTE_OFF, channel, note.getPlayedNoteNumber(), 0);
 					note.setUnPlayed();

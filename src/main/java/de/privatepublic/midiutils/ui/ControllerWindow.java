@@ -229,17 +229,17 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	}
 	
 	@Override
-	public void settingsUpdated() {
+	public void onSettingsUpdated() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					contentPane.setBackground(Theme.CURRENT.getColorBackground());
-					if (panelComponents.size()<=DiMIDImi.getSessions().size()) {
-						for (Loop session:DiMIDImi.getSessions()) {
-							PanelComponent panel = panelComponents.get(session.hashCode());
+					if (panelComponents.size()<=DiMIDImi.getLoops().size()) {
+						for (Loop loop:DiMIDImi.getLoops()) {
+							PanelComponent panel = panelComponents.get(loop.hashCode());
 							if (panel==null) {
-								panel = new PanelComponent(session);
-								panelComponents.put(session.hashCode(), panel);
+								panel = new PanelComponent(loop);
+								panelComponents.put(loop.hashCode(), panel);
 								contentPane.add(panel.getPanel(), gbc);
 								panel.getPanel().revalidate();
 								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
@@ -250,18 +250,18 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 							    setMinimumSize(new Dimension(targetWidth, targetHeight));
 							    currSize = getSize();
 							    setSize(new Dimension(targetWidth, currSize.height));
-								session.registerAsReceiver(ControllerWindow.this);
+								loop.registerAsReceiver(ControllerWindow.this);
 							}
 							panel.updateLabelText();
 						}
 						refreshView();
 					}
-					else if (panelComponents.size()>DiMIDImi.getSessions().size()) {
+					else if (panelComponents.size()>DiMIDImi.getLoops().size()) {
 						Integer removeKey = null;
 						for (Integer key:panelComponents.keySet()) {
 							boolean exists = false;
-							for (Loop session:DiMIDImi.getSessions()) {
-								if (session.hashCode()==key) {
+							for (Loop loop:DiMIDImi.getLoops()) {
+								if (loop.hashCode()==key) {
 									exists = true;
 									break;
 								}
@@ -318,15 +318,15 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		}
 		
 		private JPanel panel;
-		private Loop session;
+		private Loop loop;
 		private JLabel label;
 		private BlinkToggleButton btnMute;
 		private BlinkToggleButton btnSolo;
 		private JCheckBox chckbxTriggerOnEnd;
 		private boolean onNextCycle = false;
 		
-		public PanelComponent(Loop session) {
-			this.session = session;
+		public PanelComponent(Loop loop) {
+			this.loop = loop;
 			
 			panel = new JPanel();
 			panel.setPreferredSize(null);
@@ -378,7 +378,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			BLINKERS.add(btnMute);
 			BLINKERS.add(btnSolo);
 
-			session.registerAsReceiver(this);
+			loop.registerAsReceiver(this);
 		}
 		
 		
@@ -394,20 +394,20 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 					if (onNextCycle) {
 						if (on) {
 							btnMute.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
-							session.setQueuedMute(QueuedState.ON);
+							loop.setQueuedMute(QueuedState.ON);
 						}
 						else {
 							btnMute.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
-							session.setQueuedMute(QueuedState.OFF);
+							loop.setQueuedMute(QueuedState.OFF);
 						}
 					}
 					else {
 						if (on) {
 							btnMute.stopBlinking();
-							session.setMuted(true);
+							loop.setMuted(true);
 						}
 						else {
-							session.setMuted(false);
+							loop.setMuted(false);
 						}
 					}
 					if (btnMute.isSelected()!=on) {
@@ -418,20 +418,20 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 					if (onNextCycle) {
 						if (on) {
 							btnSolo.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
-							session.setQueuedSolo(QueuedState.ON);
+							loop.setQueuedSolo(QueuedState.ON);
 						}
 						else {
 							btnSolo.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
-							session.setQueuedSolo(QueuedState.OFF);
+							loop.setQueuedSolo(QueuedState.OFF);
 						}
 					}
 					else {
 						if (on) {
 							btnSolo.stopBlinking();
-							session.setSoloed(true);
+							loop.setSoloed(true);
 						}
 						else {
-							session.setSoloed(false);
+							loop.setSoloed(false);
 						}
 					}
 					if (btnSolo.isSelected()!=on) {
@@ -443,12 +443,12 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 		
 		public void updateLabelText() {
-			label.setText("#"+(session.getMidiChannelOut()+1));
+			label.setText("#"+(loop.getMidiChannelOut()+1));
 		}
 		
 		public void updateColors() {
 			boolean light = Theme.CURRENT==Theme.BRIGHT;
-			panel.setBackground(light?session.getNoteColorPlayed():session.getNoteColor(false));
+			panel.setBackground(light?loop.getNoteColorPlayed():loop.getNoteColor(false));
 			panel.setBorder(BorderFactory.createLineBorder(Theme.CURRENT.getColorBackground(), 2, false));
 		}
 		
@@ -458,7 +458,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 		
 		@Override
-		public void stateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
+		public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
 			
 			switch (queuedMute) {
 			case OFF:
@@ -499,32 +499,32 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 
 		@Override
-		public void noteOn(int noteNumber, int velocity, int pos) {
+		public void onNoteOn(int noteNumber, int velocity, int pos) {
 		}
 
 
 		@Override
-		public void noteOff(int notenumber, int pos) {
+		public void onNoteOff(int notenumber, int pos) {
 		}
 
 
 		@Override
-		public void receiveClock(int pos) {
+		public void onClock(int pos) {
 		}
 
 
 		@Override
-		public void receiveActive(boolean active, int pos) {
+		public void onActivityChange(boolean active, int pos) {
 		}
 
 
 		@Override
-		public void receiveCC(int cc, int val, int pos) {
+		public void onReceiveCC(int cc, int val, int pos) {
 		}
 
 
 		@Override
-		public void receivePitchBend(int val, int pos) {
+		public void onReceivePitchBend(int val, int pos) {
 		}
 		
 	}
@@ -605,33 +605,33 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 
 
 	@Override
-	public void noteOn(int noteNumber, int velocity, int pos) {
+	public void onNoteOn(int noteNumber, int velocity, int pos) {
 	}
 
 	@Override
-	public void noteOff(int notenumber, int pos) {
+	public void onNoteOff(int notenumber, int pos) {
 	}
 
 	@Override
-	public void receiveClock(int pos) {
+	public void onClock(int pos) {
 	}
 
 	@Override
-	public void receiveActive(boolean active, int pos) {
+	public void onActivityChange(boolean active, int pos) {
 		btnStart.setEnabled(!active);
 		btnStop.setEnabled(active);
 	}
 
 	@Override
-	public void receiveCC(int cc, int val, int pos) {
+	public void onReceiveCC(int cc, int val, int pos) {
 	}
 
 	@Override
-	public void receivePitchBend(int val, int pos) {
+	public void onReceivePitchBend(int val, int pos) {
 	}
 
 	@Override
-	public void stateChange(boolean mute, boolean solo, QueuedState queuedMute,
+	public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute,
 			QueuedState queuedSolo) {
 	}
 	

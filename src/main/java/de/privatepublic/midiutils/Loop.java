@@ -19,14 +19,15 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import de.privatepublic.midiutils.Note.TransformationProvider;
 import de.privatepublic.midiutils.events.DimidimiEventReceiver;
-import de.privatepublic.midiutils.events.LoopUpdateReceiver;
+import de.privatepublic.midiutils.events.NotesUpdatedReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.ui.Theme;
 import de.privatepublic.midiutils.ui.UIWindow;
 
-public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
+public class Loop implements TransformationProvider, PerformanceReceiver, SettingsUpdateReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Loop.class);
 	
@@ -50,8 +51,8 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 		});
 	}
 	
-	public Loop(StorageContainer data, String sessionName) {
-		setSessionName(sessionName);
+	public Loop(StorageContainer data, String name) {
+		setName(name);
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -167,12 +168,12 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 		return pitchBendList;
 	}
 
-	public String getSessionName() {
-		return sessionName;
+	public String getName() {
+		return name;
 	}
 
-	public void setSessionName(String sessionName) {
-		this.sessionName = sessionName;
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	public boolean isDrums() {
@@ -211,7 +212,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 		if (isSoloed!=this.isSoloed) {
 			this.isSoloed = isSoloed;
 			SOLOCOUNT += isSoloed?1:-1;
-			DiMIDImi.updateLoopsOnAllSessions();
+			DiMIDImi.updateNotesOnAllLoops();
 		}
 	}
 
@@ -264,7 +265,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	public void clearPattern() {
 		for (Note dc:getNotesList()) {
-			MidiHandler.instance().sendNoteOffMidi(this, dc.getTransformedNoteNumber(getTransposeIndex()));
+			MidiHandler.instance().sendNoteOffMidi(this, dc.getNoteNumber(this));
 		}
 		getNotesList().clear();
 		for (int i=0;i<MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE;++i) {
@@ -329,7 +330,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	public void clearNote(Note note) {
 		getNotesList().remove(note);
-		MidiHandler.instance().sendNoteOffMidi(this, note.getTransformedNoteNumber(getTransposeIndex()));
+		MidiHandler.instance().sendNoteOffMidi(this, note.getNoteNumber(this));
 		emitLoopUpdated();
 	}
 
@@ -390,8 +391,8 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 
 
 	public void registerAsReceiver(DimidimiEventReceiver receiver) {
-		if (receiver instanceof LoopUpdateReceiver) {
-			loopUpdateReceivers.add((LoopUpdateReceiver)receiver);
+		if (receiver instanceof NotesUpdatedReceiver) {
+			loopUpdateReceivers.add((NotesUpdatedReceiver)receiver);
 		}
 		if (receiver instanceof PerformanceReceiver) {
 			performanceReceivers.add((PerformanceReceiver)receiver);
@@ -403,71 +404,71 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 
 
 	public void emitLoopUpdated() {
-		for (LoopUpdateReceiver receiver: loopUpdateReceivers) {
-			receiver.loopUpdated();
+		for (NotesUpdatedReceiver receiver: loopUpdateReceivers) {
+			receiver.onNotesUpdated();
 		}
 	}
 
 	public void emitRefreshLoopDisplay() {
-		for (LoopUpdateReceiver receiver: loopUpdateReceivers) {
-			receiver.refreshLoopDisplay();
+		for (NotesUpdatedReceiver receiver: loopUpdateReceivers) {
+			receiver.onRefreshLoopDisplay();
 		}
 	}
 
 
 	public void emitNoteOn(int noteNumber, int velocity, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
-			receiver.noteOn(noteNumber, velocity, pos);
+			receiver.onNoteOn(noteNumber, velocity, pos);
 		}
 	}
 
 	public void emitNoteOff(int notenumber, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
-			receiver.noteOff(notenumber, pos);;
+			receiver.onNoteOff(notenumber, pos);;
 		}
 	}
 	
 	public void emitCC(int cc, int val, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
-			receiver.receiveCC(cc, val, pos);
+			receiver.onReceiveCC(cc, val, pos);
 		}
 	}
 	
 	public void emitPitchBend(int val, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
-			receiver.receivePitchBend(val, pos);
+			receiver.onReceivePitchBend(val, pos);
 		}
 	}
 	
 
 	public void emitClock(int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
-			receiver.receiveClock(pos);
+			receiver.onClock(pos);
 		}
 	}
 
 	public void emitActive(boolean active, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
-			receiver.receiveActive(active, pos);
+			receiver.onActivityChange(active, pos);
 		}
 	}
 	
 	public void emitState() {
 		for (PerformanceReceiver receiver: performanceReceivers) {
-			receiver.stateChange(isMuted, isSoloed, queuedMuteState, queuedSoloState);
+			receiver.onStateChange(isMuted, isSoloed, queuedMuteState, queuedSoloState);
 		}
 	}
 
 	public void emitSettingsUpdated() {
 		for (SettingsUpdateReceiver receiver: settingsUpdateReceivers) {
-			receiver.settingsUpdated();
+			receiver.onSettingsUpdated();
 		}
 	}
 	
 	
 	
 	@Override
-	public void noteOn(int noteNumber, int velocity, int pos) {
+	public void onNoteOn(int noteNumber, int velocity, int pos) {
 		if (MidiHandler.ACTIVE && isMidiInputOn()) {
 			Note note = new Note(noteNumber, velocity, pos);
 			lastStarted[noteNumber] = note;
@@ -481,7 +482,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 	}
 	
 	@Override
-	public void noteOff(int notenumber, int pos) {
+	public void onNoteOff(int notenumber, int pos) {
 		if (MidiHandler.ACTIVE && isMidiInputOn()) {
 			Note reference = lastStarted[notenumber];
 			if (reference!=null) {
@@ -494,7 +495,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 	int lastMetronomeNote = 0;
 	
 	@Override
-	public void receiveClock(int pos) {
+	public void onClock(int pos) {
 		
 		if (lastMetronomeNote>0) {
 			MidiHandler.instance().sendNoteOffMidi(this, lastMetronomeNote);
@@ -541,12 +542,12 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 				emitLoopUpdated();
 				continue;
 			}
-			if (isAudible && pos==note.getTransformedPosStart(getMaxTicks(), getQuantizationIndex())) {
-				int playnumber = note.getTransformedNoteNumber(getTransposeIndex());
+			if (isAudible && pos==note.getPosStart(this)) {
+				int playnumber = note.getNoteNumber(this);
 				note.setPlayed(playnumber);
 				MidiHandler.instance().sendNoteOnMidi(this, playnumber, note.getVelocity());
 			}
-			if (pos==note.getTransformedPosEnd(getMaxTicks(), getQuantizationIndex()) && note.isPlayed()) {
+			if (pos==note.getPosEnd(this) && note.isPlayed()) {
 				MidiHandler.instance().sendNoteOffMidi(this, note.getPlayedNoteNumber());
 				note.setUnPlayed();
 			}
@@ -589,7 +590,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 
 
 	@Override
-	public void receiveActive(boolean active, int pos) {
+	public void onActivityChange(boolean active, int pos) {
 		if (!active) {
 			// find still uncompleted notes
 			for (Note nr:getNotesList()) {
@@ -620,7 +621,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 	}
 
 	@Override
-	public void receiveCC(int cc, int val, int pos) {
+	public void onReceiveCC(int cc, int val, int pos) {
 		if (isMidiInputOn()) {
 			if (cc==1) {
 				currentCC = val;
@@ -631,7 +632,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 	}
 
 	@Override
-	public void receivePitchBend(int val, int pos) {
+	public void onReceivePitchBend(int val, int pos) {
 		if (isMidiInputOn()) {
 			currentPitchBend = val;
 			pitchBendList[pos] = val;
@@ -663,7 +664,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 	private boolean overridePitchBend = false;
 	private int[] ccList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
 	private int[] pitchBendList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
-	private String sessionName;
+	private String name;
 	
 	private Color colorNote;
 	private Color colorNoteBright;
@@ -672,7 +673,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 	private Color colorNoteBrightSelected;
 	private Color colorChannel;
 
-	private List<LoopUpdateReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<LoopUpdateReceiver>();
+	private List<NotesUpdatedReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<NotesUpdatedReceiver>();
 	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
 	private List<SettingsUpdateReceiver> settingsUpdateReceivers = new CopyOnWriteArrayList<SettingsUpdateReceiver>();
 
@@ -684,7 +685,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 	public static enum QueuedState { NO_CHANGE, ON, OFF }
 
 	@Override
-	public void stateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
+	public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
 		
 	}
 	
@@ -695,7 +696,7 @@ public class Loop implements PerformanceReceiver, SettingsUpdateReceiver {
 	
 	
 	@Override
-	public void settingsUpdated() {
+	public void onSettingsUpdated() {
 		updateColors();
 	}
 

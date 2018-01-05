@@ -56,12 +56,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.DiMIDImi;
+import de.privatepublic.midiutils.Loop;
+import de.privatepublic.midiutils.Loop.QueuedState;
 import de.privatepublic.midiutils.MidiDeviceWrapper;
 import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Note;
+import de.privatepublic.midiutils.Note.TransformationProvider;
 import de.privatepublic.midiutils.Prefs;
-import de.privatepublic.midiutils.Loop;
-import de.privatepublic.midiutils.Loop.QueuedState;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
@@ -76,9 +77,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	
 	private static final String[] MIDI_CHANNELS_IN = new String[]{"In: 1","In: 2","In: 3","In: 4","In: 5","In: 6","In: 7","In: 8","In: 9","In: 10","In: 11","In: 12","In: 13","In: 14","In: 15","In: 16"};
 	private static final String[] MIDI_CHANNELS_OUT = new String[]{"Out: 1","Out: 2","Out: 3","Out: 4","Out: 5","Out: 6","Out: 7","Out: 8","Out: 9","Out: 10","Out: 11","Out: 12","Out: 13","Out: 14","Out: 15","Out: 16"};
-	private static final String[] QUANTIZE = new String[]{"unquantized","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
-	private static final String[] TRANSPOSE = new String[]{"+24", "+12","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","0","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-12","-24"};
-	
 	private JFrame frmDimidimi;
 	private LoopDisplayPanel loopDisplayPanel;
 	private JComboBox<String> comboQuantize;
@@ -90,12 +88,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JCheckBoxMenuItem menuItemTheme;
 	private JCheckBoxMenuItem menuItemAnimate;
 	private JToggleButton chckbxDrumsLayout;
-	private Loop session;
+	private Loop loop;
 	private String titleExtension = null;
 	private JCheckBox chckbxMetronome;
 
-	public UIWindow(Loop session) {
-		this.session = session;
+	public UIWindow(Loop loop) {
+		this.loop = loop;
 		try {
 			System.setProperty("apple.laf.useScreenMenuBar", "true");
             System.setProperty("com.apple.mrj.application.apple.menu.about.name", APP_TITLE);
@@ -107,9 +105,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		}
 		initialize();
 		
-		session.registerAsReceiver(this);
-		session.emitSettingsUpdated();
-		session.emitLoopUpdated();
+		loop.registerAsReceiver(this);
+		loop.emitSettingsUpdated();
+		loop.emitLoopUpdated();
 		LOG.debug("User interface built.");
 	}
 	
@@ -130,7 +128,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	}
 	
 	private String getWindowTitle() {
-		return APP_TITLE+" - "+(titleExtension!=null?titleExtension:"")+" (#"+(session.getMidiChannelOut()+1)+")"; 
+		return APP_TITLE+" - "+(titleExtension!=null?titleExtension:"")+" (#"+(loop.getMidiChannelOut()+1)+")"; 
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -143,7 +141,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		frmDimidimi.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				DiMIDImi.removeSession(session);
+				DiMIDImi.removeLoop(loop);
 			}
 		});
 		setIcon(frmDimidimi);
@@ -190,7 +188,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		SpringLayout sl_panel = new SpringLayout();
 		panel.setLayout(sl_panel);
 		
-		comboQuantize = new JComboBox(QUANTIZE);
+		comboQuantize = new JComboBox(TransformationProvider.QUANTIZE_LABEL);
 		comboQuantize.setToolTipText("Note quantization");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER, panel);
 		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -203,7 +201,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
 		panel.add(lblTranspose);
 		
-		comboBoxTranspose = new JComboBox(TRANSPOSE);
+		comboBoxTranspose = new JComboBox(TransformationProvider.TRANSPOSE_LABEL);
 		comboBoxTranspose.setToolTipText("Transpose semitones");
 		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 0, SpringLayout.EAST, lblTranspose);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboBoxTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
@@ -217,13 +215,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, btnClear, 0, SpringLayout.VERTICAL_CENTER, panel);
 		panel.add(btnClear);
 		
-		JButton buttonNewSession = new JButton("+");
-		buttonNewSession.setToolTipText("Create new loop window");
-		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -6, SpringLayout.WEST, buttonNewSession);
-		sl_panel.putConstraint(SpringLayout.EAST, buttonNewSession, 0, SpringLayout.EAST, panel);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewSession, 0, SpringLayout.VERTICAL_CENTER, panel);
-		buttonNewSession.setAlignmentX(Component.RIGHT_ALIGNMENT);
-		panel.add(buttonNewSession);
+		JButton buttonNewLoop = new JButton("+");
+		buttonNewLoop.setToolTipText("Create new loop window");
+		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -6, SpringLayout.WEST, buttonNewLoop);
+		sl_panel.putConstraint(SpringLayout.EAST, buttonNewLoop, 0, SpringLayout.EAST, panel);
+		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewLoop, 0, SpringLayout.VERTICAL_CENTER, panel);
+		buttonNewLoop.setAlignmentX(Component.RIGHT_ALIGNMENT);
+		panel.add(buttonNewLoop);
 		
 		slider = new JSlider();
 		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, slider);
@@ -231,8 +229,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void stateChanged(ChangeEvent e) {
 				int quarters = Math.max(slider.getValue(), 1);
 				slider.setToolTipText("Loop length: "+quarters+" quarter note"+(quarters>1?"s":""));
-				session.setLengthQuarters(quarters);
-				session.emitRefreshLoopDisplay();
+				loop.setLengthQuarters(quarters);
+				loop.emitRefreshLoopDisplay();
 			}
 		});
 		slider.setSnapToTicks(true);
@@ -246,17 +244,17 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		slider.setPaintTicks(true);
 		panel.add(slider);
 		
-		buttonNewSession.addActionListener(new ActionListener() {
+		buttonNewLoop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				session.setMidiInputOn(false);
-				DiMIDImi.createSession();
+				loop.setMidiInputOn(false);
+				DiMIDImi.createLoop();
 			}
 		});
 		
 		btnClear.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.clearPattern();
+				loop.clearPattern();
 			}
 		});
 		((JLabel)comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
@@ -264,15 +262,15 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboBoxTranspose.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.setTransposeIndex(comboBoxTranspose.getSelectedIndex());
-				session.emitRefreshLoopDisplay();
+				loop.setTransposeIndex(comboBoxTranspose.getSelectedIndex());
+				loop.emitRefreshLoopDisplay();
 			}});
 		
 		comboQuantize.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.setQuantizationIndex(comboQuantize.getSelectedIndex());
-				session.emitRefreshLoopDisplay();
+				loop.setQuantizationIndex(comboQuantize.getSelectedIndex());
+				loop.emitRefreshLoopDisplay();
 			}});
 		
 		lblDimidimiLooper = new JLabel("dimidimi");
@@ -286,12 +284,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboMidiIn.setToolTipText("MIDI Channel In");
 		comboMidiIn.setMaximumRowCount(16);
 		
-		comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
+		comboMidiIn.setSelectedIndex(loop.getMidiChannelIn());
 		
 		comboMidiOut = new JComboBox(MIDI_CHANNELS_OUT);
 		comboMidiOut.setToolTipText("MIDI Channel Out");
 		comboMidiOut.setMaximumRowCount(16);
-		comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
+		comboMidiOut.setSelectedIndex(loop.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -6, SpringLayout.WEST, comboMidiOut);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -6, SpringLayout.WEST, comboMidiIn);
@@ -306,7 +304,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, chckbxMetronome, -4, SpringLayout.NORTH, lblIn);
 		chckbxMetronome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				session.setMetronomeEnabled(chckbxMetronome.isSelected());
+				loop.setMetronomeEnabled(chckbxMetronome.isSelected());
 			}
 		});
 		panelMidi.add(chckbxMetronome);
@@ -324,7 +322,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		toggleMidiIn.setSelected(true);
 		toggleMidiIn.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				session.setMidiInputOn(toggleMidiIn.isSelected());
+				loop.setMidiInputOn(toggleMidiIn.isSelected());
 			}
 		});
 		toggleMidiIn.setToolTipText("Record notes from selected channel");
@@ -344,11 +342,11 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		chckbxDrumsLayout.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.setDrums(chckbxDrumsLayout.isSelected());
+				loop.setDrums(chckbxDrumsLayout.isSelected());
 			}
 		});
 		panelLoop.setLayout(new BorderLayout(0, 0));
-		loopDisplayPanel = new LoopDisplayPanel(session);
+		loopDisplayPanel = new LoopDisplayPanel(loop);
 		loopDisplayPanel.setBackground(Color.WHITE);
 		panelLoop.add(loopDisplayPanel);
 		loopDisplayPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
@@ -359,13 +357,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int midiIn = comboMidiIn.getSelectedIndex();
-				session.setMidiChannelIn(midiIn);
+				loop.setMidiChannelIn(midiIn);
 			}});
 		comboMidiOut.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int midiOut = comboMidiOut.getSelectedIndex();
-				session.setMidiChannelOut(midiOut);
+				loop.setMidiChannelOut(midiOut);
 			}});
 		
 	}
@@ -422,7 +420,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				File selectedFile = GUIUtils.saveDialog("Save Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
 				if (selectedFile!=null) {
 					try {
-						DiMIDImi.saveSession(selectedFile);
+						DiMIDImi.saveLoop(selectedFile);
 						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
 					} catch (IOException e1) {
 						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
@@ -441,9 +439,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.setMidiInputOn(false);
-				settingsUpdated();
-				DiMIDImi.createSession();
+				loop.setMidiInputOn(false);
+				onSettingsUpdated();
+				DiMIDImi.createLoop();
 			}
 		});
 		menu.add(menuItem);
@@ -454,7 +452,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			public void actionPerformed(ActionEvent e) {
 				File selectedFile = GUIUtils.loadDialog("Open Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
 		        if (selectedFile!=null) {
-		        	String s = GUIUtils.loadLoop(selectedFile, session, frmDimidimi);
+		        	String s = GUIUtils.loadLoop(selectedFile, loop, frmDimidimi);
 		        	if (s!=null) {
 		        		titleExtension = s;
 		        		frmDimidimi.setTitle(getWindowTitle());
@@ -470,7 +468,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				super.actionPerformed(e);
 				String filename = Prefs.getList(Prefs.RECENT_LOOP_LIST).get(selectedIndex);
 				if (!Prefs.LIST_ENTRY_EMPTY_MARKER.equals(filename)) {
-					String s = GUIUtils.loadLoop(new File(filename), session, frmDimidimi);
+					String s = GUIUtils.loadLoop(new File(filename), loop, frmDimidimi);
 		        	if (s!=null) {
 		        		titleExtension = s;
 		        		frmDimidimi.setTitle(getWindowTitle());
@@ -487,7 +485,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				File selectedFile = GUIUtils.saveDialog("Save Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
 		        if (selectedFile!=null) {
 		        	try {
-		        		session.saveLoop(selectedFile);
+		        		loop.saveLoop(selectedFile);
 		        		Prefs.pushToList(Prefs.RECENT_LOOP_LIST, selectedFile.getPath());
 		        		titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
 		        		frmDimidimi.setTitle(getWindowTitle());
@@ -518,7 +516,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DiMIDImi.removeAllSessions();
+				DiMIDImi.removeAllLoops();
 			}
 		});
 		menu.add(menuItem);
@@ -532,7 +530,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.clearPattern();
+				loop.clearPattern();
 			}
 		});
 		menu.add(menuItem);
@@ -542,7 +540,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.clearModWheel();
+				loop.clearModWheel();
 			}
 		});
 		menu.add(menuItem);
@@ -551,7 +549,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.clearPitchBend();
+				loop.clearPitchBend();
 			}
 		});
 		menu.add(menuItem);
@@ -561,7 +559,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.doublePattern();
+				loop.doublePattern();
 			}
 		});
 		menu.add(menuItem);
@@ -571,7 +569,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.halfSpeed();
+				loop.halfSpeed();
 			}
 		});
 		menu.add(menuItem);
@@ -580,7 +578,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				session.doubleSpeed();
+				loop.doubleSpeed();
 			}
 		});
 		menu.add(menuItem);
@@ -590,11 +588,11 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (Note note: session.getNotesList()) {
-					note.setPosStart(note.getTransformedPosStart(session.getMaxTicks(), session.getQuantizationIndex()));
-					note.setPosEnd(note.getTransformedPosEnd(session.getMaxTicks(), session.getQuantizationIndex()));
+				for (Note note: loop.getNotesList()) {
+					note.setPosStart(note.getPosStart(loop));
+					note.setPosEnd(note.getPosEnd(loop));
 				}
-				session.emitRefreshLoopDisplay();
+				loop.emitRefreshLoopDisplay();
 			}
 		});
 		menu.add(menuItem);
@@ -603,10 +601,10 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (Note note: session.getNotesList()) {
-					note.setNoteNumber(note.getTransformedNoteNumber(session.getTransposeIndex()));
+				for (Note note: loop.getNotesList()) {
+					note.setNoteNumber(note.getNoteNumber(loop));
 				}
-				session.emitRefreshLoopDisplay();
+				loop.emitRefreshLoopDisplay();
 			}
 		});
 		menu.add(menuItem);
@@ -656,7 +654,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 					}
 					MidiHandler.instance().storeSelectedOutDevices();
 				}
-				session.emitRefreshLoopDisplay();
+				loop.emitRefreshLoopDisplay();
 			}
 		});
 		menu.add(menuItem);
@@ -665,7 +663,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				MidiHandler.instance().sendAllNotesOffMidi(session, true);
+				MidiHandler.instance().sendAllNotesOffMidi(loop, true);
 			}
 		});
 		menu.add(menuItem);
@@ -678,7 +676,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DiMIDImi.arrangeSessionWindows();
+				DiMIDImi.arrangeLoopWindows();
 			}
 		});
 		menu.add(menuItem);
@@ -702,7 +700,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				if (LoopDisplayPanel.ANIMATE!=menuItemAnimate.isSelected()) {
 					Prefs.put(Prefs.ANIMATE, menuItemAnimate.isSelected()?1:0);
 					LoopDisplayPanel.ANIMATE = menuItemAnimate.isSelected();
-					DiMIDImi.updateSettingsOnAllSessions();
+					DiMIDImi.updateSettingsOnAllLoops();
 				}
 			}
 		});
@@ -716,7 +714,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				if (selectedTheme!=Theme.CURRENT) {
 					Theme.CURRENT = selectedTheme;
 					Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
-					DiMIDImi.updateSettingsOnAllSessions();
+					DiMIDImi.updateSettingsOnAllLoops();
 				}
 			}
 		});
@@ -772,16 +770,16 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	// events
 	
 	@Override
-	public void settingsUpdated() {
+	public void onSettingsUpdated() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				comboQuantize.setSelectedIndex(session.getQuantizationIndex());
-				comboBoxTranspose.setSelectedIndex(session.getTransposeIndex());
-				slider.setValue(session.getLengthQuarters());
-				toggleMidiIn.setSelected(session.isMidiInputOn());
-				comboMidiOut.setSelectedIndex(session.getMidiChannelOut());
-				comboMidiIn.setSelectedIndex(session.getMidiChannelIn());
-				chckbxDrumsLayout.setSelected(session.isDrums());
+				comboQuantize.setSelectedIndex(loop.getQuantizationIndex());
+				comboBoxTranspose.setSelectedIndex(loop.getTransposeIndex());
+				slider.setValue(loop.getLengthQuarters());
+				toggleMidiIn.setSelected(loop.isMidiInputOn());
+				comboMidiOut.setSelectedIndex(loop.getMidiChannelOut());
+				comboMidiIn.setSelectedIndex(loop.getMidiChannelIn());
+				chckbxDrumsLayout.setSelected(loop.isDrums());
 				if (Prefs.get(Prefs.THEME, 0)==0) {
 					Theme.CURRENT = Theme.BRIGHT;
 					menuItemTheme.setSelected(false);
@@ -796,8 +794,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				else {
 					menuItemAnimate.setSelected(LoopDisplayPanel.ANIMATE);
 				}
-				if (session.getSessionName()!=null && titleExtension==null) { 
-					titleExtension = session.getSessionName();
+				if (loop.getName()!=null && titleExtension==null) { 
+					titleExtension = loop.getName();
 				}
 				frmDimidimi.setTitle(getWindowTitle());
 			}
@@ -805,32 +803,32 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	}
 	
 	@Override
-	public void receiveClock(int pos) {
+	public void onClock(int pos) {
 		loopDisplayPanel.updateLoopPosition(pos);
 	}
 
 	@Override
-	public void receiveActive(boolean active, int pos) {
+	public void onActivityChange(boolean active, int pos) {
 	}
 
 	@Override
-	public void noteOn(int noteNumber, int velocity, int pos) {
+	public void onNoteOn(int noteNumber, int velocity, int pos) {
 	}
 
 	@Override
-	public void noteOff(int notenumber, int pos) {
+	public void onNoteOff(int notenumber, int pos) {
 	}
 
 	@Override
-	public void receiveCC(int cc, int val, int pos) {
+	public void onReceiveCC(int cc, int val, int pos) {
 	}
 
 	@Override
-	public void receivePitchBend(int val, int pos) {
+	public void onReceivePitchBend(int val, int pos) {
 	}
 
 	@Override
-	public void stateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
+	public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -25,19 +25,19 @@ public class StorageContainer {
 	}
 	
 	
-	public StorageContainer(Loop session) {
-		this.notes = session.getNotesList();
-		this.transpose = session.getTransposeIndex();
-		this.quantization = session.getQuantizationIndex();
-		this.length = session.getLengthQuarters();
-		this.midiChannelIn = session.getMidiChannelIn();
-		this.midiChannelOut = session.getMidiChannelOut();
-		this.midiChannelInActive = session.isMidiInputOn();
+	public StorageContainer(Loop loop) {
+		this.notes = loop.getNotesList();
+		this.transpose = loop.getTransposeIndex();
+		this.quantization = loop.getQuantizationIndex();
+		this.length = loop.getLengthQuarters();
+		this.midiChannelIn = loop.getMidiChannelIn();
+		this.midiChannelOut = loop.getMidiChannelOut();
+		this.midiChannelInActive = loop.isMidiInputOn();
 		this.windowPos = new HashMap<String, Integer>();
-		this.pitchBend =  asList(session.getPitchBendList());
-		this.modWheel = asList(session.getCcList());
-		this.isDrums = session.isDrums();
-		Rectangle bounds = session.getWindow().getScreenPosition();
+		this.pitchBend =  asList(loop.getPitchBendList());
+		this.modWheel = asList(loop.getCcList());
+		this.isDrums = loop.isDrums();
+		Rectangle bounds = loop.getWindow().getScreenPosition();
 		windowPos.put("x", bounds.x);
 		windowPos.put("y", bounds.y);
 		windowPos.put("w", bounds.width);
