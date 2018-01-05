@@ -224,6 +224,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panel.add(buttonNewLoop);
 		
 		slider = new JSlider();
+		sl_panel.putConstraint(SpringLayout.WEST, slider, 8, SpringLayout.WEST, panel);
 		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, slider);
 		slider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {

@@ -112,12 +112,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			emitSettingsUpdated();
 			emitRefreshLoopDisplay();
 		}
-		colorNote = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
-		colorNotePlayed = Color.getHSBColor(midiChannelOut/16f, .25f, 1);
-	    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
-	    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
-	    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
-	    colorChannel = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getColorChannelSaturation(), Theme.CURRENT.getColorChannelBrightness());
+		updateColors();
 	}
 
 
@@ -701,12 +696,12 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	}
 
 	private void updateColors() {
-		LOG.debug("Setting colors for #{} bright: {}", midiChannelOut, Theme.CURRENT==Theme.BRIGHT);
-		colorNote = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
-		colorNotePlayed = Color.getHSBColor(midiChannelOut/16f, .25f, 1);
-	    colorNoteBright = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
-	    colorNoteSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
-	    colorNoteBrightSelected = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
-	    colorChannel = Color.getHSBColor(midiChannelOut/16f, Theme.CURRENT.getColorChannelSaturation(), Theme.CURRENT.getColorChannelBrightness());
+		float hue = midiChannelOut/18f;
+		colorNote = Color.getHSBColor(hue, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
+		colorNotePlayed = Color.getHSBColor(hue, .25f, 1);
+	    colorNoteBright = Color.getHSBColor(hue, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+	    colorNoteSelected = Color.getHSBColor(hue, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
+	    colorNoteBrightSelected = Color.getHSBColor(hue, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
+	    colorChannel = Color.getHSBColor(hue, Theme.CURRENT.getColorChannelSaturation(), Theme.CURRENT.getColorChannelBrightness());
 	}
 }
