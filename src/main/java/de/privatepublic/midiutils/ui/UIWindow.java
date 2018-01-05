@@ -588,7 +588,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (Note note: loop.getNotesList()) {
+				for (Note note: loop.getNotesList()) { // TODO move to loop class
 					note.setPosStart(note.getPosStart(loop));
 					note.setPosEnd(note.getPosEnd(loop));
 				}
@@ -601,7 +601,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (Note note: loop.getNotesList()) {
+				for (Note note: loop.getNotesList()) {  // TODO move to loop class
 					note.setNoteNumber(note.getNoteNumber(loop));
 				}
 				loop.emitRefreshLoopDisplay();
