@@ -368,21 +368,23 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 	    g.setFont(Theme.CURRENT.getFontNotes());
 	    
 		// draw pitchbend and mod
-	    g.setStroke(STROKE_3);
-	    final int centery = height/2;
-	    for (int i=0;i<loop.getLengthQuarters()*Loop.TICK_COUNT_BASE;++i) {
-	    	int xpos = Math.round(i*tickwidth);
-	    	int mod = loop.getCcList()[i];
-	    	int pb = (-loop.getPitchBendList()[i])/129;
-	    	g.setColor(Theme.CURRENT.getColorPitchBend());
-	    	if (pb<0) {
-	    		g.fillRect(xpos, centery+pb, Math.round(tickwidth)+1, Math.abs(pb));
-	    	}
-	    	else if (pb>0) {
-	    		g.fillRect(xpos, centery, Math.round(tickwidth)+1, pb);
-	    	}
-	    	g.setColor(Theme.CURRENT.getColorModWheel());
-	    	g.drawLine(xpos, height-mod, xpos, height);
+	    if (loop!=null) {
+		    g.setStroke(STROKE_3);
+		    final int centery = height/2;
+		    for (int i=0;i<loop.getLengthQuarters()*Loop.TICK_COUNT_BASE;++i) {
+		    	int xpos = Math.round(i*tickwidth);
+		    	int mod = loop.getCcList()[i];
+		    	int pb = (-loop.getPitchBendList()[i])/129;
+		    	g.setColor(Theme.CURRENT.getColorPitchBend());
+		    	if (pb<0) {
+		    		g.fillRect(xpos, centery+pb, Math.round(tickwidth)+1, Math.abs(pb));
+		    	}
+		    	else if (pb>0) {
+		    		g.fillRect(xpos, centery, Math.round(tickwidth)+1, pb);
+		    	}
+		    	g.setColor(Theme.CURRENT.getColorModWheel());
+		    	g.drawLine(xpos, height-mod, xpos, height);
+		    }
 	    }
 
 	    
