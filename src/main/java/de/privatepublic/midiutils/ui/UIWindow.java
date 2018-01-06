@@ -65,6 +65,7 @@ import de.privatepublic.midiutils.Note.TransformationProvider;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
+import javax.swing.SwingConstants;
 
 public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
@@ -180,32 +181,53 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 						.addComponent(panelMidi, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addComponent(panelTitle, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 377, Short.MAX_VALUE)
+					.addComponent(panelLoop, GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 48, GroupLayout.PREFERRED_SIZE)
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE)
 					.addGap(6))
 		);
 		SpringLayout sl_panel = new SpringLayout();
 		panel.setLayout(sl_panel);
+		slider = new JSlider();
+		slider.setPaintTicks(true);
+		labelLength = new JLabel("8");
+		labelLength.setHorizontalAlignment(SwingConstants.RIGHT);
+		sl_panel.putConstraint(SpringLayout.WEST, slider, 0, SpringLayout.EAST, labelLength);
+		
+		labelLength.setPreferredSize(new Dimension(20, 16));
+		sl_panel.putConstraint(SpringLayout.WEST, labelLength, 0, SpringLayout.WEST, panel);
+		slider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				int quarters = Math.max(slider.getValue(), 1);
+				slider.setToolTipText("Loop length: "+quarters+" quarter note"+(quarters>1?"s":""));
+				labelLength.setText(""+quarters);
+				loop.setLengthQuarters(quarters);
+				loop.emitRefreshLoopDisplay();
+			}
+		});
+		slider.setSnapToTicks(true);
+		slider.setValue(8);
+		slider.setMinimum(0);
+		slider.setMaximum(32);
+		slider.setLabelTable(LENGTH_LABELS);
+		slider.setMinorTickSpacing(1);
+		slider.setMajorTickSpacing(4);
+		panel.add(slider);
+		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, labelLength, 0, SpringLayout.VERTICAL_CENTER, panel);
+		
+		panel.add(labelLength);
 		
 		comboQuantize = new JComboBox(TransformationProvider.QUANTIZE_LABEL);
+		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, slider);
 		comboQuantize.setToolTipText("Note quantization");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER, panel);
-		comboQuantize.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboQuantize);
 		comboQuantize.setMaximumRowCount(12);
 		
-		JLabel lblTranspose = new JLabel("Transp.");
-		sl_panel.putConstraint(SpringLayout.WEST, lblTranspose, 6, SpringLayout.EAST, comboQuantize);
-		sl_panel.putConstraint(SpringLayout.SOUTH, lblTranspose, -16, SpringLayout.SOUTH, panel);
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
-		panel.add(lblTranspose);
-		
 		comboBoxTranspose = new JComboBox(TransformationProvider.TRANSPOSE_LABEL);
+		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 6, SpringLayout.EAST, comboQuantize);
 		comboBoxTranspose.setToolTipText("Transpose semitones");
-		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 0, SpringLayout.EAST, lblTranspose);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboBoxTranspose, 0, SpringLayout.VERTICAL_CENTER, panel);
-		comboBoxTranspose.setAlignmentX(Component.LEFT_ALIGNMENT);
 		panel.add(comboBoxTranspose);
 		comboBoxTranspose.setMaximumRowCount(27);
 		comboBoxTranspose.setSelectedIndex(13);
@@ -222,28 +244,6 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewLoop, 0, SpringLayout.VERTICAL_CENTER, panel);
 		buttonNewLoop.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panel.add(buttonNewLoop);
-		
-		slider = new JSlider();
-		sl_panel.putConstraint(SpringLayout.WEST, slider, 8, SpringLayout.WEST, panel);
-		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, slider);
-		slider.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e) {
-				int quarters = Math.max(slider.getValue(), 1);
-				slider.setToolTipText("Loop length: "+quarters+" quarter note"+(quarters>1?"s":""));
-				loop.setLengthQuarters(quarters);
-				loop.emitRefreshLoopDisplay();
-			}
-		});
-		slider.setSnapToTicks(true);
-		slider.setPaintLabels(true);
-		slider.setValue(8);
-		slider.setMinimum(0);
-		slider.setMaximum(32);
-		slider.setLabelTable(LENGTH_LABELS);
-		slider.setMinorTickSpacing(1);
-		slider.setMajorTickSpacing(4);
-		slider.setPaintTicks(true);
-		panel.add(slider);
 		
 		buttonNewLoop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -777,6 +777,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				comboQuantize.setSelectedIndex(loop.getQuantizationIndex());
 				comboBoxTranspose.setSelectedIndex(loop.getTransposeIndex());
 				slider.setValue(loop.getLengthQuarters());
+				labelLength.setText(""+loop.getLengthQuarters());
 				toggleMidiIn.setSelected(loop.isMidiInputOn());
 				comboMidiOut.setSelectedIndex(loop.getMidiChannelOut());
 				comboMidiIn.setSelectedIndex(loop.getMidiChannelIn());
@@ -836,17 +837,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	
 	private static final Dictionary<Integer, JLabel> LENGTH_LABELS = new Hashtable<Integer, JLabel>();
 	private JSlider slider;
+	private JLabel labelLength;
 	
 	static {
 		LENGTH_LABELS.put(0, new JLabel("Len"));
-        LENGTH_LABELS.put(4, new JLabel("4"));
         LENGTH_LABELS.put(8, new JLabel("8"));
-        LENGTH_LABELS.put(12, new JLabel("12"));
         LENGTH_LABELS.put(16, new JLabel("16"));
-        LENGTH_LABELS.put(20, new JLabel("20"));
         LENGTH_LABELS.put(24, new JLabel("24"));
-        LENGTH_LABELS.put(28, new JLabel("28"));
         LENGTH_LABELS.put(32, new JLabel("32"));
 	}
-	
 }
