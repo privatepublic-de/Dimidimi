@@ -178,7 +178,7 @@ public class Note {
 		public static final int[] T_STEPS = new int[]{ 24, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -24};
 		
 		public static final String[] QUANTIZE_LABEL = new String[]{"unquantized","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
-		public static final String[] TRANSPOSE_LABEL = new String[]{"trans +2 Oct", "trans +1 Oct","trans +11","trans +10","trans +9","trans +8","trans +7","trans +6","trans +5","trans +4","trans +3","trans +2","trans +1","untransposed","trans -1","trans -2","trans -3","trans -4","trans -5","trans -6","trans -7","trans -8","trans -9","trans -10","trans -11","trans -1 Oct","trans -2 Oct"};
+		public static final String[] TRANSPOSE_LABEL = new String[]{"+2 Oct", "+1 Oct","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","untransposed","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-1 Oct","-2 Oct"};
 		
 		public int getTransposeIndex();
 		public int getQuantizationIndex();
