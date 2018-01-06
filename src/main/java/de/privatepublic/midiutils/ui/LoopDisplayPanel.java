@@ -153,13 +153,25 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			
 			@Override
 			public void mousePressed(MouseEvent e) {
-				isDragging = true;
 				if (e.isPopupTrigger()) {
-					if (selectedNotes.size()>0) {
-						openPopUp(e);
+					isDragging = false;
+					if (selectedNotes.size()>2) {
+						Note hitNote = findHitNote(selectedNotes, e.getPoint());
+						if (hitNote!=null) {
+							openPopUp(e);
+						}
+					}
+					else {
+						Note hitNote = findHitNote(loop.getNotesList(), e.getPoint());
+						if (hitNote!=null) {
+							selectedNotes.clear();
+							selectedNotes.add(hitNote);
+							openPopUp(e);
+						}
 					}
 				}
 				else {
+					isDragging = true;
 					dragStart = e.getPoint();
 					if (resizeNote==null) {
 						Note hitNote = findHitNote(selectedNotes, dragStart);
