@@ -607,7 +607,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	    gbc.insets = new Insets(1, 0, 1, 0);
 	}
 	
-	private static final int WIDTH_PADDING = 64;
+	private static final int WIDTH_PADDING = 32;
 	private static final int HEIGHT_PADDING = 48;
 	private JButton btnAllSoloOff;
 	private JButton btnAllMuteOff;
