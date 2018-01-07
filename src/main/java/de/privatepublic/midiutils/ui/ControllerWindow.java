@@ -1,6 +1,7 @@
 package de.privatepublic.midiutils.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -11,7 +12,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -20,6 +23,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -28,6 +32,7 @@ import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -35,10 +40,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.DiMIDImi;
-import de.privatepublic.midiutils.MidiHandler;
-import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.Loop;
 import de.privatepublic.midiutils.Loop.QueuedState;
+import de.privatepublic.midiutils.MidiHandler;
+import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
@@ -53,8 +58,10 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	private JPanel windowPane;
 	private JPanel contentPane;
 	private Map<Integer, PanelComponent> panelComponents = new HashMap<Integer, PanelComponent>();
-
 	private int bpm = 100;
+	
+	private List<JComponent> updateBackgroundComponents = new ArrayList<JComponent>();
+	private List<JComponent> updateForegroundComponents = new ArrayList<JComponent>();
 
 	public ControllerWindow() {
 		setFocusableWindowState(false);
@@ -125,7 +132,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		});
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBorder(null);
+		scrollPane.setBorder(new LineBorder(Color.LIGHT_GRAY));
 		
 		contentPane = new JPanel();
 		contentPane.setBackground(Theme.CURRENT.getColorBackground());
@@ -204,6 +211,16 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			}
 		});
 		
+		updateBackgroundComponents.add(contentPane);
+		updateBackgroundComponents.add(panel_1);
+		updateBackgroundComponents.add(panel_3);
+		updateBackgroundComponents.add(panel_4);
+		
+		updateForegroundComponents.add(lblAll);
+		updateForegroundComponents.add(lblBpm);
+		updateForegroundComponents.add(btnNext);
+		updateForegroundComponents.add(toggleAlwaysOnTop);
+		
 		LOG.debug("Created controller window.");
 	}
 	
@@ -233,7 +250,13 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					contentPane.setBackground(Theme.CURRENT.getColorBackground());
+					for (JComponent cp: updateBackgroundComponents) {
+						cp.setBackground(Theme.CURRENT.getColorBackground());	
+					}
+					for (JComponent cp: updateForegroundComponents) {
+						cp.setForeground(Theme.CURRENT.getColorForeground());	
+					}
+					
 					if (panelComponents.size()<=DiMIDImi.getLoops().size()) {
 						for (Loop loop:DiMIDImi.getLoops()) {
 							PanelComponent panel = panelComponents.get(loop.hashCode());
@@ -330,12 +353,9 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			
 			panel = new JPanel();
 			panel.setPreferredSize(null);
-//			panel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
-//			panel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
 			panel.setBorder(BorderFactory.createLineBorder(Theme.CURRENT.getColorBackground(), 2, false));
 			label = new JLabel("", SwingConstants.RIGHT);
 			label.setPreferredSize(new Dimension(30, 24));
-//			label.setOpaque(true);
 			panel.add(label);
 			
 			btnMute = new BlinkToggleButton("Mute");

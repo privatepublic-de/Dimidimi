@@ -21,6 +21,7 @@ public class Theme {
 	private Font fontNotes = new Font(Font.SANS_SERIF, Font.BOLD, 12); 
 	private Font fontMidiBig = new Font(Font.SANS_SERIF, Font.BOLD, 12);
 	private Color colorBackground = Color.decode("#222222");
+	private Color colorForeground = Color.decode("#ffffff");
 	private Color colorGrid = Color.decode("#444444");
 	private Color colorGridIntense = Color.decode("#494949");
 	private Color colorActiveQuarter = Color.decode("#666666");
@@ -109,6 +110,9 @@ public class Theme {
 	}
 	public Color getColorBackground() {
 		return colorBackground;
+	}
+	public Color getColorForeground() {
+		return colorForeground;
 	}
 	public Color getColorGrid() {
 		return colorGrid;
