@@ -177,6 +177,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		SpringLayout sl_panel = new SpringLayout();
 		panelFooter.setLayout(sl_panel);
 		slider = new JSlider();
+		slider.setOpaque(false);
 		sl_panel.putConstraint(SpringLayout.WEST, slider, 0, SpringLayout.WEST, panelFooter);
 		slider.setPaintTicks(true);
 		labelLength = new JLabel("8");
@@ -228,9 +229,9 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		panelFooter.add(btnClear);
 		
 		JButton buttonNewLoop = new JButton("+");
+		sl_panel.putConstraint(SpringLayout.EAST, buttonNewLoop, -6, SpringLayout.EAST, panelFooter);
 		buttonNewLoop.setToolTipText("Create new loop window");
 		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -6, SpringLayout.WEST, buttonNewLoop);
-		sl_panel.putConstraint(SpringLayout.EAST, buttonNewLoop, 0, SpringLayout.EAST, panelFooter);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewLoop, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 		buttonNewLoop.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panelFooter.add(buttonNewLoop);
@@ -277,15 +278,16 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(loop.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
+		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, -6, SpringLayout.EAST, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -6, SpringLayout.WEST, comboMidiOut);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -6, SpringLayout.WEST, comboMidiIn);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, 0, SpringLayout.EAST, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		panelMidi.setLayout(sl_panelMidi);
 		
 		chckbxMetronome = new JCheckBox("Metronome");
+		chckbxMetronome.setOpaque(false);
 		chckbxMetronome.setToolTipText("Turn on metronome");
 		//sl_panelMidi.putConstraint(SpringLayout.NORTH, chckbxMetronome, -4, SpringLayout.NORTH, lblIn);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, chckbxMetronome, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
