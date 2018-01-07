@@ -132,7 +132,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		});
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBorder(new LineBorder(Color.LIGHT_GRAY));
+		scrollPane.setBorder(new LineBorder(Color.DARK_GRAY));
 		
 		contentPane = new JPanel();
 		contentPane.setBackground(Theme.CURRENT.getColorBackground());
