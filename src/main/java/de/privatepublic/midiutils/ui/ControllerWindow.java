@@ -46,6 +46,7 @@ import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
+import javax.swing.ScrollPaneConstants;
 
 public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, PerformanceReceiver {
 
@@ -102,6 +103,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		btnAllSoloOff.setToolTipText("All Solo Off");
 		
 		btnNext = new JCheckBox("Next cycle");
+		btnNext.setOpaque(false);
 		// btnNext.setIcon(IC_EMPTY);
 		btnNext.setToolTipText("Toggle All Next Cycle");
 		panel_1.add(btnNext);
@@ -132,6 +134,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		});
 		
 		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setBorder(new LineBorder(Color.LIGHT_GRAY));
 		
 		contentPane = new JPanel();
@@ -155,6 +158,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		btnStop.setEnabled(false);
 		
 		toggleAlwaysOnTop = new JCheckBox("Stay on top");
+		toggleAlwaysOnTop.setOpaque(false);
 		toggleAlwaysOnTop.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		toggleAlwaysOnTop.setMargin(new Insets(1, 24, 0, 1));
 		toggleAlwaysOnTop.setToolTipText("Controller window always on top");
@@ -191,6 +195,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		panel_2.add(panel_4, BorderLayout.SOUTH);
 		
 		slider = new JSlider();
+		slider.setOpaque(false);
 		slider.setMinorTickSpacing(10);
 		slider.setPaintTicks(true);
 		panel_4.add(slider);
@@ -607,7 +612,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	    gbc.insets = new Insets(1, 0, 1, 0);
 	}
 	
-	private static final int WIDTH_PADDING = 32;
+	private static final int WIDTH_PADDING = 34;
 	private static final int HEIGHT_PADDING = 48;
 	private JButton btnAllSoloOff;
 	private JButton btnAllMuteOff;
