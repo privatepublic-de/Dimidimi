@@ -258,7 +258,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				loop.clearPattern();
 			}
 		});
-		((JLabel)comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
+//		 ((JLabel)comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
 		
 		comboBoxTranspose.addActionListener(new ActionListener(){
 			@Override
