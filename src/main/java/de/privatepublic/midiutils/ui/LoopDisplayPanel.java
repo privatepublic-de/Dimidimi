@@ -45,9 +45,9 @@ import javax.swing.event.ChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.privatepublic.midiutils.Loop;
 import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Note;
-import de.privatepublic.midiutils.Loop;
 import de.privatepublic.midiutils.events.NotesUpdatedReceiver;
 
 public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
@@ -91,6 +91,9 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {
+				if (' '==e.getKeyChar()) {
+					MidiHandler.instance().toggleInternalClock();
+				}
 			}
 			
 			@Override
@@ -115,6 +118,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			}
 		});
 		setFocusable(true);
+		
 		addMouseListener(new MouseListener() {
 			
 			@Override
@@ -727,6 +731,11 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 	static {
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
 		PEN_CURSOR = toolkit.createCustomCursor(new ImageIcon(LoopDisplayPanel.class.getResource("/crs-pencil.png")).getImage() , new Point(1, 30), "custom cursor");
+	}
+
+	public void selectAll() {
+		selectedNotes.clear();
+		selectedNotes.addAll(loop.getNotesList());
 	}
 
 	

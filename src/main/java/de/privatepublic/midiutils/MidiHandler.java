@@ -153,6 +153,16 @@ public class MidiHandler {
 		internalReceiver.send(msgStop, 0);
 	}
 	
+	public void toggleInternalClock() {
+		if (internalClockTimer!=null) {
+			stopInternalClock();
+		}
+		else {
+			startInternalClock(DiMIDImi.getControllerWindow().getBPM());
+		}
+	}
+	
+	
 	public void storeSelectedOutDevices() {
 		ArrayList<MidiDeviceWrapper> list = new ArrayList<MidiDeviceWrapper>();
 		for (MidiDeviceWrapper dev:getOutputDevices()) {
@@ -375,5 +385,6 @@ public class MidiHandler {
 	public int getPos() {
 		return pos;
 	}
+
 	
 }

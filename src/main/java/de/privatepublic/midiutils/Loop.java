@@ -704,4 +704,5 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	    colorNoteBrightSelected = Color.getHSBColor(hue, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
 	    colorChannel = Color.getHSBColor(hue, Theme.CURRENT.getColorChannelSaturation(), Theme.CURRENT.getColorChannelBrightness());
 	}
+	
 }
