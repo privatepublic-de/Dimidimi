@@ -63,6 +63,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 	
 	private Note resizeNote;
 	private boolean isDragging;
+	private boolean isDragButtonPressed;
 	private boolean isSelectionDrag;
 	private Point dragStart;
 	private Point dragEnd;
@@ -119,6 +120,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				isDragging = false;
+				isDragButtonPressed = false;
 				isSelectionDrag = false;
 				draggedNote = null;
 				
@@ -169,11 +171,10 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if (e.isPopupTrigger()) {
-					isDragging = false;
 					handlePopupTrigger(e);
 				}
 				else if (e.getButton()==MouseEvent.BUTTON1){
-					isDragging = true;
+					isDragButtonPressed = true;
 					dragStart = e.getPoint();
 					if (resizeNote==null) {
 						Note hitNote = findHitNote(selectedNotes, dragStart);
@@ -181,10 +182,14 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 							draggedNote = hitNote;
 						}
 						else {
-							selectedNotes.clear();
+							if (!e.isShiftDown()) {
+								selectedNotes.clear();
+							}
 							hitNote = findHitNote(loop.getNotesList(), dragStart);
 							if (hitNote!=null) {
-								selectedNotes.add(hitNote);
+								if (!selectedNotes.contains(hitNote)) {
+									selectedNotes.add(hitNote);
+								}
 								hitNote.storeCurrent();
 								draggedNote = hitNote;
 							}
@@ -273,6 +278,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			
 			@Override
 			public void mouseDragged(MouseEvent e) {
+				isDragging = isDragButtonPressed && !isSelectionDrag;
 				if (resizeNote!=null) {
 					int distX = e.getX()-dragStart.x;
 					int ticksOffset = (int)(distX/tickwidth);
@@ -495,7 +501,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				
 			}
 			int rightindex = rects.length-1;			
-			if (isSingleSelection && isSelected || note==draggedNote) {
+			if ((isSingleSelection && isSelected && isDragging) || (isDragging && note==draggedNote)) {
 				g.setColor(Theme.CURRENT.getColorGridHighlight());
 				int ybottom = rects[0].y+rects[0].height;
 				int xright = rects[rightindex].x+rects[rightindex].width;
