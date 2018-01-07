@@ -144,9 +144,24 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				else {
 					repaint();
 					if (e.isPopupTrigger()) {
-						if (selectedNotes.size()>0) {
-							openPopUp(e);
-						}
+						handlePopupTrigger(e);
+					}
+				}
+			}
+			
+			private void handlePopupTrigger(MouseEvent e) {
+				if (selectedNotes.size()>1) {
+					Note hitNote = findHitNote(selectedNotes, e.getPoint());
+					if (hitNote!=null) {
+						openPopUp(e);
+					}
+				}
+				else {
+					Note hitNote = findHitNote(loop.getNotesList(), e.getPoint());
+					if (hitNote!=null) {
+						selectedNotes.clear();
+						selectedNotes.add(hitNote);
+						openPopUp(e);
 					}
 				}
 			}
@@ -155,22 +170,9 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			public void mousePressed(MouseEvent e) {
 				if (e.isPopupTrigger()) {
 					isDragging = false;
-					if (selectedNotes.size()>2) {
-						Note hitNote = findHitNote(selectedNotes, e.getPoint());
-						if (hitNote!=null) {
-							openPopUp(e);
-						}
-					}
-					else {
-						Note hitNote = findHitNote(loop.getNotesList(), e.getPoint());
-						if (hitNote!=null) {
-							selectedNotes.clear();
-							selectedNotes.add(hitNote);
-							openPopUp(e);
-						}
-					}
+					handlePopupTrigger(e);
 				}
-				else {
+				else if (e.getButton()==MouseEvent.BUTTON1){
 					isDragging = true;
 					dragStart = e.getPoint();
 					if (resizeNote==null) {
