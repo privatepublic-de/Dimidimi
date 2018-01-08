@@ -29,7 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
-import javax.swing.JToggleButton;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -46,7 +46,6 @@ import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Prefs;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
-import javax.swing.ScrollPaneConstants;
 
 public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, PerformanceReceiver {
 
@@ -108,7 +107,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 		btnNext = new JCheckBox("Next cycle");
 		btnNext.setOpaque(false);
-		// btnNext.setIcon(IC_EMPTY);
+		btnNext.setIcon(IC_EMPTY);
+		btnNext.setSelectedIcon(IC_CHECKED);
 		btnNext.setToolTipText("Toggle All Next Cycle");
 		panel_1.add(btnNext);
 		btnAllSoloOff.addActionListener(new ActionListener() {
@@ -162,6 +162,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		btnStop.setEnabled(false);
 		
 		toggleAlwaysOnTop = new JCheckBox("Stay on top");
+		toggleAlwaysOnTop.setIcon(IC_EMPTY);
+		toggleAlwaysOnTop.setSelectedIcon(IC_CHECKED);
 		toggleAlwaysOnTop.setOpaque(false);
 		toggleAlwaysOnTop.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		toggleAlwaysOnTop.setMargin(new Insets(1, 24, 0, 1));
@@ -371,7 +373,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			
 			btnMute = new BlinkToggleButton("Mute");
 			btnMute.setIcon(IC_EMPTY);
-			btnMute.setSelectedIcon(IC_CHECKED);
+			btnMute.setSelectedIcon(IC_ON);
 			panel.add(btnMute);
 			btnMute.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ev) {
@@ -383,7 +385,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			
 			btnSolo = new BlinkToggleButton("Solo");
 			btnSolo.setIcon(IC_EMPTY);
-			btnSolo.setSelectedIcon(IC_CHECKED);
+			btnSolo.setSelectedIcon(IC_ON);
 			panel.add(btnSolo);
 			btnSolo.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ev) {
@@ -394,6 +396,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			});
 			
 			chckbxTriggerOnEnd = new JCheckBox("Next cycle");
+			chckbxTriggerOnEnd.setIcon(IC_EMPTY);
+			chckbxTriggerOnEnd.setSelectedIcon(IC_CHECKED);
 			panel.add(chckbxTriggerOnEnd);
 			chckbxTriggerOnEnd.setOpaque(false);
 			chckbxTriggerOnEnd.addItemListener(new ItemListener() {
@@ -599,15 +603,16 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		public void stopBlinking() {
 			blinkOn = false;
 			setIcon(IC_EMPTY);
-			setSelectedIcon(IC_CHECKED);
+			setSelectedIcon(IC_ON);
 		}
 		
 	}
 	
 	private static final ImageIcon IC_EMPTY = new ImageIcon(PanelComponent.class.getResource("/3state-off.png"));
-	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/3state-on.png"));
+	private static final ImageIcon IC_ON = new ImageIcon(PanelComponent.class.getResource("/3state-on.png"));
 	private static final ImageIcon IC_NEXT_CYCLE_ON = new ImageIcon(PanelComponent.class.getResource("/3state-on-next.png"));
 	private static final ImageIcon IC_NEXT_CYCLE_OFF = new ImageIcon(PanelComponent.class.getResource("/3state-off-next.png"));
+	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/3state-checked.png"));
 
 	private static enum Toggle { MUTE, SOLO };
 	
