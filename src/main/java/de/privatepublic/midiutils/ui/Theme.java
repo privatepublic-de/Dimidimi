@@ -2,21 +2,28 @@ package de.privatepublic.midiutils.ui;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.SystemColor;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.privatepublic.midiutils.Prefs;
 
 public class Theme {
 	
+	private static final Logger LOG = LoggerFactory.getLogger(Theme.class);
+	
 	public static final Theme DARK = new Theme("/theme_dark.properties");
 	public static final Theme BRIGHT = new Theme("/theme_bright.properties");
+	public static Theme APPLY = Prefs.get(Prefs.THEME, 0)>0?Theme.DARK:Theme.BRIGHT;
 	
-	public static Theme CURRENT = Prefs.get(Prefs.THEME, 0)>0?Theme.DARK:Theme.BRIGHT;
+	public static boolean isBright() {
+		return APPLY == BRIGHT;
+	}
+	
 	
 	private Font fontNotes = new Font(Font.SANS_SERIF, Font.BOLD, 12); 
 	private Font fontMidiBig = new Font(Font.SANS_SERIF, Font.BOLD, 12);
@@ -30,8 +37,6 @@ public class Theme {
 	private Color colorNoteLabels = colorGrid;
 	private Color colorSelectedNoteOutline = new Color(.6f, .6f, .6f, .6f);
 	private Color colorSelectedNoteText = Color.WHITE;
-	private Color colorClockOn = Color.getHSBColor(.58f, .8f, 1f);
-	private Color colorClockOff = SystemColor.window;
 	private Color colorMidiOutBig = colorGrid;
 	private Color colorGridHighlight = Color.RED;
 	private Color colorSelectionRectangle = Color.WHITE;
@@ -51,12 +56,9 @@ public class Theme {
 				try {
 					String line = iter.next();
 					String[] parts = line.split("=");
-					
-					Field field = Theme.class.getDeclaredField(parts[0]); //NoSuchFieldException
+					Field field = Theme.class.getDeclaredField(parts[0]);
 					field.setAccessible(true);
-					
 					if (parts.length==2) {
-						
 						if (parts[1].startsWith("#")) {
 							// color
 							Color colorVal;
@@ -83,18 +85,8 @@ public class Theme {
 							field.set(this, Float.parseFloat(parts[1]));
 						}
 					}
-				} catch (NoSuchFieldException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (SecurityException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
+					LOG.error("Error reading theme properties", e);
 				} 
 			}
 		} catch (IOException e) {
@@ -102,93 +94,79 @@ public class Theme {
 		}
 	}
 	
-	public Font getFontNotes() {
+	public Font fontNotes() {
 		return fontNotes;
 	}
-	public Font getFontMidiBig() {
+	public Font fontMidiBig() {
 		return fontMidiBig;
 	}
-	public Color getColorBackground() {
+	public Color colorBackground() {
 		return colorBackground;
 	}
-	public Color getColorForeground() {
+	public Color colorForeground() {
 		return colorForeground;
 	}
-	public Color getColorGrid() {
+	public Color colorGrid() {
 		return colorGrid;
 	}
-	public Color getColorGridIntense() {
+	public Color colorGridIntense() {
 		return colorGridIntense;
 	}
-	public Color getColorActiveQuarter() {
+	public Color colorActiveQuarter() {
 		return colorActiveQuarter;
 	}
-	public Color getColorPlayhead() {
+	public Color colorPlayhead() {
 		return colorPlayhead;
 	}
-	public Color getColorPlayedNote() {
+	public Color colorPlayedNote() {
 		return colorPlayedNote;
 	}
-	public Color getNoteLabels() {
+	public Color colorNoteLabels() {
 		return colorNoteLabels;
 	}
-	public Color getColorSelectedNoteOutline() {
+	public Color colorSelectedNoteOutline() {
 		return colorSelectedNoteOutline;
 	}
-	public Color getColorSelectedNoteText() {
+	public Color colorSelectedNoteText() {
 		return colorSelectedNoteText;
 	}
-	public Color getColorClockOn() {
-		return colorClockOn;
-	}
-	public Color getColorClockOff() {
-		return colorClockOff;
-	}
-	public Color getColorMidiOutBig() {
+	public Color colorMidiOutBig() {
 		return colorMidiOutBig;
 	}
-	public Color getColorModWheel() {
+	public Color colorModWheel() {
 		return colorModWheel;
 	}
-	public Color getColorPitchBend() {
+	public Color colorPitchBend() {
 		return colorPitchBend;
 	}
-	public Color getColorGridHighlight() {
+	public Color colorGridHighlight() {
 		return colorGridHighlight;
 	}
 
-	public Color getColorSelectionRectangle() {
+	public Color colorSelectionRectangle() {
 		return colorSelectionRectangle;
 	}
 
-	public Color getColorMuted() {
+	public Color colorMuted() {
 		return colorMuted;
 	}
 
-	public float getNoteColorSaturation() {
+	public float noteColorSaturation() {
 		return noteColorSaturation;
 	}
-	public float getNoteColorBrightness() {
+	public float noteColorBrightness() {
 		return noteColorBrightness;
 	}
-	public float getNoteLightColorBrightnessFactor() {
+	public float noteLightColorBrightnessFactor() {
 		return noteLightColorBrightnessFactor;
 	}
 
-	public float getColorChannelSaturation() {
+	public float colorChannelSaturation() {
 		return colorChannelSaturation;
-	}
-
-	public void setColorChannelSaturation(float colorChannelSaturation) {
-		this.colorChannelSaturation = colorChannelSaturation;
 	}
 
 	public float getColorChannelBrightness() {
 		return colorChannelBrightness;
-	}
-
-	public void setColorChannelBrightness(float colorChannelBrightness) {
-		this.colorChannelBrightness = colorChannelBrightness;
 	}
 		
 }
