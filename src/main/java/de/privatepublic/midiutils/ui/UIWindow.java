@@ -84,14 +84,14 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JComboBox<String> comboBoxTranspose;
 	private JComboBox<String> comboMidiIn;
 	private JComboBox<String> comboMidiOut;
-	private JToggleButton toggleMidiIn;
+	private JToggleButton toggleRecord;
 	private JLabel lblDimidimiLooper;
 	private JCheckBoxMenuItem menuItemTheme;
 	private JCheckBoxMenuItem menuItemAnimate;
-	private JToggleButton chckbxDrumsLayout;
+	private JToggleButton toggleDrumsLayout;
 	private Loop loop;
 	private String titleExtension = null;
-	private JCheckBox chckbxMetronome;
+	private JCheckBox toggleMetronome;
 
 	public UIWindow(Loop loop) {
 		this.loop = loop;
@@ -280,65 +280,69 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		SpringLayout sl_panelMidi = new SpringLayout();
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, -6, SpringLayout.EAST, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -6, SpringLayout.WEST, comboMidiOut);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -6, SpringLayout.WEST, comboMidiIn);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		panelMidi.setLayout(sl_panelMidi);
 		
-		chckbxMetronome = new JCheckBox("Metronome");
-		chckbxMetronome.setOpaque(false);
-		chckbxMetronome.setToolTipText("Turn on metronome");
-		//sl_panelMidi.putConstraint(SpringLayout.NORTH, chckbxMetronome, -4, SpringLayout.NORTH, lblIn);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, chckbxMetronome, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		chckbxMetronome.addActionListener(new ActionListener() {
+		toggleMetronome = new JCheckBox("Metronome");
+		toggleMetronome.setIcon(new ImageIcon(UIWindow.class.getResource("/toggle-off.png")));
+		toggleMetronome.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/toggle-on-black.png")));
+		toggleMetronome.setHorizontalTextPosition(SwingConstants.LEADING);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMetronome, 0, SpringLayout.WEST, lblIn);
+		toggleMetronome.setOpaque(false);
+		toggleMetronome.setToolTipText("Turn on metronome");
+		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleMetronome, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
+		toggleMetronome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				loop.setMetronomeEnabled(chckbxMetronome.isSelected());
+				loop.setMetronomeEnabled(toggleMetronome.isSelected());
 			}
 		});
-		panelMidi.add(chckbxMetronome);
+		panelMidi.add(toggleMetronome);
 		
 		panelMidi.add(lblIn);
 		
-		toggleMidiIn = new JToggleButton();
-		sl_panelMidi.putConstraint(SpringLayout.EAST, chckbxMetronome, 0, SpringLayout.WEST, toggleMidiIn);
-		sl_panelMidi.putConstraint(SpringLayout.NORTH, toggleMidiIn, -4, SpringLayout.NORTH, chckbxMetronome);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMidiIn, -6, SpringLayout.WEST, lblIn);
-		toggleMidiIn.setText("Record");
-		toggleMidiIn.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
-		toggleMidiIn.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_red_circle.png")));
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		toggleMidiIn.setSelected(true);
-		toggleMidiIn.addChangeListener(new ChangeListener() {
+		toggleRecord = new JToggleButton();
+		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -6, SpringLayout.WEST, toggleRecord);
+		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleRecord, -6, SpringLayout.WEST, comboMidiIn);
+		toggleRecord.setBorderPainted(false);
+		sl_panelMidi.putConstraint(SpringLayout.NORTH, toggleRecord, -4, SpringLayout.NORTH, toggleMetronome);
+		toggleRecord.setText("");
+		toggleRecord.setIcon(new ImageIcon(UIWindow.class.getResource("/toggle-off.png")));
+		toggleRecord.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/toggle-on-red.png")));
+		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleRecord, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
+		toggleRecord.setSelected(true);
+		toggleRecord.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				loop.setMidiInputOn(toggleMidiIn.isSelected());
+				loop.setMidiInputOn(toggleRecord.isSelected());
 			}
 		});
-		toggleMidiIn.setToolTipText("Record notes from selected channel");
-		panelMidi.add(toggleMidiIn);
+		toggleRecord.setToolTipText("Record notes from selected channel");
+		panelMidi.add(toggleRecord);
 		panelMidi.add(comboMidiIn);
 		
 		panelMidi.add(comboMidiOut);
 		
-		chckbxDrumsLayout = new JToggleButton("Drums");
-		chckbxDrumsLayout.setToolTipText("Use drum view");
-		chckbxDrumsLayout.setIcon(new ImageIcon(UIWindow.class.getResource("/ic_empty_circle.png")));
-		chckbxDrumsLayout.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/ic_check.png")));
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, chckbxDrumsLayout, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		panelMidi.add(chckbxDrumsLayout);
+		toggleDrumsLayout = new JToggleButton("Drums");
+		toggleDrumsLayout.setBorderPainted(false);
+		toggleDrumsLayout.setToolTipText("Use drum view");
+		toggleDrumsLayout.setIcon(new ImageIcon(UIWindow.class.getResource("/toggle-off.png")));
+		toggleDrumsLayout.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/toggle-on-black.png")));
+		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleDrumsLayout, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
+		panelMidi.add(toggleDrumsLayout);
 		
 		lblDimidimiLooper = new JLabel("dimidimi");
 		sl_panelMidi.putConstraint(SpringLayout.WEST, lblDimidimiLooper, 6, SpringLayout.WEST, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.WEST, chckbxDrumsLayout, 12, SpringLayout.EAST, lblDimidimiLooper);
+		sl_panelMidi.putConstraint(SpringLayout.WEST, toggleDrumsLayout, 12, SpringLayout.EAST, lblDimidimiLooper);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblDimidimiLooper, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		panelMidi.add(lblDimidimiLooper);
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
 		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-32.png")));
 		
-		chckbxDrumsLayout.addActionListener(new ActionListener() {
+		toggleDrumsLayout.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				loop.setDrums(chckbxDrumsLayout.isSelected());
+				loop.setDrums(toggleDrumsLayout.isSelected());
 			}
 		});
 		panelLoop.setLayout(new BorderLayout(0, 0));
@@ -717,8 +721,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				Theme selectedTheme = menuItemTheme.isSelected()?Theme.DARK:Theme.BRIGHT;
-				if (selectedTheme!=Theme.CURRENT) {
-					Theme.CURRENT = selectedTheme;
+				if (selectedTheme!=Theme.APPLY) {
+					Theme.APPLY = selectedTheme;
 					Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
 					DiMIDImi.updateSettingsOnAllLoops();
 				}
@@ -779,26 +783,26 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	public void onSettingsUpdated() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				frmDimidimi.getContentPane().setBackground(Theme.CURRENT.getColorBackground());
-				panelFooter.setBackground(Theme.CURRENT.getColorBackground());
+				frmDimidimi.getContentPane().setBackground(Theme.APPLY.colorBackground());
+				panelFooter.setBackground(Theme.APPLY.colorBackground());
 				labelLength.setBackground(loop.getNoteColorPlayed());
 				comboQuantize.setSelectedIndex(loop.getQuantizationIndex());
 				comboBoxTranspose.setSelectedIndex(loop.getTransposeIndex());
 				slider.setValue(loop.getLengthQuarters());
 				labelLength.setText(""+loop.getLengthQuarters());
-				toggleMidiIn.setSelected(loop.isMidiInputOn());
+				toggleRecord.setSelected(loop.isMidiInputOn());
 				comboMidiOut.setSelectedIndex(loop.getMidiChannelOut());
 				comboMidiIn.setSelectedIndex(loop.getMidiChannelIn());
 				
-				panelMidi.setBackground(Theme.CURRENT==Theme.BRIGHT?loop.getNoteColorPlayed():loop.getNoteColor(false));
+				panelMidi.setBackground(Theme.isBright()?loop.getNoteColorPlayed():loop.getNoteColor(false));
 				
-				chckbxDrumsLayout.setSelected(loop.isDrums());
+				toggleDrumsLayout.setSelected(loop.isDrums());
 				if (Prefs.get(Prefs.THEME, 0)==0) {
-					Theme.CURRENT = Theme.BRIGHT;
+					Theme.APPLY = Theme.BRIGHT;
 					menuItemTheme.setSelected(false);
 				}
 				else {
-					Theme.CURRENT = Theme.DARK;
+					Theme.APPLY = Theme.DARK;
 					menuItemTheme.setSelected(true);
 				}
 				if (Prefs.get(Prefs.ANIMATE, 0)==0) {
