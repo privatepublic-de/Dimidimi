@@ -93,12 +93,14 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		panel_1.add(lblAll);
 		
 		btnAllMuteOff = new JButton("Mute");
+		btnAllMuteOff.setOpaque(false);
 		btnAllMuteOff.setBorderPainted(false);
 		btnAllMuteOff.setIcon(IC_NEXT_CYCLE_OFF);
 		panel_1.add(btnAllMuteOff);
 		btnAllMuteOff.setToolTipText("All Mute Off");
 		
 		btnAllSoloOff = new JButton("Solo");
+		btnAllSoloOff.setOpaque(false);
 		btnAllSoloOff.setBorderPainted(false);
 		btnAllSoloOff.setIcon(IC_NEXT_CYCLE_OFF);
 		panel_1.add(btnAllSoloOff);
