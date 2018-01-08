@@ -93,11 +93,13 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		panel_1.add(lblAll);
 		
 		btnAllMuteOff = new JButton("Mute");
+		btnAllMuteOff.setBorderPainted(false);
 		btnAllMuteOff.setIcon(IC_NEXT_CYCLE_OFF);
 		panel_1.add(btnAllMuteOff);
 		btnAllMuteOff.setToolTipText("All Mute Off");
 		
 		btnAllSoloOff = new JButton("Solo");
+		btnAllSoloOff.setBorderPainted(false);
 		btnAllSoloOff.setIcon(IC_NEXT_CYCLE_OFF);
 		panel_1.add(btnAllSoloOff);
 		btnAllSoloOff.setToolTipText("All Solo Off");
@@ -225,6 +227,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		updateForegroundComponents.add(lblBpm);
 		updateForegroundComponents.add(btnNext);
 		updateForegroundComponents.add(toggleAlwaysOnTop);
+		updateForegroundComponents.add(btnAllMuteOff);
+		updateForegroundComponents.add(btnAllSoloOff);
 		
 		LOG.debug("Created controller window.");
 	}
@@ -553,7 +557,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 	}
 	
-	private static class BlinkToggleButton extends JToggleButton {
+	private static class BlinkToggleButton extends JCheckBox {
 		
 		private static final long serialVersionUID = 7707283219651661189L;
 		
@@ -564,6 +568,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 		public BlinkToggleButton(String string) {
 			super(string);
+			setOpaque(false);
+			setBorderPainted(false);
 		}
 
 		public void blink(boolean blinkState) {
@@ -596,10 +602,10 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 	}
 	
-	private static final ImageIcon IC_EMPTY = new ImageIcon(PanelComponent.class.getResource("/ic_empty_circle.png"));
-	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/ic_check.png"));
-	private static final ImageIcon IC_NEXT_CYCLE_ON = new ImageIcon(PanelComponent.class.getResource("/ic_next_cycle.png"));
-	private static final ImageIcon IC_NEXT_CYCLE_OFF = new ImageIcon(PanelComponent.class.getResource("/ic_off_next_cycle.png"));
+	private static final ImageIcon IC_EMPTY = new ImageIcon(PanelComponent.class.getResource("/3state-off.png"));
+	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/3state-on.png"));
+	private static final ImageIcon IC_NEXT_CYCLE_ON = new ImageIcon(PanelComponent.class.getResource("/3state-on-next.png"));
+	private static final ImageIcon IC_NEXT_CYCLE_OFF = new ImageIcon(PanelComponent.class.getResource("/3state-off-next.png"));
 
 	private static enum Toggle { MUTE, SOLO };
 	
