@@ -138,7 +138,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		
 		contentPane = new JPanel();
-		contentPane.setBackground(Theme.CURRENT.getColorBackground());
+		contentPane.setBackground(Theme.APPLY.colorBackground());
 		scrollPane.setViewportView(contentPane);
 		contentPane.setBorder(new EmptyBorder(5, 0, 5, 0));
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
@@ -256,10 +256,10 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			public void run() {
 				try {
 					for (JComponent cp: updateBackgroundComponents) {
-						cp.setBackground(Theme.CURRENT.getColorBackground());	
+						cp.setBackground(Theme.APPLY.colorBackground());	
 					}
 					for (JComponent cp: updateForegroundComponents) {
-						cp.setForeground(Theme.CURRENT.getColorForeground());	
+						cp.setForeground(Theme.APPLY.colorForeground());	
 					}
 					
 					if (panelComponents.size()<=DiMIDImi.getLoops().size()) {
@@ -358,7 +358,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			
 			panel = new JPanel();
 			panel.setPreferredSize(null);
-			panel.setBorder(BorderFactory.createLineBorder(Theme.CURRENT.getColorBackground(), 2, false));
+			panel.setBorder(BorderFactory.createLineBorder(Theme.APPLY.colorBackground(), 2, false));
 			label = new JLabel("", SwingConstants.RIGHT);
 			label.setPreferredSize(new Dimension(30, 24));
 			panel.add(label);
@@ -472,9 +472,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		}
 		
 		public void updateColors() {
-			boolean light = Theme.CURRENT==Theme.BRIGHT;
-			panel.setBackground(light?loop.getNoteColorPlayed():loop.getNoteColor(false));
-			panel.setBorder(BorderFactory.createLineBorder(Theme.CURRENT.getColorBackground(), 2, false));
+			panel.setBackground(Theme.isBright()?loop.getNoteColorPlayed():loop.getNoteColor(false));
+			panel.setBorder(BorderFactory.createLineBorder(Theme.APPLY.colorBackground(), 2, false));
 		}
 		
 		public JPanel getPanel() {

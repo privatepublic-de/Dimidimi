@@ -697,12 +697,12 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 
 	private void updateColors() {
 		float hue = midiChannelOut/18f;
-		colorNote = Color.getHSBColor(hue, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness());
+		colorNote = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation(), Theme.APPLY.noteColorBrightness());
 		colorNotePlayed = Color.getHSBColor(hue, .25f, 1);
-	    colorNoteBright = Color.getHSBColor(hue, Theme.CURRENT.getNoteColorSaturation(), Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
-	    colorNoteSelected = Color.getHSBColor(hue, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness());
-	    colorNoteBrightSelected = Color.getHSBColor(hue, Theme.CURRENT.getNoteColorSaturation()*.5f, Theme.CURRENT.getNoteColorBrightness()*Theme.CURRENT.getNoteLightColorBrightnessFactor());
-	    colorChannel = Color.getHSBColor(hue, Theme.CURRENT.getColorChannelSaturation(), Theme.CURRENT.getColorChannelBrightness());
+	    colorNoteBright = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation(), Theme.APPLY.noteColorBrightness()*Theme.APPLY.noteLightColorBrightnessFactor());
+	    colorNoteSelected = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation()*.5f, Theme.APPLY.noteColorBrightness());
+	    colorNoteBrightSelected = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation()*.5f, Theme.APPLY.noteColorBrightness()*Theme.APPLY.noteLightColorBrightnessFactor());
+	    colorChannel = Color.getHSBColor(hue, Theme.APPLY.colorChannelSaturation(), Theme.APPLY.getColorChannelBrightness());
 	}
 	
 }
