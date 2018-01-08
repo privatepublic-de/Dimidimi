@@ -39,7 +39,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
@@ -84,11 +83,11 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JComboBox<String> comboBoxTranspose;
 	private JComboBox<String> comboMidiIn;
 	private JComboBox<String> comboMidiOut;
-	private JToggleButton toggleRecord;
+	private JCheckBox toggleRecord;
 	private JLabel lblDimidimiLooper;
 	private JCheckBoxMenuItem menuItemTheme;
 	private JCheckBoxMenuItem menuItemAnimate;
-	private JToggleButton toggleDrumsLayout;
+	private JCheckBox toggleDrumsLayout;
 	private Loop loop;
 	private String titleExtension = null;
 	private JCheckBox toggleMetronome;
@@ -302,7 +301,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		panelMidi.add(lblIn);
 		
-		toggleRecord = new JToggleButton();
+		toggleRecord = new JCheckBox();
+		toggleRecord.setOpaque(false);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -6, SpringLayout.WEST, toggleRecord);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleRecord, -6, SpringLayout.WEST, comboMidiIn);
 		toggleRecord.setBorderPainted(false);
@@ -323,7 +323,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		
 		panelMidi.add(comboMidiOut);
 		
-		toggleDrumsLayout = new JToggleButton("Drums");
+		toggleDrumsLayout = new JCheckBox("Drums");
+		toggleDrumsLayout.setOpaque(false);
 		toggleDrumsLayout.setBorderPainted(false);
 		toggleDrumsLayout.setToolTipText("Use drum view");
 		toggleDrumsLayout.setIcon(new ImageIcon(UIWindow.class.getResource("/toggle-off.png")));
