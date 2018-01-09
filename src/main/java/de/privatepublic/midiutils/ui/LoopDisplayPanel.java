@@ -25,6 +25,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -423,6 +424,20 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		float quarterwidth = width*((float)Loop.TICK_COUNT_BASE/loop.getMaxTicks());
 		float sixthwidth = quarterwidth/4f; 
 		tickwidth = (float)width/loop.getMaxTicks();
+		
+		FontMetrics fm = g.getFontMetrics();
+		for (int i=lowestNote;i<highestNote+1;i++) {
+			int index = (highestNote+MARGIN_SEMIS)-i;
+			int notey = Math.round(index*noteHeight-noteHeight/2);
+			String notetext = loop.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i)+" "+(i/12-2);
+			int ty = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
+			g.setColor(Theme.APPLY.colorGrid());
+			g.drawLine(0, notey, width, notey);
+			g.setColor(Theme.APPLY.colorNoteLabels());
+			g.drawString(notetext, 5, ty);
+		}
+		
+		
 		for (int i=0;i<loop.getLengthQuarters()*4;i++) {
 			int xpos = (int)(i*sixthwidth);
 			g.setColor(Theme.APPLY.colorGrid());
@@ -441,20 +456,9 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			}
 			if (i/4 == activeQuarter) {
 				g.setColor(Theme.APPLY.colorActiveQuarter());
-				g.fillRect(xpos, height-height/30, Math.round(sixthwidth), height);
-				g.fillRect(xpos, 0, Math.round(sixthwidth), height/30);
+				g.fillRect(xpos, height-(int)noteHeight/2, Math.round(sixthwidth)+1, height);
+				g.fillRect(xpos, 0, Math.round(sixthwidth)+1, (int)noteHeight/2);
 			}
-		}
-		FontMetrics fm = g.getFontMetrics();
-		for (int i=lowestNote;i<highestNote+1;i++) {
-			int index = (highestNote+MARGIN_SEMIS)-i;
-			int notey = Math.round(index*noteHeight-noteHeight/2);
-			String notetext = loop.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i)+" "+(i/12-2);
-			int ty = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
-			g.setColor(Theme.APPLY.colorGrid());
-			g.drawLine(0, notey, width, notey);
-			g.setColor(Theme.APPLY.colorNoteLabels());
-			g.drawString(notetext, 5, ty);
 		}
 		
 		// draw playhead
@@ -482,6 +486,26 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			}
 			
 			Rectangle[] rects = getNotePositionsRect(note);
+			
+			if (ANIMATE && loop.isAudible()) {
+				int start = note.getPosStart(loop);
+				int end = note.getPosEnd(loop);
+				int length = start>end?end+loop.getMaxTicks()-start:end-start;
+				int position = start>end?pos-start+loop.getMaxTicks():pos-start;
+				if (position<0) {
+					position += loop.getMaxTicks();
+				}
+				float percent = position/(float)length;
+				if (!note.isPlayed()) {
+					percent *= percent;
+				}
+				float offset = ((1-(percent-1)*(percent-1))*noteHeight*.5f);
+				g.setColor(loop.getNoteColorHighlighted(false));
+				for (Rectangle rect:rects) {
+//					g.drawRect(rect.x-offset, rect.y-offset, rect.width+offset*2, rect.height+offset*2);
+					g.draw(new RoundRectangle2D.Float(rect.x-offset, rect.y-offset, rect.width+offset*2.0f, rect.height+offset*2.0f, 20, 20));
+				}
+			}
 			
 			for (Rectangle rect: rects) {
 				if (isSelected) {
@@ -519,18 +543,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				g.setStroke(new BasicStroke(tickwidth));
 				g.drawLine(rects[rightindex].x+rects[rightindex].width, 0, rects[rightindex].x+rects[rightindex].width, height);
 			}
-			if (ANIMATE && note.isPlayed()) {
-				int start = note.getPosStart(loop);
-				int end = note.getPosEnd(loop);
-				int length = start>end?end+loop.getMaxTicks()-start:end-start;
-				int position = start>end?pos-start+loop.getMaxTicks():pos-start;
-				float percent = position/(float)length;
-				int offset = (int)((1-(percent-1)*(percent-1))*noteHeight*.5);
-				g.setColor(loop.getNoteColorHighlighted(false));
-				for (Rectangle rect:rects) {
-					g.drawRect(rect.x-offset, rect.y-offset, rect.width+offset*2, rect.height+offset*2);
-				}
-			}
+			
 		}
 		
 	    if (!loop.isAudible()) {
