@@ -85,6 +85,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		windowPane.setLayout(new BorderLayout(0, 0));
 		
 		panel_1 = new JPanel();
+		FlowLayout flowLayout_1 = (FlowLayout) panel_1.getLayout();
+		flowLayout_1.setHgap(0);
 		
 		windowPane.add(panel_1, BorderLayout.NORTH);
 		
@@ -171,7 +173,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		toggleAlwaysOnTop.setHorizontalTextPosition(SwingConstants.LEFT);
 		toggleAlwaysOnTop.setSelected(isAlwaysOnTop());
 		toggleAlwaysOnTop.setFont(toggleAlwaysOnTop.getFont().deriveFont(toggleAlwaysOnTop.getFont().getSize() - 2f));
-		panel_3.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		panel_3.setLayout(new FlowLayout(FlowLayout.CENTER, 2, 5));
 		panel_3.add(btnStart);
 		panel_3.add(btnStop);
 		panel_3.add(toggleAlwaysOnTop);
