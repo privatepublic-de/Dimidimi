@@ -31,6 +31,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
@@ -53,7 +54,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	
 	private static final Logger LOG = LoggerFactory.getLogger(ControllerWindow.class);
 	
-	private static final int STANDARD_WIDTH = 250;
+	private static final int STANDARD_WIDTH = 270;
 	
 	private JPanel windowPane;
 	private JPanel contentPane;
@@ -64,6 +65,15 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	private List<JComponent> updateForegroundComponents = new ArrayList<JComponent>();
 
 	public ControllerWindow() {
+		
+		try {
+			UIManager.setLookAndFeel(
+					UIManager.getSystemLookAndFeelClassName());
+		} 
+		catch (Exception e) {
+			LOG.warn("Could not set look and feel", e);
+		}
+		
 		setFocusableWindowState(false);
 		setType(Type.UTILITY);
 		
@@ -95,6 +105,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 		btnAllMuteOff = new JButton("Mute");
 		btnAllMuteOff.setOpaque(false);
+		btnAllMuteOff.setContentAreaFilled(false);
 		btnAllMuteOff.setBorderPainted(false);
 		btnAllMuteOff.setIcon(IC_NEXT_CYCLE_OFF);
 		panel_1.add(btnAllMuteOff);
@@ -102,12 +113,13 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 		btnAllSoloOff = new JButton("Solo");
 		btnAllSoloOff.setOpaque(false);
+		btnAllSoloOff.setContentAreaFilled(false);
 		btnAllSoloOff.setBorderPainted(false);
 		btnAllSoloOff.setIcon(IC_NEXT_CYCLE_OFF);
 		panel_1.add(btnAllSoloOff);
 		btnAllSoloOff.setToolTipText("All Solo Off");
 		
-		btnNext = new JCheckBox("Next cycle");
+		btnNext = new JCheckBox("next");
 		btnNext.setOpaque(false);
 		btnNext.setIcon(IC_EMPTY);
 		btnNext.setSelectedIcon(IC_CHECKED);
@@ -397,7 +409,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 				}
 			});
 			
-			chckbxTriggerOnEnd = new JCheckBox("Next cycle");
+			chckbxTriggerOnEnd = new JCheckBox("next");
 			chckbxTriggerOnEnd.setIcon(IC_EMPTY);
 			chckbxTriggerOnEnd.setSelectedIcon(IC_CHECKED);
 			panel.add(chckbxTriggerOnEnd);
