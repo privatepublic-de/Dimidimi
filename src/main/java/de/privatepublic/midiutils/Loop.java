@@ -27,7 +27,7 @@ import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.ui.Theme;
 import de.privatepublic.midiutils.ui.UIWindow;
 
-public class Loop implements TransformationProvider, PerformanceReceiver, SettingsUpdateReceiver {
+public class Loop implements TransformationProvider, PerformanceReceiver, SettingsUpdateReceiver, Comparable<Loop> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Loop.class);
 	
@@ -701,6 +701,11 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	    colorNoteSelected = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation()*.5f, Theme.APPLY.noteColorBrightness());
 	    colorNoteBrightSelected = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation()*.5f, Theme.APPLY.noteColorBrightness()*Theme.APPLY.noteLightColorBrightnessFactor());
 	    colorChannel = Color.getHSBColor(hue, Theme.APPLY.colorChannelSaturation(), Theme.APPLY.getColorChannelBrightness());
+	}
+
+	@Override
+	public int compareTo(Loop o) {
+		return Integer.compare(midiChannelOut, o.midiChannelOut);
 	}
 	
 }

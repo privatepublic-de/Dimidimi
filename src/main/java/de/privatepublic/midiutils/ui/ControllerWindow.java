@@ -13,6 +13,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -283,14 +284,15 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 					for (JComponent cp: updateForegroundComponents) {
 						cp.setForeground(Theme.APPLY.colorForeground());	
 					}
-					
-					if (panelComponents.size()<=DiMIDImi.getLoops().size()) {
-						for (Loop loop:DiMIDImi.getLoops()) {
+					List<Loop> list = DiMIDImi.getLoops();
+					if (panelComponents.size()<=list.size()) {
+						Collections.sort(list);
+						contentPane.removeAll();
+						for (Loop loop:list) {
 							PanelComponent panel = panelComponents.get(loop.hashCode());
 							if (panel==null) {
 								panel = new PanelComponent(loop);
 								panelComponents.put(loop.hashCode(), panel);
-								contentPane.add(panel.getPanel(), gbc);
 								panel.getPanel().revalidate();
 								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
 								targetWidth = Math.max(targetWidth, STANDARD_WIDTH);
@@ -302,6 +304,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 							    setSize(new Dimension(targetWidth, currSize.height));
 								loop.registerAsReceiver(ControllerWindow.this);
 							}
+							contentPane.add(panel.getPanel(), gbc);
 							panel.updateLabelText();
 						}
 						refreshView();
@@ -430,13 +433,11 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			loop.registerAsReceiver(this);
 		}
 		
-		
 		public void destroy() {
 			BLINKERS.remove(btnMute);
 			BLINKERS.remove(btnSolo);
 		}
-
-
+		
 		private void toggleState(Toggle toggle, boolean on) {		
 				switch (toggle) {
 				case MUTE:
@@ -489,7 +490,6 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 					break;
 				}
 		}
-		
 		
 		public void updateLabelText() {
 			label.setText("#"+(loop.getMidiChannelOut()+1));
