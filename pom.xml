@@ -13,7 +13,7 @@
 				<version>1.2.0</version>
 				<configuration>
 					<mainClass>de.privatepublic.midiutils.DiMIDImi</mainClass>
-					<jrePath>/Library/Java/JavaVirtualMachines/jdk1.8.0_31.jdk/</jrePath>
+					<jrePath>/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/</jrePath>
 					<!-- https://github.com/federkasten/appbundle-maven-plugin -->
 					<!-- generateDiskImageFile>true</generateDiskImageFile -->
 					<dictionaryFile>Info.plist</dictionaryFile>
