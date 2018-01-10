@@ -440,7 +440,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		private void toggleState(Toggle toggle, boolean on) {		
 				switch (toggle) {
 				case MUTE:
-					if (onNextCycle) {
+					if (onNextCycle && MidiHandler.ACTIVE) {
 						if (on) {
 							btnMute.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
 							loop.setQueuedMute(QueuedState.ON);
@@ -464,7 +464,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 					}
 					break;
 				case SOLO:
-					if (onNextCycle) {
+					if (onNextCycle && MidiHandler.ACTIVE) {
 						if (on) {
 							btnSolo.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
 							loop.setQueuedSolo(QueuedState.ON);

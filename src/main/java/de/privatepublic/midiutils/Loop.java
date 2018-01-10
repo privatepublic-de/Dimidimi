@@ -197,6 +197,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			this.isMuted = isMuted;
 			emitLoopUpdated();
 			emitState();
+			queuedMuteState = QueuedState.NO_CHANGE;
 		}
 	}
 
@@ -206,6 +207,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 
 	public void setSoloed(boolean isSoloed) {
 		if (isSoloed!=this.isSoloed) {
+			queuedSoloState = QueuedState.NO_CHANGE;
 			this.isSoloed = isSoloed;
 			SOLOCOUNT += isSoloed?1:-1;
 			DiMIDImi.updateNotesOnAllLoops();
@@ -552,7 +554,6 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		}
 		
 		if (pos==getMaxTicks()-1) {
-			boolean hasChanges = queuedMuteState!=QueuedState.NO_CHANGE || queuedSoloState!=QueuedState.NO_CHANGE;
 			// check for queued mutes and solos
 			switch (queuedMuteState) {
 			case OFF:
@@ -565,7 +566,6 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 				break;
 			}
 			queuedMuteState = QueuedState.NO_CHANGE;
-			
 			switch (queuedSoloState) {
 			case OFF:
 				setSoloed(false);
@@ -577,11 +577,6 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 				break;
 			}
 			queuedSoloState = QueuedState.NO_CHANGE;
-			if (hasChanges) {
-				emitState();
-				emitLoopUpdated();
-			}
-			
 		}
 		
 	}
