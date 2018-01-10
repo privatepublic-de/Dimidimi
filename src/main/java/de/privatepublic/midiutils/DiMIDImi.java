@@ -74,6 +74,15 @@ public class DiMIDImi {
 		}
 	}
 	
+	
+	public static void updateStateOnAllLoops() {
+		LOG.info("Updating state for all loops");
+		for (Loop loop: LOOPS) {
+			loop.emitState();
+		}
+	}
+	
+	
 	public static Loop createLoop() {
 		Loop loop = new Loop();
 		LOOPS.add(loop);
@@ -201,5 +210,6 @@ public class DiMIDImi {
 	static {
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
+	
 	
 }

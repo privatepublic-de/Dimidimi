@@ -196,6 +196,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		if (isMuted!=this.isMuted) {
 			this.isMuted = isMuted;
 			emitLoopUpdated();
+			emitState();
 		}
 	}
 
@@ -208,6 +209,8 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			this.isSoloed = isSoloed;
 			SOLOCOUNT += isSoloed?1:-1;
 			DiMIDImi.updateNotesOnAllLoops();
+			DiMIDImi.updateStateOnAllLoops();
+			emitState();
 		}
 	}
 

@@ -847,7 +847,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 
 	@Override
 	public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
-		// TODO Auto-generated method stub
+		if (loop.isAudible()) {
+			panelMidi.setBackground(Theme.isBright()?loop.getNoteColorPlayed():loop.getNoteColor(false));			
+		}
+		else {
+//			panelMidi.setBackground(Theme.APPLY.colorGrid());
+			panelMidi.setBackground(loop.getChannelColor());
+		}
 		
 	}
 	
