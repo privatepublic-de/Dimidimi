@@ -56,12 +56,9 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 	private static final long serialVersionUID = -592444184016477559L;
 	private static final Logger LOG = LoggerFactory.getLogger(LoopDisplayPanel.class);
 	
-	public static boolean ANIMATE;
-	
 	private Loop loop;
-	
 	private int pos = 0;
-	
+	private boolean animate;
 	private Note resizeNote;
 	private boolean isDragging;
 	private boolean isDragButtonPressed;
@@ -72,17 +69,14 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 	private Rectangle selectRectangle = new Rectangle();
 	private Note draggedNote = null;
 	private boolean metaKeyPressed = false;
-	
 	private float noteHeight;
 	private float tickwidth;
 	private static final int MARGIN_SEMIS = 1;
 	private static final int META_KEY = InputEvent.ALT_DOWN_MASK;
 	private int highestNote = 96-MARGIN_SEMIS;
 	private int lowestNote = 12+MARGIN_SEMIS;
-	
 	private CopyOnWriteArrayList<Note> selectedNotes = new CopyOnWriteArrayList<Note>();
 	private Map<TextAttribute, Object> textAttributes = new HashMap<TextAttribute, Object>();
-	
 	
 	public LoopDisplayPanel(Loop loop) {
 		super();
@@ -487,7 +481,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			
 			Rectangle[] rects = getNotePositionsRect(note);
 			
-			if (ANIMATE && loop.isAudible()) {
+			if (animate && loop.isAudible()) {
 				int start = note.getPosStart(loop);
 				int end = note.getPosEnd(loop);
 				int length = start>end?end+loop.getMaxTicks()-start:end-start;
@@ -600,6 +594,11 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 	}
 	
 	
+	public void setAnimate(boolean animate) {
+		this.animate = animate;
+	}
+
+
 	private Rectangle[] getNotePositionsRect(Note note) {
 		int index = (highestNote+MARGIN_SEMIS)-note.getNoteNumber(loop);
 		int notey = Math.round(index*noteHeight-noteHeight/2);

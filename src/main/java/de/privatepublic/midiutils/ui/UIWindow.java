@@ -705,17 +705,16 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menu.addSeparator();
 		
 		menuItemAnimate = new JCheckBoxMenuItem("Animated Notes");
+		menuItemAnimate.setSelected(Prefs.get(Prefs.ANIMATE, 0)==1);
 		menuItemAnimate.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				if (LoopDisplayPanel.ANIMATE!=menuItemAnimate.isSelected()) {
 					Prefs.put(Prefs.ANIMATE, menuItemAnimate.isSelected()?1:0);
-					LoopDisplayPanel.ANIMATE = menuItemAnimate.isSelected();
 					DiMIDImi.updateSettingsOnAllLoops();
-				}
 			}
 		});
 		menu.add(menuItemAnimate);
+		menu.addSeparator();
 		
 		menuItemTheme = new JCheckBoxMenuItem("Dark Theme");
 		menuItemTheme.addItemListener(new ItemListener() {
@@ -794,9 +793,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				toggleRecord.setSelected(loop.isMidiInputOn());
 				comboMidiOut.setSelectedIndex(loop.getMidiChannelOut());
 				comboMidiIn.setSelectedIndex(loop.getMidiChannelIn());
-				
 				panelMidi.setBackground(Theme.isBright()?loop.getNoteColorPlayed():loop.getNoteColor(false));
-				
 				toggleDrumsLayout.setSelected(loop.isDrums());
 				if (Prefs.get(Prefs.THEME, 0)==0) {
 					Theme.APPLY = Theme.BRIGHT;
@@ -806,16 +803,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 					Theme.APPLY = Theme.DARK;
 					menuItemTheme.setSelected(true);
 				}
-				if (Prefs.get(Prefs.ANIMATE, 0)==0) {
-					menuItemAnimate.setSelected(LoopDisplayPanel.ANIMATE);
-				}
-				else {
-					menuItemAnimate.setSelected(LoopDisplayPanel.ANIMATE);
-				}
 				if (loop.getName()!=null && titleExtension==null) { 
 					titleExtension = loop.getName();
 				}
 				frmDimidimi.setTitle(getWindowTitle());
+				boolean animationOn = Prefs.get(Prefs.ANIMATE, 0)==1;
+				menuItemAnimate.setSelected(animationOn);
+				loopDisplayPanel.setAnimate(animationOn);
 			}
 		});
 	}
