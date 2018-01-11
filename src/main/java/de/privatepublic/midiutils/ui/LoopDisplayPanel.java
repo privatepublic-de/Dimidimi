@@ -481,7 +481,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			
 			Rectangle[] rects = getNotePositionsRect(note);
 			
-			if (animate && loop.isAudible()) {
+			if (animate && MidiHandler.ACTIVE && loop.isAudible()) {
 				int start = note.getPosStart(loop);
 				int end = note.getPosEnd(loop);
 				int length = start>end?end+loop.getMaxTicks()-start:end-start;
