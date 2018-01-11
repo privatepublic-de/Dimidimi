@@ -184,7 +184,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver, Fo
 		sl_panel.putConstraint(SpringLayout.WEST, slider, 0, SpringLayout.WEST, panelFooter);
 		slider.setPaintTicks(true);
 		labelLength = new JLabel("8");
-		labelLength.setOpaque(true);
+		labelLength.setOpaque(false);
 		sl_panel.putConstraint(SpringLayout.WEST, labelLength, 0, SpringLayout.EAST, slider);
 		labelLength.setHorizontalAlignment(SwingConstants.CENTER);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, slider, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
@@ -794,7 +794,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver, Fo
 			public void run() {
 				frmDimidimi.getContentPane().setBackground(Theme.APPLY.colorBackground());
 				panelFooter.setBackground(Theme.APPLY.colorBackground());
-				labelLength.setBackground(loop.getNoteColorPlayed());
+				labelLength.setForeground(Theme.APPLY.colorForeground());
 				comboQuantize.setSelectedIndex(loop.getQuantizationIndex());
 				comboBoxTranspose.setSelectedIndex(loop.getTransposeIndex());
 				slider.setValue(loop.getLengthQuarters());
