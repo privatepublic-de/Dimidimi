@@ -36,6 +36,8 @@ public class DiMIDImi {
 	
 	private static ControllerWindow controllerWindow;
 	
+	public static boolean DISABLE_SPACEBAR_TOGGLE = false;
+	
 	public static void main(String[] args) {
 		LOG.info("DiMIDImi Looper starting ...");
 		
@@ -47,7 +49,7 @@ public class DiMIDImi {
 					  .addKeyEventDispatcher(new KeyEventDispatcher() {
 					      @Override
 					      public boolean dispatchKeyEvent(KeyEvent e) {
-						    	  if (' '==e.getKeyChar() && e.getID()==KeyEvent.KEY_PRESSED) {
+						    	  if (!DISABLE_SPACEBAR_TOGGLE && ' '==e.getKeyChar() && e.getID()==KeyEvent.KEY_PRESSED) {
 						    		  MidiHandler.instance().toggleInternalClock();
 						    		  return true;
 						    	  }

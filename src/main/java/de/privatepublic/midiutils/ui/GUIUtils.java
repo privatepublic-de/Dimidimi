@@ -30,12 +30,14 @@ public class GUIUtils {
         chooser.addChoosableFileFilter(fileFilter);
         chooser.setDialogTitle(dialogTitle);
         if (recentPath!=null) {
-        	chooser.setSelectedFile(new File(recentPath));
-        	chooser.setCurrentDirectory(new File(recentPath).getParentFile());
+		    	chooser.setSelectedFile(new File(recentPath));
+		    	chooser.setCurrentDirectory(new File(recentPath).getParentFile());
         }
+        DiMIDImi.DISABLE_SPACEBAR_TOGGLE = true;
         int retvalue = chooser.showDialog(null, "Load");
+        DiMIDImi.DISABLE_SPACEBAR_TOGGLE = false;
         if (retvalue==JFileChooser.APPROVE_OPTION) {
-        	return chooser.getSelectedFile();
+        		return chooser.getSelectedFile();
         }
         return null;
 	}
@@ -72,20 +74,22 @@ public class GUIUtils {
         chooser.addChoosableFileFilter(fileFilter);
         
         if (recentFile!=null) {
-        	chooser.setSelectedFile(new File(recentFile));
-        	chooser.setCurrentDirectory(new File(recentFile).getParentFile());
+	        	chooser.setSelectedFile(new File(recentFile));
+	        	chooser.setCurrentDirectory(new File(recentFile).getParentFile());
         }
         
         chooser.setFileFilter(chooser.getChoosableFileFilters()[0]);
         chooser.setMultiSelectionEnabled(false);
         chooser.setDialogTitle(dialogTitle);
+        DiMIDImi.DISABLE_SPACEBAR_TOGGLE = true;
         int retvalue = chooser.showDialog(null, "Save");
+        DiMIDImi.DISABLE_SPACEBAR_TOGGLE = false;
         if (retvalue==JFileChooser.APPROVE_OPTION) {
-        	File selectedFile = chooser.getSelectedFile();
-        	if (!fileFilter.getExtension().substring(1).equals(FilenameUtils.getExtension(selectedFile.getName()))) {
-        		selectedFile = new File(selectedFile.getPath()+fileFilter.getExtension());
-        	}
-        	return selectedFile;
+	        	File selectedFile = chooser.getSelectedFile();
+	        	if (!fileFilter.getExtension().substring(1).equals(FilenameUtils.getExtension(selectedFile.getName()))) {
+	        		selectedFile = new File(selectedFile.getPath()+fileFilter.getExtension());
+	        	}
+	        	return selectedFile;
         }
         return null;
 	}
@@ -96,26 +100,26 @@ public class GUIUtils {
 			Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
 		} catch (IOException e1) {
 			JOptionPane.showMessageDialog(frmDimidimi, "Could not load file\n"+e1.getMessage());
-    		LOG.error("Could not load file", e1);
+			LOG.error("Could not load file", e1);
 		}
-    	Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
+		Prefs.put(Prefs.FILE_SESSION_LAST_USED_NAME, selectedFile.getPath());
 	}
 	
 	public static String loadLoop(File selectedFile, Loop loop, Component frmDimidimi) {
 		Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
-    	try {
-    		loop.loadLoop(selectedFile);
-    		Prefs.pushToList(Prefs.RECENT_LOOP_LIST, selectedFile.getPath());
-    		String titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
-    		return titleExtension;
+		try {
+			loop.loadLoop(selectedFile);
+			Prefs.pushToList(Prefs.RECENT_LOOP_LIST, selectedFile.getPath());
+			String titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
+			return titleExtension;
 		} catch (Exception e1) {
 			LOG.error("Error loading file", e1);
 			JOptionPane.showMessageDialog(frmDimidimi,
-				    "Error loading file!",
-				    "Load Loop",
-				    JOptionPane.ERROR_MESSAGE);
+					"Error loading file!",
+					"Load Loop",
+					JOptionPane.ERROR_MESSAGE);
 		}
-    	return null;
+		return null;
 	}
 	
 	private static abstract class FileFilterExtension extends FileFilter {
