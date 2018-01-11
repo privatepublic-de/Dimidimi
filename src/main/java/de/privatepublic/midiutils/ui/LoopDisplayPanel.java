@@ -221,6 +221,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				requestFocusInWindow();
 			}
 			
 			private void openPopUp(MouseEvent e){
