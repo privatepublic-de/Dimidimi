@@ -157,7 +157,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		
 		contentPane = new JPanel();
-		contentPane.setBackground(Theme.APPLY.colorBackground());
+		contentPane.setBackground(Theme.APPLY.colorBackgroundController());
 		scrollPane.setViewportView(contentPane);
 		contentPane.setBorder(new EmptyBorder(5, 0, 5, 0));
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
@@ -279,7 +279,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			public void run() {
 				try {
 					for (JComponent cp: updateBackgroundComponents) {
-						cp.setBackground(Theme.APPLY.colorBackground());	
+						cp.setBackground(Theme.APPLY.colorBackgroundController());	
 					}
 					for (JComponent cp: updateForegroundComponents) {
 						cp.setForeground(Theme.APPLY.colorForeground());	
@@ -386,7 +386,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			
 			panel = new JPanel();
 			panel.setPreferredSize(null);
-			panel.setBorder(BorderFactory.createLineBorder(Theme.APPLY.colorBackground(), 2, false));
+			panel.setBorder(BorderFactory.createLineBorder(Theme.APPLY.colorBackgroundController(), 2, false));
 			label = new JLabel("", SwingConstants.RIGHT);
 			label.setPreferredSize(new Dimension(30, 24));
 			panel.add(label);
@@ -500,7 +500,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 		public void updateColors() {
 			panel.setBackground(Theme.isBright()?loop.getNoteColorPlayed():loop.getNoteColor(false));
-			panel.setBorder(BorderFactory.createLineBorder(Theme.APPLY.colorBackground(), 2, false));
+			panel.setBorder(BorderFactory.createLineBorder(Theme.APPLY.colorBackgroundController(), 2, false));
 		}
 		
 		public JPanel getPanel() {

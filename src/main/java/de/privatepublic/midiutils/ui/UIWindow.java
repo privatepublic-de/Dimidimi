@@ -24,6 +24,7 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 
+import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
@@ -38,6 +39,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSlider;
 import javax.swing.KeyStroke;
 import javax.swing.SpringLayout;
@@ -85,7 +87,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 	private JComboBox<String> comboMidiOut;
 	private JCheckBox toggleRecord;
 	private JLabel lblDimidimiLooper;
-	private JCheckBoxMenuItem menuItemTheme;
+	private JRadioButtonMenuItem menuItemThemeDark;
+	private JRadioButtonMenuItem menuItemThemeBright;
 	private JCheckBoxMenuItem menuItemAnimate;
 	private JCheckBox toggleDrumsLayout;
 	private Loop loop;
@@ -716,19 +719,24 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menu.add(menuItemAnimate);
 		menu.addSeparator();
 		
-		menuItemTheme = new JCheckBoxMenuItem("Dark Theme");
-		menuItemTheme.addItemListener(new ItemListener() {
+		ButtonGroup group = new ButtonGroup();
+		menuItemThemeDark = new JRadioButtonMenuItem("Dark Theme");
+		group.add(menuItemThemeDark);
+		menuItemThemeDark.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				Theme selectedTheme = menuItemTheme.isSelected()?Theme.DARK:Theme.BRIGHT;
+				Theme selectedTheme = menuItemThemeDark.isSelected()?Theme.DARK:Theme.BRIGHT;
 				if (selectedTheme!=Theme.APPLY) {
 					Theme.APPLY = selectedTheme;
-					Prefs.put(Prefs.THEME, menuItemTheme.isSelected()?1:0);
+					Prefs.put(Prefs.THEME, menuItemThemeDark.isSelected()?1:0);
 					DiMIDImi.updateSettingsOnAllLoops();
 				}
 			}
 		});
-		menu.add(menuItemTheme);
+		menu.add(menuItemThemeDark);
+		menuItemThemeBright = new JRadioButtonMenuItem("Bright Theme");
+		group.add(menuItemThemeBright);
+		menu.add(menuItemThemeBright);
 		
 		menuBar.add(menu);
 		return menuBar;
@@ -797,11 +805,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 				toggleDrumsLayout.setSelected(loop.isDrums());
 				if (Prefs.get(Prefs.THEME, 0)==0) {
 					Theme.APPLY = Theme.BRIGHT;
-					menuItemTheme.setSelected(false);
+					menuItemThemeDark.setSelected(false);
+					menuItemThemeBright.setSelected(true);
 				}
 				else {
 					Theme.APPLY = Theme.DARK;
-					menuItemTheme.setSelected(true);
+					menuItemThemeDark.setSelected(true);
+					menuItemThemeBright.setSelected(false);
 				}
 				if (loop.getName()!=null && titleExtension==null) { 
 					titleExtension = loop.getName();

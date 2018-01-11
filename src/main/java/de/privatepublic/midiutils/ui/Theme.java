@@ -28,6 +28,7 @@ public class Theme {
 	private Font fontNotes = new Font(Font.SANS_SERIF, Font.BOLD, 12); 
 	private Font fontMidiBig = new Font(Font.SANS_SERIF, Font.BOLD, 12);
 	private Color colorBackground = Color.decode("#222222");
+	private Color colorBackgroundController = Color.decode("#33333f");
 	private Color colorForeground = Color.decode("#ffffff");
 	private Color colorGrid = Color.decode("#444444");
 	private Color colorGridIntense = Color.decode("#494949");
@@ -103,6 +104,10 @@ public class Theme {
 	public Color colorBackground() {
 		return colorBackground;
 	}
+	public Color colorBackgroundController() {
+		return colorBackgroundController;
+	}
+
 	public Color colorForeground() {
 		return colorForeground;
 	}
