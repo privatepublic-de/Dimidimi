@@ -82,6 +82,14 @@ public class DiMIDImi {
 		}
 	}
 	
+	public static void focusLoops(Loop focusLoop) {
+		for (Loop loop: LOOPS) {
+			if (loop==focusLoop) {
+				loop.emitFocus(focusLoop);
+			}
+		}
+	}
+	
 	
 	public static Loop createLoop() {
 		Loop loop = new Loop();

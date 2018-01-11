@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.privatepublic.midiutils.Note.TransformationProvider;
 import de.privatepublic.midiutils.events.DimidimiEventReceiver;
+import de.privatepublic.midiutils.events.FocusReceiver;
 import de.privatepublic.midiutils.events.NotesUpdatedReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
@@ -400,6 +401,9 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		if (receiver instanceof SettingsUpdateReceiver) {
 			settingsUpdateReceivers.add((SettingsUpdateReceiver)receiver);
 		}
+		if (receiver instanceof FocusReceiver) {
+			focusReceivers.add((FocusReceiver)receiver);
+		}
 	}
 
 
@@ -439,7 +443,6 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			receiver.onReceivePitchBend(val, pos);
 		}
 	}
-	
 
 	public void emitClock(int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
@@ -464,7 +467,13 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			receiver.onSettingsUpdated();
 		}
 	}
-	
+
+	public void emitFocus(Loop focusLoop) {
+		for (FocusReceiver receiver: focusReceivers) {
+			receiver.onFocusLoop(focusLoop);
+		}
+	}
+
 	
 	
 	@Override
@@ -669,6 +678,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	private List<NotesUpdatedReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<NotesUpdatedReceiver>();
 	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
 	private List<SettingsUpdateReceiver> settingsUpdateReceivers = new CopyOnWriteArrayList<SettingsUpdateReceiver>();
+	private List<FocusReceiver> focusReceivers = new CopyOnWriteArrayList<FocusReceiver>();
 
 	private Note[] lastStarted = new Note[128];
 	

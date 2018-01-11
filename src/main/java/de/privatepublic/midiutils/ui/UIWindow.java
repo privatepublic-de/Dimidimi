@@ -64,10 +64,11 @@ import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Note;
 import de.privatepublic.midiutils.Note.TransformationProvider;
 import de.privatepublic.midiutils.Prefs;
+import de.privatepublic.midiutils.events.FocusReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
-public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
+public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver, FocusReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UIWindow.class);
 	
@@ -515,7 +516,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
 		menu.add(menuItem);
 		
 		menu.addSeparator();
-		menuItem = new JMenuItem("Close All (Exit)");
+		menuItem = new JMenuItem("Exit");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -872,5 +873,12 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver {
         LENGTH_LABELS.put(16, new JLabel("16"));
         LENGTH_LABELS.put(24, new JLabel("24"));
         LENGTH_LABELS.put(32, new JLabel("32"));
+	}
+
+	@Override
+	public void onFocusLoop(Loop loop) {
+		if (loop==this.loop) {
+			frmDimidimi.requestFocus();
+		}
 	}
 }
