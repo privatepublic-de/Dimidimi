@@ -86,9 +86,6 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {
-				if (' '==e.getKeyChar()) {
-					MidiHandler.instance().toggleInternalClock();
-				}
 			}
 			
 			@Override
@@ -220,7 +217,6 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				requestFocusInWindow();
 			}
 			
 			@Override

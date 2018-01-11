@@ -2,7 +2,10 @@ package de.privatepublic.midiutils;
 
 import java.awt.EventQueue;
 import java.awt.GraphicsEnvironment;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,6 +43,17 @@ public class DiMIDImi {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					KeyboardFocusManager.getCurrentKeyboardFocusManager()
+					  .addKeyEventDispatcher(new KeyEventDispatcher() {
+					      @Override
+					      public boolean dispatchKeyEvent(KeyEvent e) {
+						    	  if (' '==e.getKeyChar() && e.getID()==KeyEvent.KEY_PRESSED) {
+						    		  MidiHandler.instance().toggleInternalClock();
+						    		  return true;
+						    	  }
+						    	  return false;
+					      }
+					});
 					controllerWindow = new ControllerWindow();
 					createLoop();
 				} catch (Exception e) {
