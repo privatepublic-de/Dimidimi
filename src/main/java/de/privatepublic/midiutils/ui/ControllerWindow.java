@@ -284,7 +284,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 					for (JComponent cp: updateForegroundComponents) {
 						cp.setForeground(Theme.APPLY.colorForeground());	
 					}
-					List<Loop> list = DiMIDImi.getLoops();
+					List<Loop> list = new ArrayList<Loop>(DiMIDImi.getLoops());
 					if (panelComponents.size()<=list.size()) {
 						Collections.sort(list);
 						contentPane.removeAll();
@@ -293,6 +293,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 							if (panel==null) {
 								panel = new PanelComponent(loop);
 								panelComponents.put(loop.hashCode(), panel);
+								contentPane.add(panel.getPanel(), gbc);
 								panel.getPanel().revalidate();
 								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
 								targetWidth = Math.max(targetWidth, STANDARD_WIDTH);
@@ -304,7 +305,9 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 							    setSize(new Dimension(targetWidth, currSize.height));
 								loop.registerAsReceiver(ControllerWindow.this);
 							}
-							contentPane.add(panel.getPanel(), gbc);
+							else {
+								contentPane.add(panel.getPanel(), gbc);
+							}
 							panel.updateLabelText();
 						}
 						refreshView();
