@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.privatepublic.midiutils.ui.ControllerWindow;
-import de.privatepublic.midiutils.ui.UIWindow;
+import de.privatepublic.midiutils.ui.LoopWindow;
 
 
 
@@ -180,8 +180,8 @@ public class DiMIDImi {
 		int height = rect.height;
 		
 		LOG.info("Arranging windows in {}x{}", width, height);		
-		int minwidth = UIWindow.WINDOW_MAX_WIDTH-40;
-		int minheight = UIWindow.WINDOW_MAX_HEIGHT;
+		int minwidth = LoopWindow.WINDOW_MAX_WIDTH-40;
+		int minheight = LoopWindow.WINDOW_MAX_HEIGHT;
 		int maxcols = width / minwidth;
 		int maxrows = height / minheight;
 		int numcols = maxcols;

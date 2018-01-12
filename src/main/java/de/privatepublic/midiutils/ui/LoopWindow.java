@@ -68,9 +68,9 @@ import de.privatepublic.midiutils.events.FocusReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
-public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver, FocusReceiver {
+public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, FocusReceiver {
 
-	private static final Logger LOG = LoggerFactory.getLogger(UIWindow.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LoopWindow.class);
 	
 	public static int WINDOW_MAX_WIDTH = 680;
 	public static int WINDOW_MAX_HEIGHT = 300;
@@ -96,7 +96,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver, Fo
 	private String titleExtension = null;
 	private JCheckBox toggleMetronome;
 
-	public UIWindow(Loop loop) {
+	public LoopWindow(Loop loop) {
 		this.loop = loop;
 		try {
 			System.setProperty("apple.laf.useScreenMenuBar", "true");

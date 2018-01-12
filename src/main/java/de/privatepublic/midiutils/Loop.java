@@ -26,7 +26,7 @@ import de.privatepublic.midiutils.events.NotesUpdatedReceiver;
 import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 import de.privatepublic.midiutils.ui.Theme;
-import de.privatepublic.midiutils.ui.UIWindow;
+import de.privatepublic.midiutils.ui.LoopWindow;
 
 public class Loop implements TransformationProvider, PerformanceReceiver, SettingsUpdateReceiver, Comparable<Loop> {
 
@@ -41,7 +41,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					window = new UIWindow(Loop.this);
+					window = new LoopWindow(Loop.this);
 					emitLoopUpdated();
 					registerAsReceiver(Loop.this);
 					window.setVisible(true);
@@ -57,7 +57,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					window = new UIWindow(Loop.this);
+					window = new LoopWindow(Loop.this);
 					applyStorageData(data);
 					updateColors();
 					emitLoopUpdated();
@@ -243,7 +243,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		return true;
 	}
 
-	public UIWindow getWindow() {
+	public LoopWindow getWindow() {
 		return window;
 	}
 
@@ -658,7 +658,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	private QueuedState queuedSoloState = QueuedState.NO_CHANGE;
 	private int quantizationIndex = 0;
 	private int transposeIndex = 13;
-	private UIWindow window;
+	private LoopWindow window;
 	private int currentCC = 0;
 	private int currentPitchBend = 0;
 	private List<Note> notesList = new CopyOnWriteArrayList<Note>();
