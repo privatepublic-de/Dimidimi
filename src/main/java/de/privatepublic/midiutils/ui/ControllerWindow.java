@@ -647,11 +647,11 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		
 	}
 	
-	private static final ImageIcon IC_EMPTY = new ImageIcon(PanelComponent.class.getResource("/3state-off.png"));
-	private static final ImageIcon IC_ON = new ImageIcon(PanelComponent.class.getResource("/3state-on.png"));
-	private static final ImageIcon IC_NEXT_CYCLE_ON = new ImageIcon(PanelComponent.class.getResource("/3state-on-next.png"));
-	private static final ImageIcon IC_NEXT_CYCLE_OFF = new ImageIcon(PanelComponent.class.getResource("/3state-off-next.png"));
-	private static final ImageIcon IC_CHECKED = new ImageIcon(PanelComponent.class.getResource("/3state-checked.png"));
+	private static final ImageIcon IC_EMPTY = new ImageIcon(Res.IMAGE_CHECK_OFF());
+	private static final ImageIcon IC_ON = new ImageIcon(Res.IMAGE_CHECK_ON());
+	private static final ImageIcon IC_NEXT_CYCLE_ON = new ImageIcon(Res.IMAGE_CHECK_ON_FUTURE());
+	private static final ImageIcon IC_NEXT_CYCLE_OFF = new ImageIcon(Res.IMAGE_CHECK_OFF_FUTURE());
+	private static final ImageIcon IC_CHECKED = new ImageIcon(Res.IMAGE_CHECK_ON_CHECKMARK());
 
 	private static enum Toggle { MUTE, SOLO };
 	

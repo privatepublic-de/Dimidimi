@@ -3,6 +3,7 @@ package de.privatepublic.midiutils.ui;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 
 import org.apache.commons.io.IOUtils;
@@ -16,8 +17,8 @@ public class Theme {
 	
 	private static final Logger LOG = LoggerFactory.getLogger(Theme.class);
 	
-	public static final Theme DARK = new Theme("/theme_dark.properties");
-	public static final Theme BRIGHT = new Theme("/theme_bright.properties");
+	public static final Theme DARK = new Theme(Res.PROPS_THEME_DARK());
+	public static final Theme BRIGHT = new Theme(Res.PROPS_THEME_BRIGHT());
 	public static Theme APPLY = Prefs.get(Prefs.THEME, 0)>0?Theme.DARK:Theme.BRIGHT;
 	
 	public static boolean isBright() {
@@ -50,9 +51,9 @@ public class Theme {
 	private float colorChannelSaturation=.1f;
 	private float colorChannelBrightness=.2f;
 	
-	public Theme(String fileName) {
+	public Theme(InputStream propStream) {
 		try {
-			LineIterator iter = IOUtils.lineIterator(Theme.class.getResourceAsStream(fileName), "utf8");
+			LineIterator iter = IOUtils.lineIterator(propStream, "utf8");
 			while(iter.hasNext()) {
 				try {
 					String line = iter.next();

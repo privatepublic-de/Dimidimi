@@ -739,7 +739,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 	
 	static {
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		PEN_CURSOR = toolkit.createCustomCursor(new ImageIcon(LoopDisplayPanel.class.getResource("/crs-pencil.png")).getImage() , new Point(1, 30), "custom cursor");
+		PEN_CURSOR = toolkit.createCustomCursor(new ImageIcon(Res.IMAGE_CURSOR_EDIT()).getImage() , new Point(1, 30), "custom cursor");
 	}
 
 	public void selectAll() {

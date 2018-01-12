@@ -289,8 +289,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver, Fo
 		panelMidi.setLayout(sl_panelMidi);
 		
 		toggleMetronome = new JCheckBox("Metronome");
-		toggleMetronome.setIcon(new ImageIcon(UIWindow.class.getResource("/toggle-off.png")));
-		toggleMetronome.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/toggle-on-black.png")));
+		toggleMetronome.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
+		toggleMetronome.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
 		toggleMetronome.setHorizontalTextPosition(SwingConstants.LEADING);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMetronome, 0, SpringLayout.WEST, lblIn);
 		toggleMetronome.setOpaque(false);
@@ -312,8 +312,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver, Fo
 		toggleRecord.setBorderPainted(false);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, toggleRecord, -4, SpringLayout.NORTH, toggleMetronome);
 		toggleRecord.setText("");
-		toggleRecord.setIcon(new ImageIcon(UIWindow.class.getResource("/toggle-off.png")));
-		toggleRecord.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/toggle-on-red.png")));
+		toggleRecord.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
+		toggleRecord.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON_EXTRA()));
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleRecord, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		toggleRecord.setSelected(true);
 		toggleRecord.addChangeListener(new ChangeListener() {
@@ -331,8 +331,8 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver, Fo
 		toggleDrumsLayout.setOpaque(false);
 		toggleDrumsLayout.setBorderPainted(false);
 		toggleDrumsLayout.setToolTipText("Use drum view");
-		toggleDrumsLayout.setIcon(new ImageIcon(UIWindow.class.getResource("/toggle-off.png")));
-		toggleDrumsLayout.setSelectedIcon(new ImageIcon(UIWindow.class.getResource("/toggle-on-black.png")));
+		toggleDrumsLayout.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
+		toggleDrumsLayout.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleDrumsLayout, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		panelMidi.add(toggleDrumsLayout);
 		
@@ -342,7 +342,7 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver, Fo
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblDimidimiLooper, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		panelMidi.add(lblDimidimiLooper);
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
-		lblDimidimiLooper.setIcon(new ImageIcon(UIWindow.class.getResource("/icon-32.png")));
+		lblDimidimiLooper.setIcon(new ImageIcon(Res.IMAGE_ICON_32x32()));
 		
 		toggleDrumsLayout.addActionListener(new ActionListener() {
 			@Override
@@ -374,13 +374,13 @@ public class UIWindow implements PerformanceReceiver, SettingsUpdateReceiver, Fo
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void setIcon(JFrame frame) {
-		frame.setIconImage(Toolkit.getDefaultToolkit().getImage(UIWindow.class.getResource("/icon.png")));
+		frame.setIconImage(Toolkit.getDefaultToolkit().getImage(Res.IMAGE_ICON_LARGE()));
 		try {
 			// set icon for mac os if possible
 			Class c = Class.forName("com.apple.eawt.Application");
 			Object app = c.getDeclaredMethod ("getApplication", (Class[])null).invoke(null, (Object[])null);
 			Method setDockIconImage = c.getDeclaredMethod("setDockIconImage", Image.class);
-			setDockIconImage.invoke(app, new ImageIcon(UIWindow.class.getResource("/icon.png")).getImage());
+			setDockIconImage.invoke(app, new ImageIcon(Res.IMAGE_ICON_LARGE()).getImage());
 		} catch (Exception e) {
 			// fail silently
 		}
