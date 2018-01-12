@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import de.privatepublic.midiutils.Loop;
 import de.privatepublic.midiutils.MidiHandler;
 import de.privatepublic.midiutils.Note;
+import de.privatepublic.midiutils.Note.TransformationProvider;
 import de.privatepublic.midiutils.events.NotesUpdatedReceiver;
 
 public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
@@ -124,6 +125,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 					setCursor(Cursor.getDefaultCursor());
 					if (findHitNote(loop.getNotesList(), e.getPoint())==null) {
 						int value = (int)(highestNote+MARGIN_SEMIS-(e.getY()-noteHeight/2)/noteHeight);
+						value = value - TransformationProvider.T_STEPS[loop.getTransposeIndex()];
 						int pos = (int)(e.getX()/tickwidth);
 						Note n = new Note(value, 96, pos);
 						n.setPosEnd((pos+5)%loop.getMaxTicks());
@@ -133,7 +135,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 						n.setPosEnd(qend);
 						loop.getNotesList().add(n);
 						selectedNotes.clear();
-						n.storeCurrent();
+						n.stashOrigin();
 						draggedNote = n;
 						selectedNotes.add(n);
 						onRefreshLoopDisplay();
@@ -169,24 +171,28 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				if (e.isPopupTrigger()) {
 					handlePopupTrigger(e);
 				}
-				else if (e.getButton()==MouseEvent.BUTTON1){
+				else if (e.getButton()==MouseEvent.BUTTON1) {
 					isDragButtonPressed = true;
 					dragStart = e.getPoint();
 					if (resizeNote==null) {
 						Note hitNote = findHitNote(selectedNotes, dragStart);
 						if (hitNote!=null) {
+							// is within already selected notelist
 							draggedNote = hitNote;
+							hitNote.stashOrigin();
 						}
 						else {
 							if (!e.isShiftDown()) {
+								// multiple select
 								selectedNotes.clear();
 							}
 							hitNote = findHitNote(loop.getNotesList(), dragStart);
 							if (hitNote!=null) {
+								// found a note to select
 								if (!selectedNotes.contains(hitNote)) {
 									selectedNotes.add(hitNote);
 								}
-								hitNote.storeCurrent();
+								hitNote.stashOrigin();
 								draggedNote = hitNote;
 							}
 							if (selectedNotes.size()>0) {
@@ -245,7 +251,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 							int rightx = rects[rects.length-1].x+rects[rects.length-1].width;
 							if (mx<rightx+tickwidth && mx>rightx && Math.abs(my-posy)<noteHeight) {
 								found2resize = note;
-								found2resize.storeCurrent();
+								found2resize.stashOrigin();
 								break;
 							}
 						}
@@ -278,7 +284,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				if (resizeNote!=null) {
 					int distX = e.getX()-dragStart.x;
 					int ticksOffset = (int)(distX/tickwidth);
-					resizeNote.setPosEnd((resizeNote.getStoredPosEnd()+ticksOffset+loop.getMaxTicks())%loop.getMaxTicks());
+					resizeNote.setPosEnd((resizeNote.getOriginPosEnd()+ticksOffset+loop.getMaxTicks())%loop.getMaxTicks());
 					MidiHandler.instance().sendNoteOffMidi(loop, resizeNote.getNoteNumber());
 					onRefreshLoopDisplay();
 					return;
@@ -307,7 +313,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 						for (Rectangle nr: getNotePositionsRect(note)) {
 							if (selectRectangle.intersects(nr)) {
 								selectedNotes.add(note);
-								note.storeCurrent();
+								note.stashOrigin();
 								break;
 							}		
 						}
@@ -321,11 +327,11 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 							int distX = e.getX()-dragStart.x;
 
 							int noteOffset = (int)(distY/noteHeight);
-							note.setNoteNumber(note.getStoredNoteNumber()+noteOffset);
+							note.setNoteNumber(note.getOriginNoteNumber()+noteOffset);
 
 							int ticksOffset = (int)(distX/tickwidth);
-							note.setPosStart((note.getStoredPosStart()+ticksOffset+loop.getMaxTicks())%loop.getMaxTicks());
-							note.setPosEnd((note.getStoredPosEnd()+ticksOffset+loop.getMaxTicks())%loop.getMaxTicks());
+							note.setPosStart((note.getOriginPosStart()+ticksOffset+loop.getMaxTicks())%loop.getMaxTicks());
+							note.setPosEnd((note.getOriginPosEnd()+ticksOffset+loop.getMaxTicks())%loop.getMaxTicks());
 						}
 						onRefreshLoopDisplay();
 					}
@@ -445,7 +451,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				g.drawLine(xpos-1, 0, xpos-1, height);
 				g.drawLine(xpos-3, 0, xpos-3, height);
 			}
-			if (i/4 == activeQuarter) {
+			if (MidiHandler.ACTIVE && (i/4 == activeQuarter)) {
 				g.setColor(Theme.APPLY.colorActiveQuarter());
 				g.fillRect(xpos, height-(int)noteHeight/2, Math.round(sixthwidth)+1, height);
 				g.fillRect(xpos, 0, Math.round(sixthwidth)+1, (int)noteHeight/2);
@@ -453,9 +459,11 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		}
 		
 		// draw playhead
-		g.setColor(Theme.APPLY.colorPlayhead());
-		float playheadx = width*((float)pos/loop.getMaxTicks());
-		g.fillRect((int)(playheadx-tickwidth/2), 0, (int)tickwidth, height);
+		if (MidiHandler.ACTIVE) {
+			g.setColor(Theme.APPLY.colorPlayhead());
+			float playheadx = width*((float)pos/loop.getMaxTicks());
+			g.fillRect((int)(playheadx-tickwidth/2), 0, (int)tickwidth, height);
+		}
 		
 		// draw notes
 		int halfheight = Math.round(noteHeight/2);

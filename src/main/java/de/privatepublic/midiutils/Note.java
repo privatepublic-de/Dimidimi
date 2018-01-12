@@ -1,17 +1,22 @@
 package de.privatepublic.midiutils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 public class Note {
 
+	private static final Logger LOG = LoggerFactory.getLogger(Note.class);
+	
 	private int posStart;
 	private int posEnd = -1;
 	private int noteNumber;
 	
-	private int storedPosStart; // TODO not a good place here for ui stuff
-	private int storedPosEnd;
-	private int storedNoteNumber;
+	private int originPosStart;
+	private int originPosEnd;
+	private int originNoteNumber;
 	
 	private int velocity;
 	private boolean isCompleted;
@@ -132,7 +137,7 @@ public class Note {
 	
 	@Override
 	public String toString() {
-		return "<NoteRun #"+noteNumber+", "+velocity+">";
+		return "<Note "+hashCode()+", "+"#"+noteNumber+", "+velocity+">";
 	}
 	
 	public static String getConcreteNoteName(int number) { // TODO Name
@@ -147,25 +152,25 @@ public class Note {
 		}
 	}
 	
-	public void storeCurrent() {
-		storedPosStart = posStart;
-		storedPosEnd = posEnd;
-		storedNoteNumber = noteNumber;
+	public void stashOrigin() {
+		originPosStart = posStart;
+		originPosEnd = posEnd;
+		originNoteNumber = noteNumber;
 	}
 	
 	@JsonIgnore
-	public int getStoredPosEnd() {
-		return storedPosEnd;
+	public int getOriginPosEnd() {
+		return originPosEnd;
 	}
 	
 	@JsonIgnore
-	public int getStoredPosStart() {
-		return storedPosStart;
+	public int getOriginPosStart() {
+		return originPosStart;
 	}
 	
 	@JsonIgnore
-	public int getStoredNoteNumber() {
-		return storedNoteNumber;
+	public int getOriginNoteNumber() {
+		return originNoteNumber;
 	}
 	
 	private static final String[] NOTE_NAMES = new String[] {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
