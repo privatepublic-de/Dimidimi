@@ -92,6 +92,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 	private JRadioButtonMenuItem menuItemThemeBright;
 	private JCheckBoxMenuItem menuItemAnimate;
 	private JCheckBox toggleDrumsLayout;
+	private JPanel panelLoop;
 	private Loop loop;
 	private String titleExtension = null;
 	private JCheckBox toggleMetronome;
@@ -152,9 +153,9 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		
 		frmDimidimi.setJMenuBar(buildMenu());
 		
-		JPanel panelLoop = new JPanel();
+		panelLoop = new JPanel();
 		panelLoop.setBackground(Color.WHITE);
-		panelLoop.setBorder(new LineBorder(Color.GRAY));
+		panelLoop.setBorder(new LineBorder(Theme.APPLY.colorBackground(), 3));
 		
 		panelMidi = new JPanel();
 		panelMidi.setBorder(null);
@@ -794,6 +795,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 			public void run() {
 				frmDimidimi.getContentPane().setBackground(Theme.APPLY.colorBackground());
 				panelFooter.setBackground(Theme.APPLY.colorBackground());
+				panelLoop.setBackground(Theme.APPLY.colorBackground());
+				panelLoop.setBorder(new LineBorder(Theme.APPLY.colorBackground(), 3));
 				labelLength.setForeground(Theme.APPLY.colorForeground());
 				comboQuantize.setSelectedIndex(loop.getQuantizationIndex());
 				comboBoxTranspose.setSelectedIndex(loop.getTransposeIndex());

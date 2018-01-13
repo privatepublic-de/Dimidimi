@@ -69,7 +69,8 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 	private Point insertNotePos;
 	private Rectangle selectRectangle = new Rectangle();
 	private Note draggedNote = null;
-	private boolean metaKeyPressed = false;
+	private boolean insertNoteMode = false;
+	private final Note insertNote = new Note();
 	private float noteHeight;
 	private float tickwidth;
 	private static final int MARGIN_SEMIS = 1;
@@ -92,7 +93,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				if ((e.getModifiersEx()&META_KEY)==0) {
-					metaKeyPressed = false;
+					insertNoteMode = false;
 					setCursor(Cursor.getDefaultCursor());
 					repaint();
 				}
@@ -103,8 +104,8 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				if ((e.getModifiersEx()&META_KEY)!=0) {
 					Point mouse = MouseInfo.getPointerInfo().getLocation();
 					Point comp = getLocationOnScreen();
-					insertNotePos = new Point(mouse.x-comp.x, mouse.y-comp.y);
-					metaKeyPressed = true;
+					updateInsertNote(new Point(mouse.x-comp.x, mouse.y-comp.y));
+					insertNoteMode = true;
 					setCursor(PEN_CURSOR);
 					repaint();
 				}
@@ -121,18 +122,11 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				isSelectionDrag = false;
 				draggedNote = null;
 				
-				if (metaKeyPressed) {
+				if (insertNoteMode) {
 					setCursor(Cursor.getDefaultCursor());
 					if (findHitNote(loop.getNotesList(), e.getPoint())==null) {
-						int value = (int)(highestNote+MARGIN_SEMIS-(e.getY()-noteHeight/2)/noteHeight);
-						value = value - TransformationProvider.T_STEPS[loop.getTransposeIndex()];
-						int pos = (int)(e.getX()/tickwidth);
-						Note n = new Note(value, 96, pos);
-						n.setPosEnd((pos+5)%loop.getMaxTicks());
-						int qstart = n.getPosStart(loop);
-						int qend = n.getPosEnd(loop);
-						n.setPosStart(qstart);
-						n.setPosEnd(qend);
+						updateInsertNote(e.getPoint());
+						Note n = new Note(insertNote, 0);
 						loop.getNotesList().add(n);
 						selectedNotes.clear();
 						n.stashOrigin();
@@ -168,6 +162,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			
 			@Override
 			public void mousePressed(MouseEvent e) {
+				requestFocus();
 				if (e.isPopupTrigger()) {
 					handlePopupTrigger(e);
 				}
@@ -268,9 +263,9 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				else if (isDragging || isListHit(loop.getNotesList(), e.getPoint())) {
 					setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				}
-				else if (metaKeyPressed) {
+				else if (insertNoteMode) {
 					setCursor(PEN_CURSOR);
-					insertNotePos = new Point(e.getPoint());
+					updateInsertNote(e.getPoint());
 					repaint();
 				}
 				else {
@@ -570,21 +565,23 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			}
 		}
 		
-		if ((insertNotePos!=null && metaKeyPressed)) {
-			int value = (int)(highestNote+MARGIN_SEMIS-(insertNotePos.y-noteHeight/2)/noteHeight);
+		if ((insertNotePos!=null && insertNoteMode)) {
 			
-			int notey = Math.round((highestNote+MARGIN_SEMIS-value)*noteHeight - noteHeight/2);
+			Rectangle noteRect = getNotePositionsRect(insertNote)[0];
 			g.setStroke(STROKE_1);
 			g.setColor(Theme.APPLY.colorSelectionRectangle());
-			g.drawRect(0, notey, width, (int)noteHeight);
+			g.drawRect(0, noteRect.y, width, (int)noteHeight);
+			g.setColor(loop.getNoteColorHighlighted(false));
+			g.fillRect(noteRect.x, noteRect.y, noteRect.width, noteRect.height);
 			
+			int value = insertNote.getNoteNumber();			
 			String notetext = loop.isDrums()?Note.getConcreteDrumNoteName(value):Note.getConcreteNoteName(value);
 			Rectangle2D rect = fm.getStringBounds(notetext, g);
-			int y = insertNotePos.y;
-			int x = insertNotePos.x-32; // cursor size
+			int x = noteRect.x-32; // cursor size
 			if (x<0) {
-				x = insertNotePos.x+24;
+				x = noteRect.x+24;
 			}
+			int y = (int) (noteRect.y + noteHeight/2);
 			g.setColor(Theme.APPLY.colorBackground());
 			g.fillRect(x+(int)rect.getX()+2, y+(int)rect.getY(), (int)rect.getWidth()+6, (int)rect.getHeight());
 			g.setColor(Theme.APPLY.colorNoteLabels());	
@@ -643,6 +640,27 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			}
 		}
 		return null;
+	}
+	
+	public void updateInsertNote(Point p) {
+		int value = (int)(highestNote+MARGIN_SEMIS-(p.getY()-noteHeight/2)/noteHeight);
+		value = value - TransformationProvider.T_STEPS[loop.getTransposeIndex()];
+		int pos = (int)((p.getX()-16)/tickwidth);
+		insertNotePos = new Point(p); // cloned p
+		insertNote.setNoteNumber(value);
+		insertNote.setPosStart(pos);
+		int length = Note.TransformationProvider.Q_STEPS[loop.getQuantizationIndex()];
+		if (length>0) {
+			length--;
+		}
+		else {
+			length=5;
+		}
+		insertNote.setPosEnd((pos+length)%loop.getMaxTicks());
+		int qstart = insertNote.getPosStart(loop);
+		int qend = insertNote.getPosEnd(loop);
+		insertNote.setPosStart(qstart);
+		insertNote.setPosEnd(qend);
 	}
 	
 	public void updateLoopPosition(int pos) {
