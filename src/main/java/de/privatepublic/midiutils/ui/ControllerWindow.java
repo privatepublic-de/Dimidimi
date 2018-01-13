@@ -44,7 +44,6 @@ import javax.swing.event.ChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.privatepublic.midiutils.DiMIDImi;
 import de.privatepublic.midiutils.Loop;
 import de.privatepublic.midiutils.Loop.QueuedState;
 import de.privatepublic.midiutils.MidiHandler;
@@ -53,21 +52,18 @@ import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
 public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, PerformanceReceiver {
-
+	
 	private static final long serialVersionUID = 3196404892575349167L;
-	
 	private static final Logger LOG = LoggerFactory.getLogger(ControllerWindow.class);
-	
 	private static final int STANDARD_WIDTH = 270;
 	
 	private JPanel windowPane;
 	private JPanel contentPane;
 	private Map<Integer, PanelComponent> panelComponents = new HashMap<Integer, PanelComponent>();
 	private int bpm = 100;
-	
 	private List<JComponent> updateBackgroundComponents = new ArrayList<JComponent>();
 	private List<JComponent> updateForegroundComponents = new ArrayList<JComponent>();
-
+	
 	public ControllerWindow() {
 		
 		try {
@@ -287,7 +283,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 					for (JComponent cp: updateForegroundComponents) {
 						cp.setForeground(Theme.APPLY.colorForeground());	
 					}
-					List<Loop> list = new ArrayList<Loop>(DiMIDImi.getLoops());
+					List<Loop> list = new ArrayList<Loop>(Loop.getLoops());
 					if (panelComponents.size()<=list.size()) {
 						Collections.sort(list);
 						contentPane.removeAll();
@@ -315,11 +311,11 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 						}
 						refreshView();
 					}
-					else if (panelComponents.size()>DiMIDImi.getLoops().size()) {
+					else if (panelComponents.size()>Loop.getLoops().size()) {
 						Integer removeKey = null;
 						for (Integer key:panelComponents.keySet()) {
 							boolean exists = false;
-							for (Loop loop:DiMIDImi.getLoops()) {
+							for (Loop loop:Loop.getLoops()) {
 								if (loop.hashCode()==key) {
 									exists = true;
 									break;
@@ -408,7 +404,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 				}
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					DiMIDImi.focusLoops(loop);
+					ControllerWindow.focusLoops(loop);
 				}
 			});
 			panel.add(label);
@@ -709,6 +705,14 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	@Override
 	public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute,
 			QueuedState queuedSolo) {
+	}
+
+	public static void focusLoops(Loop focusLoop) {
+		for (Loop loop: Loop.getLoops()) {
+			if (loop==focusLoop) {
+				loop.emitFocus(focusLoop);
+			}
+		}
 	}
 	
 }

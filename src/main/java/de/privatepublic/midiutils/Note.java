@@ -8,23 +8,32 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class Note {
 
+	@SuppressWarnings("unused")
 	private static final Logger LOG = LoggerFactory.getLogger(Note.class);
+	
+	public static String getName(int number) { 
+		return NOTE_NAMES[number%12];
+	}
+	
+	public static String getDrumName(int number) { 
+		if (number<35 || number>49) {
+			return "?? " + NOTE_NAMES[number%12];	
+		} else {
+			return DRUM_NAMES[number-35];
+		}
+	}
 	
 	private int posStart;
 	private int posEnd = -1;
 	private int noteNumber;
-	
-	private int originPosStart;
-	private int originPosEnd;
-	private int originNoteNumber;
-	
 	private int velocity;
 	private boolean isCompleted;
 	private boolean isPlayed;
 	private int playedNoteNumber;
-
-	private int qoffset = 0;
-	
+	private int originPosStart;
+	private int originPosEnd;
+	private int originNoteNumber;
+	private int qantizationOffset = 0;
 	
 	public Note() {
 		
@@ -46,7 +55,7 @@ public class Note {
 	
 	@JsonIgnore
 	public int getPosEnd(TransformationProvider tp) {
-		return (posEnd + qoffset)%tp.getMaxTicks();
+		return (posEnd + qantizationOffset)%tp.getMaxTicks();
 	}
 	public void setPosEnd(int posEnd) {
 		this.posEnd = posEnd;
@@ -71,16 +80,16 @@ public class Note {
 			int stepsize = TransformationProvider.Q_STEPS[tp.getQuantizationIndex()];
 			int offset = posStart % stepsize;
 			if (offset<stepsize/2) {
-				qoffset = -offset;
+				qantizationOffset = -offset;
 			}
 			else {
-				qoffset = (stepsize-offset);
+				qantizationOffset = (stepsize-offset);
 			}
 		}
 		else {
-			qoffset = 0;
+			qantizationOffset = 0;
 		}
-		return (posStart + qoffset)%tp.getMaxTicks();
+		return (posStart + qantizationOffset)%tp.getMaxTicks();
 	}
 	
 	@JsonIgnore
@@ -138,18 +147,6 @@ public class Note {
 	@Override
 	public String toString() {
 		return "<Note "+hashCode()+", "+"#"+noteNumber+", "+velocity+">";
-	}
-	
-	public static String getConcreteNoteName(int number) { // TODO Name
-		return NOTE_NAMES[number%12];
-	}
-	
-	public static String getConcreteDrumNoteName(int number) { // TODO Name
-		if (number<35 || number>49) {
-			return "?? " + NOTE_NAMES[number%12];	
-		} else {
-			return DRUM_NAMES[number-35];
-		}
 	}
 	
 	public void stashOrigin() {

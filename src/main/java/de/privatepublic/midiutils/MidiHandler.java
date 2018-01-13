@@ -221,7 +221,7 @@ public class MidiHandler {
 //				pos++;
 //				break;
 			}
-			for (Loop loop:DiMIDImi.getLoops()) {
+			for (Loop loop:Loop.getLoops()) {
 				switch(status) {
 				case ShortMessage.STOP:
 					sendAllNotesOffMidi(loop, false);

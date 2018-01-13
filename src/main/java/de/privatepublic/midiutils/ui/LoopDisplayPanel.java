@@ -127,6 +127,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 					if (findHitNote(loop.getNotesList(), e.getPoint())==null) {
 						updateInsertNote(e.getPoint());
 						Note n = new Note(insertNote, 0);
+						n.setVelocity(100);
 						loop.getNotesList().add(n);
 						selectedNotes.clear();
 						n.stashOrigin();
@@ -421,7 +422,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		for (int i=lowestNote;i<highestNote+1;i++) {
 			int index = (highestNote+MARGIN_SEMIS)-i;
 			int notey = Math.round(index*noteHeight-noteHeight/2);
-			String notetext = loop.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i)+" "+(i/12-2);
+			String notetext = loop.isDrums()?Note.getDrumName(i):Note.getName(i)+" "+(i/12-2);
 			int ty = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
 			g.setColor(Theme.APPLY.colorGrid());
 			g.drawLine(0, notey, width, notey);
@@ -552,7 +553,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			for (int i=lowestNote;i<highestNote+1;i++) {
 				int index = (highestNote+MARGIN_SEMIS)-i;
 				int notey = Math.round(index*noteHeight-noteHeight/2);
-				String notetext = loop.isDrums()?Note.getConcreteDrumNoteName(i):Note.getConcreteNoteName(i);
+				String notetext = loop.isDrums()?Note.getDrumName(i):Note.getName(i);
 				Rectangle2D rect = fm.getStringBounds(notetext, g);
 				int y = (int)(notey+((noteHeight - fm.getHeight()) / 2) + fm.getAscent());
 				if (Math.abs(y-lasty)>=rect.getHeight()) {
@@ -575,7 +576,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			g.fillRect(noteRect.x, noteRect.y, noteRect.width, noteRect.height);
 			
 			int value = insertNote.getNoteNumber();			
-			String notetext = loop.isDrums()?Note.getConcreteDrumNoteName(value):Note.getConcreteNoteName(value);
+			String notetext = loop.isDrums()?Note.getDrumName(value):Note.getName(value);
 			Rectangle2D rect = fm.getStringBounds(notetext, g);
 			int x = noteRect.x-32; // cursor size
 			if (x<0) {

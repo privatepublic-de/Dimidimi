@@ -96,7 +96,7 @@ public class GUIUtils {
 	
 	public static void loadSession(File selectedFile, Component frmDimidimi) {
 		try {
-			DiMIDImi.loadLoop(selectedFile);
+			Loop.loadLoop(selectedFile);
 			Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
 		} catch (IOException e1) {
 			JOptionPane.showMessageDialog(frmDimidimi, "Could not load file\n"+e1.getMessage());
@@ -108,7 +108,7 @@ public class GUIUtils {
 	public static String loadLoop(File selectedFile, Loop loop, Component frmDimidimi) {
 		Prefs.put(Prefs.FILE_LOOP_LAST_USED_NAME, selectedFile.getPath());
 		try {
-			loop.loadLoop(selectedFile);
+			loop.loadFromFile(selectedFile);
 			Prefs.pushToList(Prefs.RECENT_LOOP_LIST, selectedFile.getPath());
 			String titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
 			return titleExtension;

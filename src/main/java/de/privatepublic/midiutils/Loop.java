@@ -6,10 +6,12 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +32,54 @@ import de.privatepublic.midiutils.ui.LoopWindow;
 
 public class Loop implements TransformationProvider, PerformanceReceiver, SettingsUpdateReceiver, Comparable<Loop> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Loop.class);
+	public static enum QueuedState { NO_CHANGE, ON, OFF }
+	public static final int TICK_COUNT_BASE = 24;
+	public static final int MAX_NUMBER_OF_QUARTERS = 64;
 	
+	private static final Logger LOG = LoggerFactory.getLogger(Loop.class);
 	private static int SOLOCOUNT = 0;
+	private static final List<Loop> LOOPS = new CopyOnWriteArrayList<Loop>();
+	private static final ObjectMapper MAPPER = new ObjectMapper();
+	static {
+		MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	}
+	
+	private int lengthQuarters = 8;
+	private int maxTicks = lengthQuarters*TICK_COUNT_BASE;
+	private int midiChannelIn = -1; // 0 - based
+	private int midiChannelOut = -1;// 0 - based
+	private boolean midiInputOn = true;
+	private boolean isMuted = false;
+	private boolean isSoloed = false;
+	private boolean isDrums = false;
+	private boolean isMetronomeEnabled = false;
+	private QueuedState queuedMuteState = QueuedState.NO_CHANGE;
+	private QueuedState queuedSoloState = QueuedState.NO_CHANGE;
+	private int quantizationIndex = 0;
+	private int transposeIndex = 13;
+	private LoopWindow window;
+	private int currentCC = 0;
+	private int currentPitchBend = 0;
+	private List<Note> notesList = new CopyOnWriteArrayList<Note>();
+	private boolean overrideCC = false;
+	private boolean overridePitchBend = false;
+	private int[] ccList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
+	private int[] pitchBendList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
+	private String name;
+	
+	private Color colorNote;
+	private Color colorNoteBright;
+	private Color colorNoteSelected;
+	private Color colorNotePlayed;
+	private Color colorNoteBrightSelected;
+	private Color colorChannel;
+
+	private List<NotesUpdatedReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<NotesUpdatedReceiver>();
+	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
+	private List<SettingsUpdateReceiver> settingsUpdateReceivers = new CopyOnWriteArrayList<SettingsUpdateReceiver>();
+	private List<FocusReceiver> focusReceivers = new CopyOnWriteArrayList<FocusReceiver>();
+
+	private Note[] lastStarted = new Note[128];
 	
 	public Loop() {
 		midiChannelIn = Prefs.get(Prefs.MIDI_IN_CHANNEL, 0);
@@ -46,7 +93,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 					registerAsReceiver(Loop.this);
 					window.setVisible(true);
 				} catch (Exception e) {
-					LOG.error("Could not create UIWindow", e);
+					LOG.error("Could not create LoopWindow", e);
 				}
 			}
 		});
@@ -64,7 +111,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 					registerAsReceiver(Loop.this);
 					window.setVisible(true);
 				} catch (Exception e) {
-					LOG.error("Could not create UIWindow", e);
+					LOG.error("Could not create LoopWindow", e);
 				}
 			}
 		});
@@ -196,9 +243,9 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	public void setMuted(boolean isMuted) {
 		if (isMuted!=this.isMuted) {
 			this.isMuted = isMuted;
+			queuedMuteState = QueuedState.NO_CHANGE;
 			emitLoopUpdated();
 			emitState();
-			queuedMuteState = QueuedState.NO_CHANGE;
 		}
 	}
 
@@ -211,8 +258,8 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			queuedSoloState = QueuedState.NO_CHANGE;
 			this.isSoloed = isSoloed;
 			SOLOCOUNT += isSoloed?1:-1;
-			DiMIDImi.updateNotesOnAllLoops();
-			DiMIDImi.updateStateOnAllLoops();
+			Loop.updateNotesOnAllLoops();
+			Loop.updateStateOnAllLoops();
 			emitState();
 		}
 	}
@@ -293,14 +340,14 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	}
 
 
-	public void saveLoop(File file) throws JsonGenerationException, JsonMappingException, IOException {
+	public void saveToFile(File file) throws JsonGenerationException, JsonMappingException, IOException {
 		StorageContainer data = new StorageContainer(this);		
-		mapper.writeValue(file, data);
+		MAPPER.writeValue(file, data);
 		LOG.info("Saved file {}", file.getPath());
 	}
 
-	public void loadLoop(File file) throws JsonParseException, JsonMappingException, IOException {
-		StorageContainer data = mapper.readValue(file, StorageContainer.class);
+	public void loadFromFile(File file) throws JsonParseException, JsonMappingException, IOException {
+		StorageContainer data = MAPPER.readValue(file, StorageContainer.class);
 		LOG.info("Loaded file {}", file.getPath());
 		applyStorageData(data);
 		emitSettingsUpdated();
@@ -383,12 +430,6 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		settingsUpdateReceivers.clear();
 		window = null;
 	}
-
-
-
-
-
-
 
 
 	public void registerAsReceiver(DimidimiEventReceiver receiver) {
@@ -645,56 +686,10 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	
 
 
-	private int lengthQuarters = 8;
-	private int maxTicks = lengthQuarters*TICK_COUNT_BASE;
-	private int midiChannelIn = -1; // 0 - based
-	private int midiChannelOut = -1;// 0 - based
-	private boolean midiInputOn = true;
-	private boolean isMuted = false;
-	private boolean isSoloed = false;
-	private boolean isDrums = false;
-	private boolean isMetronomeEnabled = false;
-	private QueuedState queuedMuteState = QueuedState.NO_CHANGE;
-	private QueuedState queuedSoloState = QueuedState.NO_CHANGE;
-	private int quantizationIndex = 0;
-	private int transposeIndex = 13;
-	private LoopWindow window;
-	private int currentCC = 0;
-	private int currentPitchBend = 0;
-	private List<Note> notesList = new CopyOnWriteArrayList<Note>();
-	private boolean overrideCC = false;
-	private boolean overridePitchBend = false;
-	private int[] ccList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
-	private int[] pitchBendList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
-	private String name;
 	
-	private Color colorNote;
-	private Color colorNoteBright;
-	private Color colorNoteSelected;
-	private Color colorNotePlayed;
-	private Color colorNoteBrightSelected;
-	private Color colorChannel;
-
-	private List<NotesUpdatedReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<NotesUpdatedReceiver>();
-	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
-	private List<SettingsUpdateReceiver> settingsUpdateReceivers = new CopyOnWriteArrayList<SettingsUpdateReceiver>();
-	private List<FocusReceiver> focusReceivers = new CopyOnWriteArrayList<FocusReceiver>();
-
-	private Note[] lastStarted = new Note[128];
-	
-	public static final int TICK_COUNT_BASE = 24;
-	public static final int MAX_NUMBER_OF_QUARTERS = 64;
-	
-	public static enum QueuedState { NO_CHANGE, ON, OFF }
-
 	@Override
 	public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
 		
-	}
-	
-	private static ObjectMapper mapper = new ObjectMapper();
-	static {
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
 	
 	
@@ -717,5 +712,95 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	public int compareTo(Loop o) {
 		return Integer.compare(midiChannelOut, o.midiChannelOut);
 	}
+
+	public static void updateSettingsOnAllLoops() {
+		LOG.info("Updating settings for all loops");
+		for (Loop loop: LOOPS) {
+			loop.emitSettingsUpdated();
+		}
+	}
+
+	public static void updateNotesOnAllLoops() {
+		LOG.info("Updating notes for all loops");
+		for (Loop loop: LOOPS) {
+			loop.emitLoopUpdated();
+		}
+	}
+
+	public static void updateStateOnAllLoops() {
+		LOG.info("Updating state for all loops");
+		for (Loop loop: LOOPS) {
+			loop.emitState();
+		}
+	}
+
+	public static Loop createLoop() {
+		Loop loop = new Loop();
+		LOOPS.add(loop);
+		loop.registerAsReceiver(DiMIDImi.getControllerWindow());
+		Loop.updateSettingsOnAllLoops();
+		LOG.info("Created new loop {}", loop.hashCode());
+		return loop;
+	}
+
+	public static Loop createLoop(StorageContainer data, String name) {
+		Loop loop = new Loop(data, name);
+		LOOPS.add(loop);
+		loop.registerAsReceiver(DiMIDImi.getControllerWindow());
+		Loop.updateSettingsOnAllLoops();
+		LOG.info("Created new loop {}", loop.hashCode());
+		return loop;
+	}
+
+	public static void removeLoop(Loop loop) {
+		if (LOOPS.contains(loop)) {
+			LOOPS.remove(loop);
+			loop.destroy();
+			Loop.updateSettingsOnAllLoops();
+			LOG.info("Removed loop {}", loop.hashCode());
+			if (LOOPS.size()==0) {
+				System.exit(0);
+			}
+		}
+	}
+
+	public static void removeAllLoops() {
+		LOG.info("Removing all loops");
+		for (Loop loop: LOOPS) {
+			loop.getWindow().closeWindow();
+		}
+	}
+
+	public static void saveLoop(File file) throws JsonGenerationException, JsonMappingException, IOException {
+		List<StorageContainer> dataList = new ArrayList<StorageContainer>();
+		String name = FilenameUtils.getBaseName(file.getName());
+		for (Loop loop: LOOPS) {
+			StorageContainer data = new StorageContainer(loop);
+			dataList.add(data);
+			loop.setName(name);
+		}
+		MAPPER.writeValue(file, dataList);
+		LOG.info("Saved loop {}", file.getPath());
+	}
+
+	public static void loadLoop(File file) throws JsonParseException, JsonMappingException, IOException {
+		List<Loop> loopsToClose = new ArrayList<Loop>(LOOPS);
+		List<StorageContainer> list = Arrays.asList(MAPPER.readValue(file, StorageContainer[].class));
+		String name = FilenameUtils.getBaseName(file.getName());
+		for (StorageContainer data:list) {
+			createLoop(data, name);
+		}
+		for (Loop loop:loopsToClose) {
+			loop.getWindow().closeWindow();
+		}
+		LOG.info("Loaded loop {}", file.getPath());
+	}
+
+	public static List<Loop> getLoops() {
+		return LOOPS;
+	}
+
+	
+
 	
 }

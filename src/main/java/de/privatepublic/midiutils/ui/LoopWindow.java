@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -146,7 +147,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		frmDimidimi.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				DiMIDImi.removeLoop(loop);
+				Loop.removeLoop(loop);
 			}
 		});
 		setIcon(frmDimidimi);
@@ -154,13 +155,15 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		frmDimidimi.setJMenuBar(buildMenu());
 		
 		panelLoop = new JPanel();
-		panelLoop.setBackground(Color.WHITE);
+		panelLoop.setFocusable(false);
+		panelLoop.setBackground(Theme.APPLY.colorBackground());
 		panelLoop.setBorder(new LineBorder(Theme.APPLY.colorBackground(), 3));
 		
 		panelMidi = new JPanel();
 		panelMidi.setBorder(null);
 		
 		panelFooter = new JPanel();
+		panelFooter.setBorder(null);
 		GroupLayout groupLayout = new GroupLayout(frmDimidimi.getContentPane());
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.TRAILING)
@@ -243,7 +246,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		buttonNewLoop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				loop.setMidiInputOn(false);
-				DiMIDImi.createLoop();
+				Loop.createLoop();
 			}
 		});
 		
@@ -425,7 +428,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				File selectedFile = GUIUtils.saveDialog("Save Session", GUIUtils.FILE_FILTER_SESSION, Prefs.FILE_SESSION_LAST_USED_NAME);
 				if (selectedFile!=null) {
 					try {
-						DiMIDImi.saveLoop(selectedFile);
+						Loop.saveLoop(selectedFile);
 						Prefs.pushToList(Prefs.RECENT_SESSION_LIST, selectedFile.getPath());
 					} catch (IOException e1) {
 						JOptionPane.showMessageDialog(frmDimidimi, "Could not write file\n"+e1.getMessage());
@@ -446,7 +449,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 			public void actionPerformed(ActionEvent e) {
 				loop.setMidiInputOn(false);
 				onSettingsUpdated();
-				DiMIDImi.createLoop();
+				Loop.createLoop();
 			}
 		});
 		menu.add(menuItem);
@@ -490,7 +493,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				File selectedFile = GUIUtils.saveDialog("Save Loop", GUIUtils.FILE_FILTER_LOOP, Prefs.FILE_LOOP_LAST_USED_NAME);
 		        if (selectedFile!=null) {
 		        	try {
-		        		loop.saveLoop(selectedFile);
+		        		loop.saveToFile(selectedFile);
 		        		Prefs.pushToList(Prefs.RECENT_LOOP_LIST, selectedFile.getPath());
 		        		titleExtension = FilenameUtils.getBaseName(selectedFile.getName());
 		        		frmDimidimi.setTitle(getWindowTitle());
@@ -521,7 +524,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DiMIDImi.removeAllLoops();
+				Loop.removeAllLoops();
 			}
 		});
 		menu.add(menuItem);
@@ -692,7 +695,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DiMIDImi.arrangeLoopWindows();
+				LoopWindow.arrangeLoopWindows();
 			}
 		});
 		menu.add(menuItem);
@@ -715,7 +718,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 					Prefs.put(Prefs.ANIMATE, menuItemAnimate.isSelected()?1:0);
-					DiMIDImi.updateSettingsOnAllLoops();
+					Loop.updateSettingsOnAllLoops();
 			}
 		});
 		menu.add(menuItemAnimate);
@@ -731,7 +734,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				if (selectedTheme!=Theme.APPLY) {
 					Theme.APPLY = selectedTheme;
 					Prefs.put(Prefs.THEME, menuItemThemeDark.isSelected()?1:0);
-					DiMIDImi.updateSettingsOnAllLoops();
+					Loop.updateSettingsOnAllLoops();
 				}
 			}
 		});
@@ -882,6 +885,58 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 	public void onFocusLoop(Loop loop) {
 		if (loop==this.loop) {
 			frmDimidimi.requestFocus();
+		}
+	}
+
+	public static void arrangeLoopWindows() {
+		Rectangle rect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+		int width = rect.width;
+		int height = rect.height;
+		
+		LOG.info("Arranging windows in {}x{}", width, height);		
+		int minwidth = WINDOW_MAX_WIDTH-40;
+		int minheight = WINDOW_MAX_HEIGHT;
+		int maxcols = width / minwidth;
+		int maxrows = height / minheight;
+		int numcols = maxcols;
+		int numrows = maxrows;
+		int number = Loop.getLoops().size();
+		switch(number) {
+		case 1:
+			// maximize single window
+			numcols = 1;
+			numrows = 1;
+			break;
+		case 2:
+			numcols = 1;
+			numrows = Math.min(2, maxcols);
+			break;
+		case 3:
+		case 4:
+			numcols = Math.min(2, maxcols);
+			numrows = Math.min(2, maxrows);
+			break;
+		case 5:
+		case 6:
+			numcols = Math.min(2, maxcols);
+			numrows = Math.min(3, maxrows);
+			break;
+		}
+		int wwidth = width/numcols;
+		int wheight = height/numrows;
+		int row = 0;
+		int col = 0;
+		int rowiteration = 0;
+		for (Loop loop: Loop.getLoops()) {
+			Rectangle pos = new Rectangle(rect.x+20*rowiteration+col*wwidth, rect.y+20*rowiteration+row*wheight, wwidth-20, wheight-20);
+			loop.getWindow().setScreenPosition(pos);
+			col = (col+1)%numcols;
+			if (col==0) {
+				row = (row+1)%numrows;
+				if (row==0) {
+					rowiteration++;
+				}
+			}
 		}
 	}
 }
