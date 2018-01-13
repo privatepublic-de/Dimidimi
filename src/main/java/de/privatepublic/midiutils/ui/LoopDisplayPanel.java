@@ -101,13 +101,16 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if ((e.getModifiersEx()&META_KEY)!=0) {
+				if ((e.getModifiersEx() & META_KEY)!=0) {
 					Point mouse = MouseInfo.getPointerInfo().getLocation();
 					Point comp = getLocationOnScreen();
 					updateInsertNote(new Point(mouse.x-comp.x, mouse.y-comp.y));
 					insertNoteMode = true;
 					setCursor(PEN_CURSOR);
 					repaint();
+				}
+				if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
+					deleteSelectedNotes();
 				}
 			}
 		});
@@ -350,7 +353,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		});
 		
 		if (loop!=null) {
-			loop.registerAsReceiver(this);
+			loop.registerReceiver(this);
 		}
 		
 		LOG.debug("Created LoopDisplayPanel.");
@@ -706,6 +709,13 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		lowestNote = minNote;
 	}
 	
+	private void deleteSelectedNotes() {
+		for (Note selectedNote: selectedNotes) {
+			loop.clearNote(selectedNote);
+		}
+		selectedNotes.clear();
+	}
+	
 	class PopUpMenu extends JPopupMenu {
 		private static final long serialVersionUID = 9049098677413712819L;
 
@@ -714,10 +724,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 	        delete.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					for (Note selectedNote: selectedNotes) {
-						loop.clearNote(selectedNote);
-					}
-					selectedNotes.clear();
+					deleteSelectedNotes();
 				}
 			});
 	        JSlider veloslider = new JSlider();
@@ -741,7 +748,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 					for (Note selectedNote: selectedNotes) {
 						selectedNote.setVelocity(veloslider.getValue());
 					}
-					loop.emitRefreshLoopDisplay();;
+					loop.triggerRefreshLoopDisplay();;
 				}
 			});
 	        add(veloslider);
