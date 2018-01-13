@@ -48,9 +48,9 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	private int maxTicks = lengthQuarters*TICK_COUNT_BASE;
 	private int midiChannelIn = -1; // 0 - based
 	private int midiChannelOut = -1;// 0 - based
-	private boolean midiInputOn = true;
+	private boolean isRecordOn = true;
 	private boolean isMuted = false;
-	private boolean isSoloed = false;
+	private boolean isSolo = false;
 	private boolean isDrums = false;
 	private boolean isMetronomeEnabled = false;
 	private QueuedState queuedMuteState = QueuedState.NO_CHANGE;
@@ -89,8 +89,8 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			public void run() {
 				try {
 					window = new LoopWindow(Loop.this);
-					emitLoopUpdated();
-					registerAsReceiver(Loop.this);
+					triggerNotesUpdated();
+					registerReceiver(Loop.this);
 					window.setVisible(true);
 				} catch (Exception e) {
 					LOG.error("Could not create LoopWindow", e);
@@ -107,8 +107,8 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 					window = new LoopWindow(Loop.this);
 					applyStorageData(data);
 					updateColors();
-					emitLoopUpdated();
-					registerAsReceiver(Loop.this);
+					triggerNotesUpdated();
+					registerReceiver(Loop.this);
 					window.setVisible(true);
 				} catch (Exception e) {
 					LOG.error("Could not create LoopWindow", e);
@@ -157,20 +157,20 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			this.midiChannelOut = midiChannelOut;
 			Prefs.put(Prefs.MIDI_OUT_CHANNEL, midiChannelOut);
 			MidiHandler.instance().sendAllNotesOffMidi(this, oldOut>-1?oldOut:midiChannelOut);
-			emitSettingsUpdated();
-			emitRefreshLoopDisplay();
+			triggerSettingsUpdated();
+			triggerRefreshLoopDisplay();
 		}
 		updateColors();
 	}
 
 
-	public boolean isMidiInputOn() {
-		return midiInputOn;
+	public boolean isRecordOn() {
+		return isRecordOn;
 	}
 
 
-	public void setMidiInputOn(boolean midiInputOn) {
-		this.midiInputOn = midiInputOn;
+	public void setRecordOn(boolean recordOn) {
+		this.isRecordOn = recordOn;
 	}
 
 
@@ -225,7 +225,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	
 	public void setDrums(boolean drummode) {
 		isDrums = drummode;
-		emitRefreshLoopDisplay();
+		triggerRefreshLoopDisplay();
 	}
 
 	public boolean isMetronomeEnabled() {
@@ -244,23 +244,23 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		if (isMuted!=this.isMuted) {
 			this.isMuted = isMuted;
 			queuedMuteState = QueuedState.NO_CHANGE;
-			emitLoopUpdated();
-			emitState();
+			triggerNotesUpdated();
+			triggerStateChange();
 		}
 	}
 
-	public boolean isSoloed() {
-		return isSoloed;
+	public boolean isSolo() {
+		return isSolo;
 	}
 
-	public void setSoloed(boolean isSoloed) {
-		if (isSoloed!=this.isSoloed) {
+	public void setSolo(boolean solo) {
+		if (solo!=this.isSolo) {
 			queuedSoloState = QueuedState.NO_CHANGE;
-			this.isSoloed = isSoloed;
-			SOLOCOUNT += isSoloed?1:-1;
+			this.isSolo = solo;
+			SOLOCOUNT += solo?1:-1;
 			Loop.updateNotesOnAllLoops();
 			Loop.updateStateOnAllLoops();
-			emitState();
+			triggerStateChange();
 		}
 	}
 
@@ -285,7 +285,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			return false;
 		}
 		if (SOLOCOUNT>0) {
-			return isSoloed;	
+			return isSolo;	
 		}
 		return true;
 	}
@@ -322,7 +322,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		}
 		MidiHandler.instance().sendPitchBend(this, 0);
 		MidiHandler.instance().sendCC(this, 0);
-		emitLoopUpdated();
+		triggerNotesUpdated();
 	}
 	
 	public void clearModWheel() {
@@ -350,8 +350,8 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		StorageContainer data = MAPPER.readValue(file, StorageContainer.class);
 		LOG.info("Loaded file {}", file.getPath());
 		applyStorageData(data);
-		emitSettingsUpdated();
-		emitLoopUpdated();
+		triggerSettingsUpdated();
+		triggerNotesUpdated();
 		MidiHandler.instance().sendAllNotesOffMidi(this);
 	}
 	
@@ -361,7 +361,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		setLengthQuarters(data.getLength());
 		setMidiChannelIn(data.getMidiChannelIn());
 		setMidiChannelOut(data.getMidiChannelOut());
-		setMidiInputOn(data.isMidiChannelInActive());
+		setRecordOn(data.isMidiChannelInActive());
 		setDrums(data.isDrums());
 		clearPattern();
 		for (Note n: data.getNotes()) {
@@ -379,7 +379,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	public void clearNote(Note note) {
 		getNotesList().remove(note);
 		MidiHandler.instance().sendNoteOffMidi(this, note.getNoteNumber(this));
-		emitLoopUpdated();
+		triggerNotesUpdated();
 	}
 
 	public void doublePattern() {
@@ -392,8 +392,8 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			}
 		}
 		getNotesList().addAll(addNotes);
-		emitLoopUpdated();
-		emitSettingsUpdated();
+		triggerNotesUpdated();
+		triggerSettingsUpdated();
 	}
 	
 	public void doubleSpeed() {
@@ -404,8 +404,8 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 				note.setPosEnd(note.getPosEnd()/2);
 			}
 		}
-		emitLoopUpdated();
-		emitSettingsUpdated();
+		triggerNotesUpdated();
+		triggerSettingsUpdated();
 	}
 	
 	public void halfSpeed() {
@@ -416,13 +416,13 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 				note.setPosEnd(note.getPosEnd()*2);
 			}
 		}
-		emitLoopUpdated();
-		emitSettingsUpdated();
+		triggerNotesUpdated();
+		triggerSettingsUpdated();
 	}
 
 
 	public void destroy() {
-		setSoloed(false);
+		setSolo(false);
 		MidiHandler.instance().sendAllNotesOffMidi(this);
 		notesList.clear();
 		loopUpdateReceivers.clear();
@@ -432,7 +432,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	}
 
 
-	public void registerAsReceiver(DimidimiEventReceiver receiver) {
+	public void registerReceiver(DimidimiEventReceiver receiver) {
 		if (receiver instanceof NotesUpdatedReceiver) {
 			loopUpdateReceivers.add((NotesUpdatedReceiver)receiver);
 		}
@@ -447,69 +447,67 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		}
 	}
 
-
-	public void emitLoopUpdated() {
+	public void triggerNotesUpdated() {
 		for (NotesUpdatedReceiver receiver: loopUpdateReceivers) {
 			receiver.onNotesUpdated();
 		}
 	}
 
-	public void emitRefreshLoopDisplay() {
+	public void triggerRefreshLoopDisplay() {
 		for (NotesUpdatedReceiver receiver: loopUpdateReceivers) {
 			receiver.onRefreshLoopDisplay();
 		}
 	}
 
-
-	public void emitNoteOn(int noteNumber, int velocity, int pos) {
+	public void triggerNoteOn(int noteNumber, int velocity, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
 			receiver.onNoteOn(noteNumber, velocity, pos);
 		}
 	}
 
-	public void emitNoteOff(int notenumber, int pos) {
+	public void triggerNoteOff(int notenumber, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
 			receiver.onNoteOff(notenumber, pos);;
 		}
 	}
 	
-	public void emitCC(int cc, int val, int pos) {
+	public void triggerReceiveCC(int cc, int val, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
 			receiver.onReceiveCC(cc, val, pos);
 		}
 	}
 	
-	public void emitPitchBend(int val, int pos) {
+	public void triggerReceivePitchBend(int val, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
 			receiver.onReceivePitchBend(val, pos);
 		}
 	}
 
-	public void emitClock(int pos) {
+	public void triggerClock(int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
 			receiver.onClock(pos);
 		}
 	}
 
-	public void emitActive(boolean active, int pos) {
+	public void triggerActivityChange(boolean active, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
 			receiver.onActivityChange(active, pos);
 		}
 	}
 	
-	public void emitState() {
+	public void triggerStateChange() {
 		for (PerformanceReceiver receiver: performanceReceivers) {
-			receiver.onStateChange(isMuted, isSoloed, queuedMuteState, queuedSoloState);
+			receiver.onStateChange(isMuted, isSolo, queuedMuteState, queuedSoloState);
 		}
 	}
 
-	public void emitSettingsUpdated() {
+	public void triggerSettingsUpdated() {
 		for (SettingsUpdateReceiver receiver: settingsUpdateReceivers) {
 			receiver.onSettingsUpdated();
 		}
 	}
 
-	public void emitFocus(Loop focusLoop) {
+	public void triggerFocusLoop(Loop focusLoop) {
 		for (FocusReceiver receiver: focusReceivers) {
 			receiver.onFocusLoop(focusLoop);
 		}
@@ -519,7 +517,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	
 	@Override
 	public void onNoteOn(int noteNumber, int velocity, int pos) {
-		if (MidiHandler.ACTIVE && isMidiInputOn()) {
+		if (MidiHandler.ACTIVE && isRecordOn()) {
 			Note note = new Note(noteNumber, velocity, pos);
 			lastStarted[noteNumber] = note;
 			getNotesList().add(note);
@@ -527,18 +525,18 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			if (overlap!=null) {
 				getNotesList().remove(overlap);
 			}
-			emitLoopUpdated();
+			triggerNotesUpdated();
 		}
 	}
 	
 	@Override
 	public void onNoteOff(int notenumber, int pos) {
-		if (MidiHandler.ACTIVE && isMidiInputOn()) {
+		if (MidiHandler.ACTIVE && isRecordOn()) {
 			Note reference = lastStarted[notenumber];
 			if (reference!=null) {
 				reference.setPosEnd(pos);
 			}
-			emitLoopUpdated();
+			triggerNotesUpdated();
 		}
 	}
 	
@@ -589,7 +587,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 				if (overlap!=null) {
 					getNotesList().remove(overlap);
 				}
-				emitLoopUpdated();
+				triggerNotesUpdated();
 				continue;
 			}
 			if (isAudible && pos==note.getPosStart(this)) {
@@ -618,10 +616,10 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			queuedMuteState = QueuedState.NO_CHANGE;
 			switch (queuedSoloState) {
 			case OFF:
-				setSoloed(false);
+				setSolo(false);
 				break;
 			case ON:
-				setSoloed(true);
+				setSolo(true);
 				break;
 			default:
 				break;
@@ -665,7 +663,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 
 	@Override
 	public void onReceiveCC(int cc, int val, int pos) {
-		if (isMidiInputOn()) {
+		if (isRecordOn()) {
 			if (cc==1) {
 				currentCC = val;
 				ccList[pos] = val;
@@ -676,7 +674,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 
 	@Override
 	public void onReceivePitchBend(int val, int pos) {
-		if (isMidiInputOn()) {
+		if (isRecordOn()) {
 			currentPitchBend = val;
 			pitchBendList[pos] = val;
 			overridePitchBend = true;
@@ -716,28 +714,28 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	public static void updateSettingsOnAllLoops() {
 		LOG.info("Updating settings for all loops");
 		for (Loop loop: LOOPS) {
-			loop.emitSettingsUpdated();
+			loop.triggerSettingsUpdated();
 		}
 	}
 
 	public static void updateNotesOnAllLoops() {
 		LOG.info("Updating notes for all loops");
 		for (Loop loop: LOOPS) {
-			loop.emitLoopUpdated();
+			loop.triggerNotesUpdated();
 		}
 	}
 
 	public static void updateStateOnAllLoops() {
 		LOG.info("Updating state for all loops");
 		for (Loop loop: LOOPS) {
-			loop.emitState();
+			loop.triggerStateChange();
 		}
 	}
 
 	public static Loop createLoop() {
 		Loop loop = new Loop();
 		LOOPS.add(loop);
-		loop.registerAsReceiver(DiMIDImi.getControllerWindow());
+		loop.registerReceiver(DiMIDImi.getControllerWindow());
 		Loop.updateSettingsOnAllLoops();
 		LOG.info("Created new loop {}", loop.hashCode());
 		return loop;
@@ -746,7 +744,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	public static Loop createLoop(StorageContainer data, String name) {
 		Loop loop = new Loop(data, name);
 		LOOPS.add(loop);
-		loop.registerAsReceiver(DiMIDImi.getControllerWindow());
+		loop.registerReceiver(DiMIDImi.getControllerWindow());
 		Loop.updateSettingsOnAllLoops();
 		LOG.info("Created new loop {}", loop.hashCode());
 		return loop;

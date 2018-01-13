@@ -225,22 +225,22 @@ public class MidiHandler {
 				switch(status) {
 				case ShortMessage.STOP:
 					sendAllNotesOffMidi(loop, false);
-					loop.emitActive(false, pos);
-					loop.emitRefreshLoopDisplay();
+					loop.triggerActivityChange(false, pos);
+					loop.triggerRefreshLoopDisplay();
 					break;
 				case ShortMessage.START:
-					loop.emitActive(true, pos);
+					loop.triggerActivityChange(true, pos);
 					break;
 				case ShortMessage.CONTINUE:
-					loop.emitActive(true, pos);
+					loop.triggerActivityChange(true, pos);
 					break;
 				case ShortMessage.TIMING_CLOCK:
 					if (ACTIVE) {
-						loop.emitClock(pos%loop.getMaxTicks());
+						loop.triggerClock(pos%loop.getMaxTicks());
 					}
 					break;
 				}
-				if (message instanceof ShortMessage && device.isActiveForInput() && loop.isMidiInputOn()) {
+				if (message instanceof ShortMessage && device.isActiveForInput() && loop.isRecordOn()) {
 					final ShortMessage msg = (ShortMessage)message;
 					final int channel = msg.getChannel();
 					if (channel==loop.getMidiChannelIn()) {
@@ -260,11 +260,11 @@ public class MidiHandler {
 							noteOff(loop, data1);
 							break;
 						case ShortMessage.CONTROL_CHANGE:
-							loop.emitCC(data1, data2, pos);
+							loop.triggerReceiveCC(data1, data2, pos);
 							break;
 						case ShortMessage.PITCH_BEND:
 							int val = ((data1 & 0x7f) + ((data2 & 0x7f)<<7)) - 0x2000;
-							loop.emitPitchBend(val, pos);
+							loop.triggerReceivePitchBend(val, pos);
 							break;
 						}
 					}
@@ -282,12 +282,12 @@ public class MidiHandler {
 	}
 
 	private void noteOn(Loop loop, int noteNumber, int velocity) {
-		loop.emitNoteOn(noteNumber, velocity, pos);
+		loop.triggerNoteOn(noteNumber, velocity, pos);
 		sendNoteOnMidi(loop, noteNumber, velocity);
 	}
 
 	private void noteOff(Loop loop, int noteNumber) {
-		loop.emitNoteOff(noteNumber, pos);
+		loop.triggerNoteOff(noteNumber, pos);
 		sendNoteOffMidi(loop, noteNumber);
 	}
 

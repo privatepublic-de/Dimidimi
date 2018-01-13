@@ -32,7 +32,7 @@ public class StorageContainer {
 		this.length = loop.getLengthQuarters();
 		this.midiChannelIn = loop.getMidiChannelIn();
 		this.midiChannelOut = loop.getMidiChannelOut();
-		this.midiChannelInActive = loop.isMidiInputOn();
+		this.midiChannelInActive = loop.isRecordOn();
 		this.windowPos = new HashMap<String, Integer>();
 		this.pitchBend =  asList(loop.getPitchBendList());
 		this.modWheel = asList(loop.getCcList());

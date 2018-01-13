@@ -302,7 +302,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 							    setMinimumSize(new Dimension(targetWidth, targetHeight));
 							    currSize = getSize();
 							    setSize(new Dimension(targetWidth, currSize.height));
-								loop.registerAsReceiver(ControllerWindow.this);
+								loop.registerReceiver(ControllerWindow.this);
 							}
 							else {
 								contentPane.add(panel.getPanel(), gbc);
@@ -451,7 +451,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			BLINKERS.add(btnMute);
 			BLINKERS.add(btnSolo);
 
-			loop.registerAsReceiver(this);
+			loop.registerReceiver(this);
 		}
 		
 		public void destroy() {
@@ -499,10 +499,10 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 					else {
 						if (on) {
 							btnSolo.stopBlinking();
-							loop.setSoloed(true);
+							loop.setSolo(true);
 						}
 						else {
-							loop.setSoloed(false);
+							loop.setSolo(false);
 						}
 					}
 					if (btnSolo.isSelected()!=on) {
@@ -710,7 +710,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	public static void focusLoops(Loop focusLoop) {
 		for (Loop loop: Loop.getLoops()) {
 			if (loop==focusLoop) {
-				loop.emitFocus(focusLoop);
+				loop.triggerFocusLoop(focusLoop);
 			}
 		}
 	}

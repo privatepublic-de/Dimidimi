@@ -111,9 +111,9 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		}
 		initialize();
 		
-		loop.registerAsReceiver(this);
-		loop.emitSettingsUpdated();
-		loop.emitLoopUpdated();
+		loop.registerReceiver(this);
+		loop.triggerSettingsUpdated();
+		loop.triggerNotesUpdated();
 		LOG.debug("User interface built.");
 	}
 	
@@ -200,7 +200,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				slider.setToolTipText("Loop length: "+quarters+" quarter note"+(quarters>1?"s":""));
 				labelLength.setText(""+quarters);
 				loop.setLengthQuarters(quarters);
-				loop.emitRefreshLoopDisplay();
+				loop.triggerRefreshLoopDisplay();
 			}
 		});
 		slider.setSnapToTicks(true);
@@ -245,7 +245,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		
 		buttonNewLoop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				loop.setMidiInputOn(false);
+				loop.setRecordOn(false);
 				Loop.createLoop();
 			}
 		});
@@ -262,14 +262,14 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				loop.setTransposeIndex(comboBoxTranspose.getSelectedIndex());
-				loop.emitRefreshLoopDisplay();
+				loop.triggerRefreshLoopDisplay();
 			}});
 		
 		comboQuantize.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				loop.setQuantizationIndex(comboQuantize.getSelectedIndex());
-				loop.emitRefreshLoopDisplay();
+				loop.triggerRefreshLoopDisplay();
 			}});
 		
 		JLabel lblIn = new JLabel("MIDI:");
@@ -322,7 +322,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		toggleRecord.setSelected(true);
 		toggleRecord.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				loop.setMidiInputOn(toggleRecord.isSelected());
+				loop.setRecordOn(toggleRecord.isSelected());
 			}
 		});
 		toggleRecord.setToolTipText("Record notes from selected channel");
@@ -447,7 +447,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				loop.setMidiInputOn(false);
+				loop.setRecordOn(false);
 				onSettingsUpdated();
 				Loop.createLoop();
 			}
@@ -611,7 +611,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 					note.setPosStart(note.getPosStart(loop));
 					note.setPosEnd(note.getPosEnd(loop));
 				}
-				loop.emitRefreshLoopDisplay();
+				loop.triggerRefreshLoopDisplay();
 			}
 		});
 		menu.add(menuItem);
@@ -623,7 +623,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				for (Note note: loop.getNotesList()) {  // TODO move to loop class
 					note.setNoteNumber(note.getNoteNumber(loop));
 				}
-				loop.emitRefreshLoopDisplay();
+				loop.triggerRefreshLoopDisplay();
 			}
 		});
 		menu.add(menuItem);
@@ -673,7 +673,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 					}
 					MidiHandler.instance().storeSelectedOutDevices();
 				}
-				loop.emitRefreshLoopDisplay();
+				loop.triggerRefreshLoopDisplay();
 			}
 		});
 		menu.add(menuItem);
@@ -805,7 +805,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				comboBoxTranspose.setSelectedIndex(loop.getTransposeIndex());
 				slider.setValue(loop.getLengthQuarters());
 				labelLength.setText(""+loop.getLengthQuarters());
-				toggleRecord.setSelected(loop.isMidiInputOn());
+				toggleRecord.setSelected(loop.isRecordOn());
 				comboMidiOut.setSelectedIndex(loop.getMidiChannelOut());
 				comboMidiIn.setSelectedIndex(loop.getMidiChannelIn());
 				panelMidi.setBackground(Theme.isBright()?loop.getNoteColorPlayed():loop.getNoteColor(false));
