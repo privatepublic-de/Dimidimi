@@ -535,7 +535,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			if (note==resizeNote) {
 				g.setColor(Theme.APPLY.colorGridHighlight());
 				g.setStroke(new BasicStroke(tickwidth));
-				g.drawLine(rects[rightindex].x+rects[rightindex].width, 0, rects[rightindex].x+rects[rightindex].width, height);
+				g.drawLine(rects[rightindex].x+rects[rightindex].width, rects[rightindex].y-(int)(noteHeight/2), rects[rightindex].x+rects[rightindex].width, rects[rightindex].y+rects[rightindex].height+(int)(noteHeight/2));
 			}
 			
 		}
