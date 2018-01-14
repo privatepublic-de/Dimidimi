@@ -216,14 +216,13 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		panelFooter.add(labelLength);
 		
 		comboQuantize = new JComboBox(TransformationProvider.QUANTIZE_LABEL);
-		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, labelLength);
 		comboQuantize.setToolTipText("Note quantization");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 		panelFooter.add(comboQuantize);
 		comboQuantize.setMaximumRowCount(12);
 		
 		comboBoxTranspose = new JComboBox(TransformationProvider.TRANSPOSE_LABEL);
-		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 6, SpringLayout.EAST, comboQuantize);
+		sl_panel.putConstraint(SpringLayout.EAST, comboQuantize, -6, SpringLayout.WEST, comboBoxTranspose);
 		comboBoxTranspose.setToolTipText("Transpose semitones");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboBoxTranspose, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 		panelFooter.add(comboBoxTranspose);
@@ -231,6 +230,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		comboBoxTranspose.setSelectedIndex(13);
 		
 		JButton btnClear = new JButton("Clear");
+		sl_panel.putConstraint(SpringLayout.EAST, comboBoxTranspose, -6, SpringLayout.WEST, btnClear);
 		btnClear.setToolTipText("Clear loop");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, btnClear, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 		panelFooter.add(btnClear);
@@ -242,6 +242,23 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewLoop, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 		buttonNewLoop.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panelFooter.add(buttonNewLoop);
+		
+		toggleDrumsLayout = new JCheckBox("Drums");
+		sl_panel.putConstraint(SpringLayout.WEST, toggleDrumsLayout, 6, SpringLayout.EAST, labelLength);
+		panelFooter.add(toggleDrumsLayout);
+		toggleDrumsLayout.setOpaque(false);
+		toggleDrumsLayout.setBorderPainted(false);
+		toggleDrumsLayout.setToolTipText("Use drum view");
+		toggleDrumsLayout.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
+		toggleDrumsLayout.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
+		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, toggleDrumsLayout, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
+		
+		toggleDrumsLayout.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				loop.setDrums(toggleDrumsLayout.isSelected());
+			}
+		});
 		
 		buttonNewLoop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -285,6 +302,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(loop.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
+		sl_panelMidi.putConstraint(SpringLayout.WEST, toggleDrumsLayout, 0, SpringLayout.WEST, lblIn);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, -6, SpringLayout.EAST, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -6, SpringLayout.WEST, comboMidiOut);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
@@ -331,29 +349,28 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		
 		panelMidi.add(comboMidiOut);
 		
-		toggleDrumsLayout = new JCheckBox("Drums");
-		toggleDrumsLayout.setOpaque(false);
-		toggleDrumsLayout.setBorderPainted(false);
-		toggleDrumsLayout.setToolTipText("Use drum view");
-		toggleDrumsLayout.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
-		toggleDrumsLayout.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleDrumsLayout, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		panelMidi.add(toggleDrumsLayout);
-		
 		lblDimidimiLooper = new JLabel("dimidimi");
 		sl_panelMidi.putConstraint(SpringLayout.WEST, lblDimidimiLooper, 6, SpringLayout.WEST, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.WEST, toggleDrumsLayout, 12, SpringLayout.EAST, lblDimidimiLooper);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblDimidimiLooper, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		panelMidi.add(lblDimidimiLooper);
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 3f));
 		lblDimidimiLooper.setIcon(new ImageIcon(Res.IMAGE_ICON_32x32()));
 		
-		toggleDrumsLayout.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				loop.setDrums(toggleDrumsLayout.isSelected());
-			}
-		});
+		JCheckBox chckbxMute = new JCheckBox("mute");
+		chckbxMute.setIcon(new ImageIcon(Res.IMAGE_CHECK_OFF()));
+		chckbxMute.setSelectedIcon(new ImageIcon(Res.IMAGE_CHECK_ON()));
+		chckbxMute.setOpaque(false);
+		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, chckbxMute, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.WEST, chckbxMute, 6, SpringLayout.EAST, lblDimidimiLooper);
+		panelMidi.add(chckbxMute);
+		
+		JCheckBox chckbxSolo = new JCheckBox("solo");
+		chckbxSolo.setIcon(new ImageIcon(Res.IMAGE_CHECK_OFF()));
+		chckbxSolo.setSelectedIcon(new ImageIcon(Res.IMAGE_CHECK_ON()));
+		chckbxSolo.setOpaque(false);
+		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, chckbxSolo, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
+		sl_panelMidi.putConstraint(SpringLayout.WEST, chckbxSolo, 6, SpringLayout.EAST, chckbxMute);
+		panelMidi.add(chckbxSolo);
 		panelLoop.setLayout(new BorderLayout(0, 0));
 		loopDisplayPanel = new LoopDisplayPanel(loop);
 		loopDisplayPanel.setBackground(Color.WHITE);
@@ -801,6 +818,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				panelLoop.setBackground(Theme.APPLY.colorBackground());
 				panelLoop.setBorder(new LineBorder(Theme.APPLY.colorBackground(), 3));
 				labelLength.setForeground(Theme.APPLY.colorForeground());
+				toggleDrumsLayout.setForeground(Theme.APPLY.colorForeground());
 				comboQuantize.setSelectedIndex(loop.getQuantizationIndex());
 				comboBoxTranspose.setSelectedIndex(loop.getTransposeIndex());
 				slider.setValue(loop.getLengthQuarters());
