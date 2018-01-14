@@ -20,6 +20,8 @@ import javax.sound.midi.Transmitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import uk.co.xfactorylibrarians.coremidi4j.CoreMidiDeviceProvider;
+
 public class MidiHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MidiHandler.class);
@@ -60,7 +62,7 @@ public class MidiHandler {
 		List<String> prefOutIds = Prefs.getPrefIdentifierList(Prefs.MIDI_OUT_DEVICES);
 		
 		MidiDevice device;
-		MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+		MidiDevice.Info[] infos = CoreMidiDeviceProvider.getMidiDeviceInfo();
 		try {
 			resetPositionMessage.setMessage(ShortMessage.SONG_POSITION_POINTER, 0, 0);
 		} catch (InvalidMidiDataException e1) {
@@ -126,15 +128,20 @@ public class MidiHandler {
 	
 	public void startInternalClock(double bpm) {
 		long interval = Math.round(((60000/bpm)/4)/6);
-		if (internalClockTimer!=null) {
+		boolean alreadyRunning = (internalClockTimer!=null);
+		if (alreadyRunning) {
 			internalClockTimer.cancel();
 		}
 		internalClockTimer = new Timer();
-		internalReceiver.send(msgStart, 0);
+		if (!alreadyRunning) {
+			internalReceiver.send(msgStart, 0);
+			sendMessage(msgStart);
+		}
 		internalClockTimer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
-					internalReceiver.send(msgClock, 0);
+				internalReceiver.send(msgClock, 0);
+				sendMessage(msgClock);
 			}
 		}, interval, interval);
 	}
@@ -151,6 +158,7 @@ public class MidiHandler {
 			internalClockTimer = null;
 		}
 		internalReceiver.send(msgStop, 0);
+		sendMessage(msgStop);
 	}
 	
 	public void toggleInternalClock() {
