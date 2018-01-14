@@ -189,7 +189,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		labelLength = new JLabel("8");
 		labelLength.setOpaque(false);
 		sl_panel.putConstraint(SpringLayout.WEST, labelLength, 0, SpringLayout.EAST, slider);
-		labelLength.setHorizontalAlignment(SwingConstants.CENTER);
+		labelLength.setHorizontalAlignment(SwingConstants.LEFT);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, slider, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 		
 		labelLength.setPreferredSize(new Dimension(20, 16));
