@@ -889,16 +889,10 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 	}
 
 	@Override
-	public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
-		if (loop.isAudible()) {
-			panelMidi.setBackground(Theme.isBright()?loop.getNoteColorPlayed():loop.getNoteColor(false));			
-		}
-		else {
-			panelMidi.setBackground(loop.getNoteColorHighlighted(false));
-		}
+	public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {	
+		panelMidi.setBackground(loop.getColorBackground());
 		chckbxMute.setSelected(loop.isMuted());
 		chckbxSolo.setSelected(loop.isSolo());
-		
 	}
 	
 	private static final Dictionary<Integer, JLabel> LENGTH_LABELS = new Hashtable<Integer, JLabel>();

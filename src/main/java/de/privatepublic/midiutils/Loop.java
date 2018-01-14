@@ -73,6 +73,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	private Color colorNotePlayed;
 	private Color colorNoteBrightSelected;
 	private Color colorChannel;
+	private Color colorDimmedBackground;
 
 	private List<NotesUpdatedReceiver> loopUpdateReceivers = new CopyOnWriteArrayList<NotesUpdatedReceiver>();
 	private List<PerformanceReceiver> performanceReceivers = new CopyOnWriteArrayList<PerformanceReceiver>();
@@ -310,6 +311,15 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		return colorChannel;
 	}
 	
+
+	public Color getColorBackground() {
+		if (isAudible()) {
+			return Theme.isBright()?getNoteColorPlayed():getNoteColor(false);
+		}
+		else {
+			return colorDimmedBackground;
+		}
+	}
 
 	public void clearPattern() {
 		for (Note dc:getNotesList()) {
@@ -704,6 +714,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	    colorNoteSelected = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation()*.5f, Theme.APPLY.noteColorBrightness());
 	    colorNoteBrightSelected = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation()*.5f, Theme.APPLY.noteColorBrightness()*Theme.APPLY.noteLightColorBrightnessFactor());
 	    colorChannel = Color.getHSBColor(hue, Theme.APPLY.colorChannelSaturation(), Theme.APPLY.getColorChannelBrightness());
+	    colorDimmedBackground = Color.getHSBColor(hue, .1f, Theme.APPLY.noteColorBrightness()*Theme.APPLY.noteLightColorBrightnessFactor());
 	}
 
 	@Override

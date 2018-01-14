@@ -517,7 +517,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		}
 		
 		public void updateColors() {
-			panel.setBackground(Theme.isBright()?loop.getNoteColorPlayed():loop.getNoteColor(false));
+			panel.setBackground(loop.getColorBackground());
 			panel.setBorder(BorderFactory.createLineBorder(Theme.APPLY.colorBackgroundController(), 2, false));
 		}
 		
@@ -563,7 +563,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 				}
 				break;
 			}
-
+			updateColors();
 		};
 		
 
