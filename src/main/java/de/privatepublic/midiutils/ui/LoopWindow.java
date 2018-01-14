@@ -249,7 +249,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		panelFooter.add(toggleDrumsLayout);
 		toggleDrumsLayout.setOpaque(false);
 		toggleDrumsLayout.setBorderPainted(false);
-		toggleDrumsLayout.setToolTipText("Use drum view");
+		toggleDrumsLayout.setToolTipText("Toggle notes/drums view");
 		toggleDrumsLayout.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
 		toggleDrumsLayout.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, toggleDrumsLayout, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
@@ -352,6 +352,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		lblDimidimiLooper.setIcon(new ImageIcon(Res.IMAGE_ICON_32x32()));
 		
 		chckbxMute = new JCheckBox("Mute");
+		chckbxMute.setToolTipText("Mute this loop");
 		chckbxMute.setIcon(new ImageIcon(Res.IMAGE_CHECK_OFF()));
 		chckbxMute.setSelectedIcon(new ImageIcon(Res.IMAGE_CHECK_ON()));
 		chckbxMute.setOpaque(false);
@@ -366,6 +367,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		});
 		
 		chckbxSolo = new JCheckBox("Solo");
+		chckbxSolo.setToolTipText("Play this loop solo");
 		chckbxSolo.setIcon(new ImageIcon(Res.IMAGE_CHECK_OFF()));
 		chckbxSolo.setSelectedIcon(new ImageIcon(Res.IMAGE_CHECK_ON()));
 		chckbxSolo.setOpaque(false);
@@ -381,9 +383,10 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		panelLoop.setLayout(new BorderLayout(0, 0));
 		loopDisplayPanel = new LoopDisplayPanel(loop);
 		loopDisplayPanel.setBackground(Color.WHITE);
-		loopDisplayPanel.requestFocus();
 		panelLoop.add(loopDisplayPanel);
 		loopDisplayPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		loopDisplayPanel.requestFocusInWindow();
+		
 		frmDimidimi.getContentPane().setLayout(groupLayout);
 		
 		
