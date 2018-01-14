@@ -136,7 +136,6 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 						n.stashOrigin();
 						draggedNote = n;
 						selectedNotes.add(n);
-						onRefreshLoopDisplay();
 					}
 				}
 				else {
@@ -145,6 +144,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 						handlePopupTrigger(e);
 					}
 				}
+				onRefreshLoopDisplay();
 			}
 			
 			private void handlePopupTrigger(MouseEvent e) {
@@ -179,6 +179,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 							// is within already selected notelist
 							draggedNote = hitNote;
 							hitNote.stashOrigin();
+							onRefreshLoopDisplay();
 						}
 						else {
 							if (!e.isShiftDown()) {
@@ -322,10 +323,11 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				else {
 					if (selectedNotes.size()>0) {
 						for (Note note:selectedNotes) {
+							
 							int distY = dragStart.y-e.getY();
 							int distX = e.getX()-dragStart.x;
-
-							int noteOffset = (int)(distY/noteHeight);
+							
+							int noteOffset = Math.round(distY/noteHeight);
 							note.setNoteNumber(note.getOriginNoteNumber()+noteOffset);
 
 							int ticksOffset = (int)(distX/tickwidth);
@@ -368,7 +370,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 		int width = getWidth();
-		int height = getHeight();
+		int height = getHeight() + 1 /* one more because of render artefacts in swing panel */;
 		int displayNoteCount = highestNote-lowestNote + 2*MARGIN_SEMIS;
 		noteHeight = height*(1f/displayNoteCount);
 		g.setColor(Theme.APPLY.colorBackground());
@@ -700,7 +702,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			minNote = 12*3 - MARGIN_SEMIS;
 			maxNote = 12*5 + MARGIN_SEMIS;
 		}
-		if (maxNote-minNote<12) {
+		if (maxNote-minNote<12 && !isDragButtonPressed) {
 			int add = (12-(maxNote-minNote))/2;
 			maxNote += add;
 			minNote -= add;
