@@ -185,7 +185,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		panelFooter.setLayout(sl_panel);
 		slider = new JSlider();
 		slider.setOpaque(false);
-		sl_panel.putConstraint(SpringLayout.WEST, slider, 0, SpringLayout.WEST, panelFooter);
 		slider.setPaintTicks(true);
 		labelLength = new JLabel("8");
 		labelLength.setOpaque(false);
@@ -216,13 +215,14 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		panelFooter.add(labelLength);
 		
 		comboQuantize = new JComboBox(TransformationProvider.QUANTIZE_LABEL);
+		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 0, SpringLayout.EAST, labelLength);
 		comboQuantize.setToolTipText("Note quantization");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 		panelFooter.add(comboQuantize);
 		comboQuantize.setMaximumRowCount(12);
 		
 		comboBoxTranspose = new JComboBox(TransformationProvider.TRANSPOSE_LABEL);
-		sl_panel.putConstraint(SpringLayout.EAST, comboQuantize, -6, SpringLayout.WEST, comboBoxTranspose);
+		sl_panel.putConstraint(SpringLayout.WEST, comboBoxTranspose, 6, SpringLayout.EAST, comboQuantize);
 		comboBoxTranspose.setToolTipText("Transpose semitones");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboBoxTranspose, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 		panelFooter.add(comboBoxTranspose);
@@ -230,7 +230,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		comboBoxTranspose.setSelectedIndex(13);
 		
 		JButton btnClear = new JButton("Clear");
-		sl_panel.putConstraint(SpringLayout.EAST, comboBoxTranspose, -6, SpringLayout.WEST, btnClear);
 		btnClear.setToolTipText("Clear loop");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, btnClear, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 		panelFooter.add(btnClear);
@@ -243,8 +242,10 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		buttonNewLoop.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		panelFooter.add(buttonNewLoop);
 		
-		toggleDrumsLayout = new JCheckBox("Drums");
-		sl_panel.putConstraint(SpringLayout.WEST, toggleDrumsLayout, 6, SpringLayout.EAST, labelLength);
+		toggleDrumsLayout = new JCheckBox(VIEW_LABELS[0]);
+		toggleDrumsLayout.setPreferredSize(new Dimension(100, 23));
+		sl_panel.putConstraint(SpringLayout.WEST, slider, 0, SpringLayout.EAST, toggleDrumsLayout);
+		sl_panel.putConstraint(SpringLayout.WEST, toggleDrumsLayout, 6, SpringLayout.WEST, panelFooter);
 		panelFooter.add(toggleDrumsLayout);
 		toggleDrumsLayout.setOpaque(false);
 		toggleDrumsLayout.setBorderPainted(false);
@@ -257,6 +258,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				loop.setDrums(toggleDrumsLayout.isSelected());
+				toggleDrumsLayout.setText(VIEW_LABELS[loop.isDrums()?1:0]);
 			}
 		});
 		
@@ -289,8 +291,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				loop.triggerRefreshLoopDisplay();
 			}});
 		
-		JLabel lblIn = new JLabel("MIDI:");
-		
 		comboMidiIn = new JComboBox(MIDI_CHANNELS_IN);
 		comboMidiIn.setToolTipText("MIDI Channel In");
 		comboMidiIn.setMaximumRowCount(16);
@@ -302,19 +302,16 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		comboMidiOut.setMaximumRowCount(16);
 		comboMidiOut.setSelectedIndex(loop.getMidiChannelOut());
 		SpringLayout sl_panelMidi = new SpringLayout();
-		sl_panelMidi.putConstraint(SpringLayout.WEST, toggleDrumsLayout, 0, SpringLayout.WEST, lblIn);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiOut, -6, SpringLayout.EAST, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, comboMidiIn, -6, SpringLayout.WEST, comboMidiOut);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiOut, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, comboMidiIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
-		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblIn, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		panelMidi.setLayout(sl_panelMidi);
 		
 		toggleMetronome = new JCheckBox("Metronome");
 		toggleMetronome.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
 		toggleMetronome.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
 		toggleMetronome.setHorizontalTextPosition(SwingConstants.LEADING);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMetronome, 0, SpringLayout.WEST, lblIn);
 		toggleMetronome.setOpaque(false);
 		toggleMetronome.setToolTipText("Turn on metronome");
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleMetronome, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
@@ -325,15 +322,14 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		});
 		panelMidi.add(toggleMetronome);
 		
-		panelMidi.add(lblIn);
-		
 		toggleRecord = new JCheckBox();
+		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleMetronome, -6, SpringLayout.WEST, toggleRecord);
+		toggleRecord.setHorizontalTextPosition(SwingConstants.LEADING);
 		toggleRecord.setOpaque(false);
-		sl_panelMidi.putConstraint(SpringLayout.EAST, lblIn, -6, SpringLayout.WEST, toggleRecord);
 		sl_panelMidi.putConstraint(SpringLayout.EAST, toggleRecord, -6, SpringLayout.WEST, comboMidiIn);
 		toggleRecord.setBorderPainted(false);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, toggleRecord, -4, SpringLayout.NORTH, toggleMetronome);
-		toggleRecord.setText("");
+		toggleRecord.setText("Record");
 		toggleRecord.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
 		toggleRecord.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON_EXTRA()));
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleRecord, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
@@ -346,7 +342,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		toggleRecord.setToolTipText("Record notes from selected channel");
 		panelMidi.add(toggleRecord);
 		panelMidi.add(comboMidiIn);
-		
 		panelMidi.add(comboMidiOut);
 		
 		lblDimidimiLooper = new JLabel("dimidimi");
@@ -356,24 +351,37 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 3f));
 		lblDimidimiLooper.setIcon(new ImageIcon(Res.IMAGE_ICON_32x32()));
 		
-		JCheckBox chckbxMute = new JCheckBox("mute");
+		chckbxMute = new JCheckBox("Mute");
 		chckbxMute.setIcon(new ImageIcon(Res.IMAGE_CHECK_OFF()));
 		chckbxMute.setSelectedIcon(new ImageIcon(Res.IMAGE_CHECK_ON()));
 		chckbxMute.setOpaque(false);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, chckbxMute, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.WEST, chckbxMute, 6, SpringLayout.EAST, lblDimidimiLooper);
 		panelMidi.add(chckbxMute);
+		chckbxMute.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				loop.setMuted(chckbxMute.isSelected());
+			}
+		});
 		
-		JCheckBox chckbxSolo = new JCheckBox("solo");
+		chckbxSolo = new JCheckBox("Solo");
 		chckbxSolo.setIcon(new ImageIcon(Res.IMAGE_CHECK_OFF()));
 		chckbxSolo.setSelectedIcon(new ImageIcon(Res.IMAGE_CHECK_ON()));
 		chckbxSolo.setOpaque(false);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, chckbxSolo, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		sl_panelMidi.putConstraint(SpringLayout.WEST, chckbxSolo, 6, SpringLayout.EAST, chckbxMute);
 		panelMidi.add(chckbxSolo);
+		chckbxSolo.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				loop.setSolo(chckbxSolo.isSelected());
+			}
+		});
 		panelLoop.setLayout(new BorderLayout(0, 0));
 		loopDisplayPanel = new LoopDisplayPanel(loop);
 		loopDisplayPanel.setBackground(Color.WHITE);
+		loopDisplayPanel.requestFocus();
 		panelLoop.add(loopDisplayPanel);
 		loopDisplayPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		frmDimidimi.getContentPane().setLayout(groupLayout);
@@ -813,6 +821,16 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 	public void onSettingsUpdated() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
+				if (Prefs.get(Prefs.THEME, 0)==0) {
+					Theme.APPLY = Theme.BRIGHT;
+					menuItemThemeDark.setSelected(false);
+					menuItemThemeBright.setSelected(true);
+				}
+				else {
+					Theme.APPLY = Theme.DARK;
+					menuItemThemeDark.setSelected(true);
+					menuItemThemeBright.setSelected(false);
+				}
 				frmDimidimi.getContentPane().setBackground(Theme.APPLY.colorBackground());
 				panelFooter.setBackground(Theme.APPLY.colorBackground());
 				panelLoop.setBackground(Theme.APPLY.colorBackground());
@@ -826,18 +844,11 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				toggleRecord.setSelected(loop.isRecordOn());
 				comboMidiOut.setSelectedIndex(loop.getMidiChannelOut());
 				comboMidiIn.setSelectedIndex(loop.getMidiChannelIn());
+				chckbxMute.setSelected(loop.isMuted());
+				chckbxSolo.setSelected(loop.isSolo());
 				panelMidi.setBackground(Theme.isBright()?loop.getNoteColorPlayed():loop.getNoteColor(false));
 				toggleDrumsLayout.setSelected(loop.isDrums());
-				if (Prefs.get(Prefs.THEME, 0)==0) {
-					Theme.APPLY = Theme.BRIGHT;
-					menuItemThemeDark.setSelected(false);
-					menuItemThemeBright.setSelected(true);
-				}
-				else {
-					Theme.APPLY = Theme.DARK;
-					menuItemThemeDark.setSelected(true);
-					menuItemThemeBright.setSelected(false);
-				}
+				toggleDrumsLayout.setText(VIEW_LABELS[loop.isDrums()?1:0]);
 				if (loop.getName()!=null && titleExtension==null) { 
 					titleExtension = loop.getName();
 				}
@@ -880,8 +891,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 			panelMidi.setBackground(Theme.isBright()?loop.getNoteColorPlayed():loop.getNoteColor(false));			
 		}
 		else {
-//			panelMidi.setBackground(Theme.APPLY.colorGrid());
-			panelMidi.setBackground(loop.getChannelColor());
+			panelMidi.setBackground(loop.getNoteColorHighlighted(false));
+//			panelMidi.setBackground(loop.getChannelColor());
 		}
 		
 	}
@@ -890,6 +901,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 	private JSlider slider;
 	private JLabel labelLength;
 	private JPanel panelFooter;
+	private JCheckBox chckbxMute;
+	private JCheckBox chckbxSolo;
 	
 	static {
 		LENGTH_LABELS.put(0, new JLabel("Len"));
@@ -957,4 +970,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 			}
 		}
 	}
+	
+	private static final String[] VIEW_LABELS = new String[] {"Notes", "Drums"};
 }

@@ -388,6 +388,8 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 	    int fwidth = g.getFontMetrics(g.getFont()).stringWidth(channelText);
 	    fheight = g.getFontMetrics(g.getFont()).getHeight();
 	    g.drawString(channelText, width/2-fwidth/2, height-height/5);
+	    
+	    
 	    g.setFont(Theme.APPLY.fontNotes());
 	    
 		// draw pitchbend and mod
@@ -783,5 +785,4 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		selectedNotes.addAll(loop.getNotesList());
 	}
 
-	
 }

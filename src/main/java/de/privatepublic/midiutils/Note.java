@@ -171,7 +171,7 @@ public class Note {
 	}
 	
 	private static final String[] NOTE_NAMES = new String[] {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
-	private static final String[] DRUM_NAMES = new String[] {"BD0", "BD1", "Rim", "SD", "Cl1", "Cl2", "Cow", "HH", "Clv", "HH2", "TM1", "OH", "TM2", "TM3", "Cym", "TM4"};;
+	private static final String[] DRUM_NAMES = new String[] {"BD0", "BD1", "Rim", "SD", "Cl1", "Cl2", "Cow", "HH", "Clv", "HH2", "TM1", "OH", "TM2", "TM3", "Cym", "TM4"};
 
 	
 	public static interface TransformationProvider {
@@ -180,7 +180,10 @@ public class Note {
 		public static final int[] T_STEPS = new int[]{ 24, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -24};
 		
 		public static final String[] QUANTIZE_LABEL = new String[]{"free","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
-		public static final String[] TRANSPOSE_LABEL = new String[]{"+2 oct", "+1 oct","+11","+10","+9","+8","+7","+6","+5","+4","+3","+2","+1","↓  -  ↑","-1","-2","-3","-4","-5","-6","-7","-8","-9","-10","-11","-1 oct","-2 oct"};
+		public static final String[] TRANSPOSE_LABEL = new String[]{
+				"↑ 2 oct", "↑ 1 oct","↑ 11","↑ 10","↑ 9","↑ 8","↑ 7","↑ 6","↑ 5","↑ 4","↑ 3","↑ 2","↑ 1",
+				"↓    ↑",
+				"↓ 1","↓ 2","↓ 3","↓ 4","↓ 5","↓ 6","↓ 7","↓ 8","↓ 9","↓ 10","↓ 11","↓ 1 oct","↓ 2 oct"};
 		
 		public int getTransposeIndex();
 		public int getQuantizationIndex();
