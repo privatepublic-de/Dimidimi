@@ -609,8 +609,8 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 
 	private Rectangle[] getNotePositionsRect(Note note) {
 		int index = (highestNote+MARGIN_SEMIS)-note.getNoteNumber(loop);
-		float height = noteHeight*.85f;
-		int notey = Math.round(index*noteHeight-height/2+(noteHeight-height)/4);
+		float height = noteHeight*.8f;
+		int notey = Math.round(index*noteHeight-noteHeight/2+(noteHeight-height)/2);
 		int notestartx = Math.round(note.getPosStart(loop)*tickwidth);
 		int noteendx = Math.round(note.isCompleted()?note.getPosEnd(loop)*tickwidth:pos*tickwidth);
 		if (noteendx>=notestartx) {

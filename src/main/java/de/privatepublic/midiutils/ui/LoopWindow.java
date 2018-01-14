@@ -256,7 +256,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				loop.clearPattern();
 			}
 		});
-//		 ((JLabel)comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.RIGHT);
+		 ((JLabel)comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.CENTER);
 		
 		comboBoxTranspose.addActionListener(new ActionListener(){
 			@Override
@@ -345,7 +345,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		sl_panelMidi.putConstraint(SpringLayout.WEST, toggleDrumsLayout, 12, SpringLayout.EAST, lblDimidimiLooper);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, lblDimidimiLooper, 0, SpringLayout.VERTICAL_CENTER, panelMidi);
 		panelMidi.add(lblDimidimiLooper);
-		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 9f));
+		lblDimidimiLooper.setFont(lblDimidimiLooper.getFont().deriveFont(lblDimidimiLooper.getFont().getStyle() | Font.BOLD, lblDimidimiLooper.getFont().getSize() + 3f));
 		lblDimidimiLooper.setIcon(new ImageIcon(Res.IMAGE_ICON_32x32()));
 		
 		toggleDrumsLayout.addActionListener(new ActionListener() {
