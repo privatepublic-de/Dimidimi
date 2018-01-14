@@ -112,6 +112,13 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 				if (e.getKeyCode()==KeyEvent.VK_BACK_SPACE) {
 					deleteSelectedNotes();
 				}
+				if (e.getKeyCode()==KeyEvent.VK_M) {
+					loop.setMuted(!loop.isMuted());
+				}
+				if (e.getKeyCode()==KeyEvent.VK_S) {
+					loop.setSolo(!loop.isSolo());
+				}
+				
 			}
 		});
 		setFocusable(true);

@@ -892,8 +892,9 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		}
 		else {
 			panelMidi.setBackground(loop.getNoteColorHighlighted(false));
-//			panelMidi.setBackground(loop.getChannelColor());
 		}
+		chckbxMute.setSelected(loop.isMuted());
+		chckbxSolo.setSelected(loop.isSolo());
 		
 	}
 	
