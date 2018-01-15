@@ -19,6 +19,7 @@ public class StorageContainer {
 	private Map<String, Integer> windowPos;
 	private List<Integer> pitchBend;
 	private List<Integer> modWheel;
+	private List<Integer> channelPressure;
 	
 	public StorageContainer() {
 		
@@ -35,7 +36,8 @@ public class StorageContainer {
 		this.midiChannelInActive = loop.isRecordOn();
 		this.windowPos = new HashMap<String, Integer>();
 		this.pitchBend =  asList(loop.getPitchBendList());
-		this.modWheel = asList(loop.getCcList());
+		this.modWheel = asList(loop.getModWheelList());
+		this.channelPressure = asList(loop.getPressureList());
 		this.isDrums = loop.isDrums();
 		Rectangle bounds = loop.getWindow().getScreenPosition();
 		windowPos.put("x", bounds.x);
@@ -145,6 +147,16 @@ public class StorageContainer {
 		this.modWheel = modWheel;
 	}
 	
+	public List<Integer> getChannelPressure() {
+		return channelPressure;
+	}
+
+
+	public void setChannelPressure(List<Integer> channelPressure) {
+		this.channelPressure = channelPressure;
+	}
+
+
 	private List<Integer> asList(int[] array) {
 		List<Integer> result = new ArrayList<Integer>(array.length);
 		for (int i:array) {

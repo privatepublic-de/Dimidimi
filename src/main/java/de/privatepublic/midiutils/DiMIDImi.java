@@ -6,6 +6,8 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 
+import javax.swing.UIManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,14 @@ public class DiMIDImi {
 	
 	public static void main(String[] args) {
 		LOG.info("DiMIDImi Looper starting ...");
+		try {
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+            System.setProperty("com.apple.mrj.application.apple.menu.about.name", DiMIDImi.APP_TITLE);
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} 
+		catch (Exception e) {
+			LOG.warn("Could not set look and feel", e);
+		}
 		
 		// create controller window and one empty loop
 		EventQueue.invokeLater(new Runnable() {
@@ -62,5 +72,7 @@ public class DiMIDImi {
 	public static ControllerWindow getControllerWindow() {
 		return CONTROLLER_WINDOW;
 	}
+
+	public static final String APP_TITLE = "dimidimi Looper";
 	
 }

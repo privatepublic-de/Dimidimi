@@ -365,7 +365,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 			loop.registerReceiver(this);
 		}
 		
-		LOG.debug("Created LoopDisplayPanel.");
+		LOG.debug("Created LoopDisplayPanel");
 	}
 	
 	
@@ -404,18 +404,20 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		    g.setStroke(STROKE_3);
 		    final int centery = height/2;
 		    for (int i=0;i<loop.getLengthQuarters()*Loop.TICK_COUNT_BASE;++i) {
-		    	int xpos = Math.round(i*tickwidth);
-		    	int mod = loop.getCcList()[i];
-		    	int pb = (-loop.getPitchBendList()[i])/129;
-		    	g.setColor(Theme.APPLY.colorPitchBend());
-		    	if (pb<0) {
-		    		g.fillRect(xpos, centery+pb, Math.round(tickwidth)+1, Math.abs(pb));
-		    	}
-		    	else if (pb>0) {
-		    		g.fillRect(xpos, centery, Math.round(tickwidth)+1, pb);
-		    	}
-		    	g.setColor(Theme.APPLY.colorModWheel());
-		    	g.drawLine(xpos, height-mod, xpos, height);
+			    	int xpos = Math.round(i*tickwidth);
+			    	int mod = loop.getModWheelList()[i];
+			    	int pressure = loop.getPressureList()[i];
+			    	int pb = (-loop.getPitchBendList()[i])/129;
+			    	g.setColor(Theme.APPLY.colorPitchBend());
+			    	if (pb<0) {
+			    		g.fillRect(xpos, centery+pb, Math.round(tickwidth)+1, Math.abs(pb));
+			    	}
+			    	else if (pb>0) {
+			    		g.fillRect(xpos, centery, Math.round(tickwidth)+1, pb);
+			    	}
+			    	g.setColor(Theme.APPLY.colorModWheel());
+			    	g.drawLine(xpos, height-mod, xpos, height);
+			    	g.drawLine(xpos, 0, xpos, pressure);
 		    }
 	    }
 

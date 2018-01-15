@@ -46,6 +46,7 @@ public class MidiHandler {
 	private ShortMessage msgStart = new ShortMessage();
 	private ShortMessage msgStop = new ShortMessage();
 	
+	private boolean sendStartStopClock = true;
 	
 	private MidiHandler() {
 
@@ -135,13 +136,17 @@ public class MidiHandler {
 		internalClockTimer = new Timer();
 		if (!alreadyRunning) {
 			internalReceiver.send(msgStart, 0);
-			sendMessage(msgStart);
+			if (sendStartStopClock) {
+				sendMessage(msgStart);
+			}
 		}
 		internalClockTimer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
 				internalReceiver.send(msgClock, 0);
-				sendMessage(msgClock);
+				if (sendStartStopClock) {
+					sendMessage(msgClock);
+				}
 			}
 		}, interval, interval);
 	}
@@ -158,7 +163,9 @@ public class MidiHandler {
 			internalClockTimer = null;
 		}
 		internalReceiver.send(msgStop, 0);
-		sendMessage(msgStop);
+		if (sendStartStopClock) {
+			sendMessage(msgStop);
+		}
 	}
 	
 	public void toggleInternalClock() {
@@ -171,6 +178,14 @@ public class MidiHandler {
 	}
 	
 	
+	public boolean getSendStartStopClock() {
+		return sendStartStopClock;
+	}
+
+	public void setSendStartStopClock(boolean sendStartStopClock) {
+		this.sendStartStopClock = sendStartStopClock;
+	}
+
 	public void storeSelectedOutDevices() {
 		ArrayList<MidiDeviceWrapper> list = new ArrayList<MidiDeviceWrapper>();
 		for (MidiDeviceWrapper dev:getOutputDevices()) {
@@ -268,11 +283,14 @@ public class MidiHandler {
 							noteOff(loop, data1);
 							break;
 						case ShortMessage.CONTROL_CHANGE:
-							loop.triggerReceiveCC(data1, data2, pos);
+							loop.triggerReceiveCC(data1, data2, pos%loop.getMaxTicks());
+							break;
+						case ShortMessage.CHANNEL_PRESSURE:
+							loop.triggerReceivePressure(data1, pos%loop.getMaxTicks());
 							break;
 						case ShortMessage.PITCH_BEND:
 							int val = ((data1 & 0x7f) + ((data2 & 0x7f)<<7)) - 0x2000;
-							loop.triggerReceivePitchBend(val, pos);
+							loop.triggerReceivePitchBend(val, pos%loop.getMaxTicks());
 							break;
 						}
 					}
@@ -323,6 +341,16 @@ public class MidiHandler {
 		try {
 			ShortMessage message = new ShortMessage();
 			message.setMessage(ShortMessage.CONTROL_CHANGE, loop.getMidiChannelOut(), 1, val);
+			sendMessage(message);
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void sendChannelPressure(Loop loop, int val) {
+		try {
+			ShortMessage message = new ShortMessage();
+			message.setMessage(ShortMessage.CHANNEL_PRESSURE, loop.getMidiChannelOut(), val, 0);
 			sendMessage(message);
 		} catch (InvalidMidiDataException e) {
 			e.printStackTrace();

@@ -58,12 +58,15 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	private int quantizationIndex = 0;
 	private int transposeIndex = 13;
 	private LoopWindow window;
-	private int currentCC = 0;
+	private int currentModWheel = 0;
+	private int currentPressure = 0;
 	private int currentPitchBend = 0;
 	private List<Note> notesList = new CopyOnWriteArrayList<Note>();
-	private boolean overrideCC = false;
+	private boolean overrideModWheel = false;
+	private boolean overridePressure = false;
 	private boolean overridePitchBend = false;
-	private int[] ccList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
+	private int[] modWheelList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
+	private int[] pressureList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
 	private int[] pitchBendList = new int[MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE];
 	private String name;
 	
@@ -204,8 +207,12 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		this.notesList = notesList;
 	}
 	
-	public int[] getCcList() {
-		return ccList;
+	public int[] getModWheelList() {
+		return modWheelList;
+	}
+	
+	public int[] getPressureList() {
+		return pressureList;
 	}
 
 	public int[] getPitchBendList() {
@@ -327,7 +334,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		}
 		getNotesList().clear();
 		for (int i=0;i<MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE;++i) {
-			ccList[i] = 0;
+			modWheelList[i] = 0;
 			pitchBendList[i] = 0;
 		}
 		MidiHandler.instance().sendPitchBend(this, 0);
@@ -337,7 +344,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	
 	public void clearModWheel() {
 		for (int i=0;i<MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE;++i) {
-			ccList[i] = 0;
+			modWheelList[i] = 0;
 		}
 		MidiHandler.instance().sendCC(this, 0);
 	}
@@ -348,6 +355,15 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		}
 		MidiHandler.instance().sendPitchBend(this, 0);
 	}
+	
+	public void clearPressure() {
+		for (int i=0;i<MAX_NUMBER_OF_QUARTERS*TICK_COUNT_BASE;++i) {
+			pressureList[i] = 0;
+		}
+		MidiHandler.instance().sendChannelPressure(this, 0);
+	}
+	
+	
 
 
 	public void saveToFile(File file) throws JsonGenerationException, JsonMappingException, IOException {
@@ -378,7 +394,8 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			getNotesList().add(n);
 		}
 		data.copyList(data.getPitchBend(), pitchBendList);
-		data.copyList(data.getModWheel(), ccList);
+		data.copyList(data.getModWheel(), modWheelList);
+		data.copyList(data.getChannelPressure(), pressureList);
 		Map<String, Integer> wpos = data.getWindowPos();
 		if (wpos!=null) {
 			Rectangle windowBounds = new Rectangle(wpos.get("x"), wpos.get("y"), wpos.get("w"), wpos.get("h"));
@@ -429,6 +446,23 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		triggerNotesUpdated();
 		triggerSettingsUpdated();
 	}
+	
+	
+	public void applyQuantization() {
+		for (Note note : getNotesList()) {
+			note.setPosStart(note.getPosStart(this));
+			note.setPosEnd(note.getPosEnd(this));
+		}
+		triggerRefreshLoopDisplay();
+	}
+	
+	public void applyTransposition() {
+		for (Note note : getNotesList()) { 
+			note.setNoteNumber(note.getNoteNumber(this));
+		}
+		triggerRefreshLoopDisplay();
+	}
+	
 
 
 	public void destroy() {
@@ -484,6 +518,12 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	public void triggerReceiveCC(int cc, int val, int pos) {
 		for (PerformanceReceiver receiver: performanceReceivers) {
 			receiver.onReceiveCC(cc, val, pos);
+		}
+	}
+	
+	public void triggerReceivePressure(int val, int pos) {
+		for (PerformanceReceiver receiver: performanceReceivers) {
+			receiver.onReceivePressure(val, pos);
 		}
 	}
 	
@@ -573,20 +613,27 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		}
 		
 		if (pos==0) {
-			overrideCC = overridePitchBend = false;
+			overrideModWheel = overridePitchBend = overridePressure = false;
 		}
 		if (overridePitchBend) {
 			pitchBendList[pos] = currentPitchBend;	
 		}
-		if (overrideCC) {
-			ccList[pos] = currentCC;
+		if (overrideModWheel) {
+			modWheelList[pos] = currentModWheel;
+		}
+		if (overridePressure) {
+			pressureList[pos] = currentPressure;
 		}
 		int prevpos = (pos+getMaxTicks()-1)%getMaxTicks();
 		if (pitchBendList[pos]!=pitchBendList[prevpos]) {
 			MidiHandler.instance().sendPitchBend(this, pitchBendList[pos]);
 		}
-		if (ccList[pos]!=ccList[prevpos]) {
-			MidiHandler.instance().sendCC(this, ccList[pos]);
+		if (modWheelList[pos]!=modWheelList[prevpos]) {
+			MidiHandler.instance().sendCC(this, modWheelList[pos]);
+		}
+		
+		if (pressureList[pos]!=pressureList[prevpos]) {
+			MidiHandler.instance().sendChannelPressure(this, pressureList[pos]);
 		}
 		
 		boolean isAudible = isAudible();
@@ -674,13 +721,24 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	@Override
 	public void onReceiveCC(int cc, int val, int pos) {
 		if (isRecordOn()) {
-			if (cc==1) {
-				currentCC = val;
-				ccList[pos] = val;
-				overrideCC = true;
+			if (cc==1) { // mod wheel
+				currentModWheel = val;
+				modWheelList[pos] = val;
+				overrideModWheel = true;
 			}
 		}
 	}
+	
+
+	@Override
+	public void onReceivePressure(int val, int pos) {
+		if (isRecordOn()) {
+			currentPressure = val;
+			pressureList[pos] = val;
+			overridePressure = true;
+		}
+	}
+
 
 	@Override
 	public void onReceivePitchBend(int val, int pos) {
@@ -780,7 +838,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		}
 	}
 
-	public static void saveLoop(File file) throws JsonGenerationException, JsonMappingException, IOException {
+	public static void saveSession(File file) throws JsonGenerationException, JsonMappingException, IOException {
 		List<StorageContainer> dataList = new ArrayList<StorageContainer>();
 		String name = FilenameUtils.getBaseName(file.getName());
 		for (Loop loop: LOOPS) {
@@ -792,7 +850,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		LOG.info("Saved loop {}", file.getPath());
 	}
 
-	public static void loadLoop(File file) throws JsonParseException, JsonMappingException, IOException {
+	public static void loadSession(File file) throws JsonParseException, JsonMappingException, IOException {
 		List<Loop> loopsToClose = new ArrayList<Loop>(LOOPS);
 		List<StorageContainer> list = Arrays.asList(MAPPER.readValue(file, StorageContainer[].class));
 		String name = FilenameUtils.getBaseName(file.getName());
@@ -808,8 +866,6 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	public static List<Loop> getLoops() {
 		return LOOPS;
 	}
-
-	
 
 	
 }

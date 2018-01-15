@@ -35,7 +35,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
@@ -52,57 +51,48 @@ import de.privatepublic.midiutils.events.PerformanceReceiver;
 import de.privatepublic.midiutils.events.SettingsUpdateReceiver;
 
 public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, PerformanceReceiver {
-	
+
 	private static final long serialVersionUID = 3196404892575349167L;
 	private static final Logger LOG = LoggerFactory.getLogger(ControllerWindow.class);
 	private static final int STANDARD_WIDTH = 270;
-	
+
 	private JPanel windowPane;
 	private JPanel contentPane;
 	private Map<Integer, PanelComponent> panelComponents = new HashMap<Integer, PanelComponent>();
 	private int bpm = 100;
 	private List<JComponent> updateBackgroundComponents = new ArrayList<JComponent>();
 	private List<JComponent> updateForegroundComponents = new ArrayList<JComponent>();
-	
+
 	public ControllerWindow() {
-		
-		try {
-			UIManager.setLookAndFeel(
-					UIManager.getSystemLookAndFeelClassName());
-		} 
-		catch (Exception e) {
-			LOG.warn("Could not set look and feel", e);
-		}
-		
 		setFocusableWindowState(false);
 		setType(Type.UTILITY);
-		
+
 		String posprefs = Prefs.get(Prefs.CONTROLLER_POS, null);
-		if (posprefs!=null) {
+		if (posprefs != null) {
 			String[] parts = posprefs.split(",");
-			setBounds(Integer.parseInt(parts[0]),Integer.parseInt(parts[1]),STANDARD_WIDTH,Integer.parseInt(parts[3]));
+			setBounds(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), STANDARD_WIDTH,
+					Integer.parseInt(parts[3]));
 			setAlwaysOnTop("true".equals(parts[4]));
 			setVisible("true".equals(parts[5]));
-		}
-		else {
+		} else {
 			setBounds(100, 100, STANDARD_WIDTH, 300);
 		}
 		setTitle("dimidimi Control");
-		
+
 		windowPane = new JPanel();
 		windowPane.setBorder(new EmptyBorder(0, 0, 0, 0));
 		setContentPane(windowPane);
 		windowPane.setLayout(new BorderLayout(0, 0));
-		
+
 		panel_1 = new JPanel();
 		FlowLayout flowLayout_1 = (FlowLayout) panel_1.getLayout();
 		flowLayout_1.setHgap(0);
-		
+
 		windowPane.add(panel_1, BorderLayout.NORTH);
-		
+
 		lblAll = new JLabel("All:");
 		panel_1.add(lblAll);
-		
+
 		btnAllMuteOff = new JButton("Mute");
 		btnAllMuteOff.setOpaque(false);
 		btnAllMuteOff.setContentAreaFilled(false);
@@ -110,7 +100,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		btnAllMuteOff.setIcon(IC_NEXT_CYCLE_OFF);
 		panel_1.add(btnAllMuteOff);
 		btnAllMuteOff.setToolTipText("All Mute Off");
-		
+
 		btnAllSoloOff = new JButton("Solo");
 		btnAllSoloOff.setOpaque(false);
 		btnAllSoloOff.setContentAreaFilled(false);
@@ -118,7 +108,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		btnAllSoloOff.setIcon(IC_NEXT_CYCLE_OFF);
 		panel_1.add(btnAllSoloOff);
 		btnAllSoloOff.setToolTipText("All Solo Off");
-		
+
 		btnNext = new JCheckBox("next");
 		btnNext.setOpaque(false);
 		btnNext.setIcon(IC_EMPTY);
@@ -131,30 +121,31 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 				allOff(Toggle.SOLO);
 			}
 		});
-		
+
 		btnAllMuteOff.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				allOff(Toggle.MUTE);
 			}
-			
+
 		});
 		btnNext.addActionListener(new ActionListener() {
 			boolean value = false;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				value = !value;
-				for (PanelComponent comp:panelComponents.values()) {
+				for (PanelComponent comp : panelComponents.values()) {
 					comp.onNextCycle = value;
 					comp.chckbxTriggerOnEnd.setSelected(value);
 				}
 			}
 		});
-		
+
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBorder(new LineBorder(Color.DARK_GRAY));
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		
+
 		contentPane = new JPanel();
 		contentPane.setBackground(Theme.APPLY.colorBackgroundController());
 		scrollPane.setViewportView(contentPane);
@@ -164,17 +155,17 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		panel_2 = new JPanel();
 		windowPane.add(panel_2, BorderLayout.SOUTH);
 		panel_2.setLayout(new BorderLayout(0, 0));
-		
+
 		panel_3 = new JPanel();
 		panel_2.add(panel_3, BorderLayout.NORTH);
-		
+
 		btnStart = new JButton("▶");
 		btnStart.setToolTipText("Start");
-		
+
 		btnStop = new JButton("◼");
 		btnStop.setToolTipText("Stop");
 		btnStop.setEnabled(false);
-		
+
 		toggleAlwaysOnTop = new JCheckBox("Stay on top");
 		toggleAlwaysOnTop.setIcon(IC_EMPTY);
 		toggleAlwaysOnTop.setSelectedIcon(IC_CHECKED);
@@ -201,58 +192,58 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 				MidiHandler.instance().stopInternalClock();
 			}
 		});
-		
+
 		btnStart.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				MidiHandler.instance().startInternalClock(slider.getValue());
 			}
 		});
-		
+
 		panel_4 = new JPanel();
 		FlowLayout flowLayout = (FlowLayout) panel_4.getLayout();
 		flowLayout.setVgap(0);
 		panel_2.add(panel_4, BorderLayout.SOUTH);
-		
+
 		slider = new JSlider();
 		slider.setOpaque(false);
 		slider.setMinorTickSpacing(10);
 		slider.setPaintTicks(true);
 		panel_4.add(slider);
-		
+
 		slider.setValue(100);
 		slider.setMinimum(20);
 		slider.setMaximum(180);
 		slider.setToolTipText("Tempo BPM");
-		
+
 		lblBpm = new JLabel("100 BPM");
 		panel_4.add(lblBpm);
-		
+
 		slider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				bpm = slider.getValue();
-				lblBpm.setText((bpm<100?"0":"")+bpm+" BPM");
-				MidiHandler.instance().setInteralClockSpeed(slider.getValue());	
+				lblBpm.setText((bpm < 100 ? "0" : "") + bpm + " BPM");
+				MidiHandler.instance().setInteralClockSpeed(slider.getValue());
 			}
 		});
-		
+
 		updateBackgroundComponents.add(contentPane);
 		updateBackgroundComponents.add(panel_1);
 		updateBackgroundComponents.add(panel_3);
 		updateBackgroundComponents.add(panel_4);
-		
+
 		updateForegroundComponents.add(lblAll);
 		updateForegroundComponents.add(lblBpm);
 		updateForegroundComponents.add(btnNext);
 		updateForegroundComponents.add(toggleAlwaysOnTop);
 		updateForegroundComponents.add(btnAllMuteOff);
 		updateForegroundComponents.add(btnAllSoloOff);
-		
-		LOG.debug("Created controller window.");
+
+		LOG.debug("Created controller window");
 	}
-	
+
 	private void allOff(Toggle what) {
-		for (PanelComponent comp:panelComponents.values()) {
+		for (PanelComponent comp : panelComponents.values()) {
 			boolean isSelected = false;
 			switch (what) {
 			case SOLO:
@@ -261,7 +252,8 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			case MUTE:
 				isSelected = comp.btnMute.isSelected();
 				break;
-			};
+			}
+			;
 			if (isSelected) {
 				comp.toggleState(what, false);
 			}
@@ -271,52 +263,51 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	public int getBPM() {
 		return bpm;
 	}
-	
+
 	@Override
 	public void onSettingsUpdated() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					for (JComponent cp: updateBackgroundComponents) {
-						cp.setBackground(Theme.APPLY.colorBackgroundController());	
+					for (JComponent cp : updateBackgroundComponents) {
+						cp.setBackground(Theme.APPLY.colorBackgroundController());
 					}
-					for (JComponent cp: updateForegroundComponents) {
-						cp.setForeground(Theme.APPLY.colorForeground());	
+					for (JComponent cp : updateForegroundComponents) {
+						cp.setForeground(Theme.APPLY.colorForeground());
 					}
 					List<Loop> list = new ArrayList<Loop>(Loop.getLoops());
-					if (panelComponents.size()<=list.size()) {
+					if (panelComponents.size() <= list.size()) {
 						Collections.sort(list);
 						contentPane.removeAll();
-						for (Loop loop:list) {
+						for (Loop loop : list) {
 							PanelComponent panel = panelComponents.get(loop.hashCode());
-							if (panel==null) {
+							if (panel == null) {
 								panel = new PanelComponent(loop);
 								panelComponents.put(loop.hashCode(), panel);
 								contentPane.add(panel.getPanel(), gbc);
 								panel.getPanel().revalidate();
-								int targetWidth = (int)panel.getPanel().getPreferredSize().getWidth()+WIDTH_PADDING;
+								int targetWidth = (int) panel.getPanel().getPreferredSize().getWidth() + WIDTH_PADDING;
 								targetWidth = Math.max(targetWidth, STANDARD_WIDTH);
-								int targetHeight = (int)panel.getPanel().getPreferredSize().getHeight()+HEIGHT_PADDING;
+								int targetHeight = (int) panel.getPanel().getPreferredSize().getHeight()
+										+ HEIGHT_PADDING;
 								Dimension currSize = getMaximumSize();
-							    setMaximumSize(new Dimension(targetWidth, currSize.height));
-							    setMinimumSize(new Dimension(targetWidth, targetHeight));
-							    currSize = getSize();
-							    setSize(new Dimension(targetWidth, currSize.height));
+								setMaximumSize(new Dimension(targetWidth, currSize.height));
+								setMinimumSize(new Dimension(targetWidth, targetHeight));
+								currSize = getSize();
+								setSize(new Dimension(targetWidth, currSize.height));
 								loop.registerReceiver(ControllerWindow.this);
-							}
-							else {
+							} else {
 								contentPane.add(panel.getPanel(), gbc);
 							}
 							panel.updateLabelText();
 						}
 						refreshView();
-					}
-					else if (panelComponents.size()>Loop.getLoops().size()) {
+					} else if (panelComponents.size() > Loop.getLoops().size()) {
 						Integer removeKey = null;
-						for (Integer key:panelComponents.keySet()) {
+						for (Integer key : panelComponents.keySet()) {
 							boolean exists = false;
-							for (Loop loop:Loop.getLoops()) {
-								if (loop.hashCode()==key) {
+							for (Loop loop : Loop.getLoops()) {
+								if (loop.hashCode() == key) {
 									exists = true;
 									break;
 								}
@@ -326,14 +317,14 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 								break;
 							}
 						}
-						if (removeKey!=null) {
+						if (removeKey != null) {
 							contentPane.remove(panelComponents.get(removeKey).getPanel());
 							panelComponents.get(removeKey).destroy();
 							panelComponents.remove(removeKey);
 							refreshView();
 						}
 					}
-					for (PanelComponent pc: panelComponents.values()) {
+					for (PanelComponent pc : panelComponents.values()) {
 						pc.updateColors();
 					}
 				} catch (Exception e) {
@@ -341,37 +332,37 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 				}
 			}
 		});
-		
+
 	}
 
 	private void refreshView() {
 		revalidate();
-//		invalidate();
-//		validate();
+		// invalidate();
+		// validate();
 		repaint();
 	}
-	
-	
+
 	private static class PanelComponent implements PerformanceReceiver {
-		
-		static final CopyOnWriteArrayList<BlinkToggleButton> BLINKERS = new CopyOnWriteArrayList<BlinkToggleButton>(); 
+
+		static final CopyOnWriteArrayList<BlinkToggleButton> BLINKERS = new CopyOnWriteArrayList<BlinkToggleButton>();
 		static {
 			javax.swing.Timer flashTimer = new javax.swing.Timer(150, new ActionListener() {
 				private boolean blinkState;
+
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					blinkState=!blinkState;
-					for (BlinkToggleButton btn:BLINKERS) {
+					blinkState = !blinkState;
+					for (BlinkToggleButton btn : BLINKERS) {
 						btn.blink(blinkState);
 					}
 				}
 			});
-		    flashTimer.setCoalesce(true);
-		    flashTimer.setRepeats(true);
-		    flashTimer.setInitialDelay(0);
-		    flashTimer.start();
+			flashTimer.setCoalesce(true);
+			flashTimer.setRepeats(true);
+			flashTimer.setInitialDelay(0);
+			flashTimer.start();
 		}
-		
+
 		private JPanel panel;
 		private Loop loop;
 		private JLabel label;
@@ -379,10 +370,10 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 		private BlinkToggleButton btnSolo;
 		private JCheckBox chckbxTriggerOnEnd;
 		private boolean onNextCycle = false;
-		
+
 		public PanelComponent(Loop loop) {
 			this.loop = loop;
-			
+
 			panel = new JPanel();
 			panel.setPreferredSize(null);
 			panel.setBorder(BorderFactory.createLineBorder(Theme.APPLY.colorBackgroundController(), 2, false));
@@ -393,46 +384,50 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 				@Override
 				public void mouseReleased(MouseEvent e) {
 				}
+
 				@Override
 				public void mousePressed(MouseEvent e) {
 				}
+
 				@Override
 				public void mouseExited(MouseEvent e) {
 				}
+
 				@Override
 				public void mouseEntered(MouseEvent e) {
 				}
+
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					ControllerWindow.focusLoops(loop);
 				}
 			});
 			panel.add(label);
-			
+
 			btnMute = new BlinkToggleButton("Mute");
 			btnMute.setIcon(IC_EMPTY);
 			btnMute.setSelectedIcon(IC_ON);
 			panel.add(btnMute);
 			btnMute.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ev) {
-					if (ev.getStateChange()==ItemEvent.SELECTED || ev.getStateChange()==ItemEvent.DESELECTED){
-						toggleState(Toggle.MUTE, ev.getStateChange()==ItemEvent.SELECTED);
+					if (ev.getStateChange() == ItemEvent.SELECTED || ev.getStateChange() == ItemEvent.DESELECTED) {
+						toggleState(Toggle.MUTE, ev.getStateChange() == ItemEvent.SELECTED);
 					}
 				}
 			});
-			
+
 			btnSolo = new BlinkToggleButton("Solo");
 			btnSolo.setIcon(IC_EMPTY);
 			btnSolo.setSelectedIcon(IC_ON);
 			panel.add(btnSolo);
 			btnSolo.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ev) {
-					if (ev.getStateChange()==ItemEvent.SELECTED || ev.getStateChange()==ItemEvent.DESELECTED){
-						toggleState(Toggle.SOLO, ev.getStateChange()==ItemEvent.SELECTED);
+					if (ev.getStateChange() == ItemEvent.SELECTED || ev.getStateChange() == ItemEvent.DESELECTED) {
+						toggleState(Toggle.SOLO, ev.getStateChange() == ItemEvent.SELECTED);
 					}
 				}
 			});
-			
+
 			chckbxTriggerOnEnd = new JCheckBox("next");
 			chckbxTriggerOnEnd.setIcon(IC_EMPTY);
 			chckbxTriggerOnEnd.setSelectedIcon(IC_CHECKED);
@@ -440,9 +435,9 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			chckbxTriggerOnEnd.setOpaque(false);
 			chckbxTriggerOnEnd.addItemListener(new ItemListener() {
 				public void itemStateChanged(ItemEvent ev) {
-					if(ev.getStateChange()==ItemEvent.SELECTED){
+					if (ev.getStateChange() == ItemEvent.SELECTED) {
 						onNextCycle = true;
-					} else if(ev.getStateChange()==ItemEvent.DESELECTED){
+					} else if (ev.getStateChange() == ItemEvent.DESELECTED) {
 						onNextCycle = false;
 					}
 				}
@@ -453,82 +448,75 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 
 			loop.registerReceiver(this);
 		}
-		
+
 		public void destroy() {
 			BLINKERS.remove(btnMute);
 			BLINKERS.remove(btnSolo);
 		}
-		
-		private void toggleState(Toggle toggle, boolean on) {		
-				switch (toggle) {
-				case MUTE:
-					if (onNextCycle && MidiHandler.ACTIVE) {
-						if (on) {
-							btnMute.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
-							loop.setQueuedMute(QueuedState.ON);
-						}
-						else {
-							btnMute.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
-							loop.setQueuedMute(QueuedState.OFF);
-						}
+
+		private void toggleState(Toggle toggle, boolean on) {
+			switch (toggle) {
+			case MUTE:
+				if (onNextCycle && MidiHandler.ACTIVE) {
+					if (on) {
+						btnMute.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
+						loop.setQueuedMute(QueuedState.ON);
+					} else {
+						btnMute.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
+						loop.setQueuedMute(QueuedState.OFF);
 					}
-					else {
-						if (on) {
-							btnMute.stopBlinking();
-							loop.setMuted(true);
-						}
-						else {
-							loop.setMuted(false);
-						}
+				} else {
+					if (on) {
+						btnMute.stopBlinking();
+						loop.setMuted(true);
+					} else {
+						loop.setMuted(false);
 					}
-					if (btnMute.isSelected()!=on) {
-						btnMute.setSelected(on);
-					}
-					break;
-				case SOLO:
-					if (onNextCycle && MidiHandler.ACTIVE) {
-						if (on) {
-							btnSolo.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
-							loop.setQueuedSolo(QueuedState.ON);
-						}
-						else {
-							btnSolo.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
-							loop.setQueuedSolo(QueuedState.OFF);
-						}
-					}
-					else {
-						if (on) {
-							btnSolo.stopBlinking();
-							loop.setSolo(true);
-						}
-						else {
-							loop.setSolo(false);
-						}
-					}
-					if (btnSolo.isSelected()!=on) {
-						btnSolo.setSelected(on);
-					}
-					break;
 				}
+				if (btnMute.isSelected() != on) {
+					btnMute.setSelected(on);
+				}
+				break;
+			case SOLO:
+				if (onNextCycle && MidiHandler.ACTIVE) {
+					if (on) {
+						btnSolo.startBlinking(IC_NEXT_CYCLE_ON, IC_EMPTY, true);
+						loop.setQueuedSolo(QueuedState.ON);
+					} else {
+						btnSolo.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
+						loop.setQueuedSolo(QueuedState.OFF);
+					}
+				} else {
+					if (on) {
+						btnSolo.stopBlinking();
+						loop.setSolo(true);
+					} else {
+						loop.setSolo(false);
+					}
+				}
+				if (btnSolo.isSelected() != on) {
+					btnSolo.setSelected(on);
+				}
+				break;
+			}
 		}
-		
+
 		public void updateLabelText() {
-			label.setText("#"+(loop.getMidiChannelOut()+1));
+			label.setText("#" + (loop.getMidiChannelOut() + 1));
 		}
-		
+
 		public void updateColors() {
 			panel.setBackground(loop.getColorBackground());
 			panel.setBorder(BorderFactory.createLineBorder(Theme.APPLY.colorBackgroundController(), 2, false));
 		}
-		
+
 		public JPanel getPanel() {
 			return panel;
 		}
-		
-		
+
 		@Override
 		public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
-			
+
 			switch (queuedMute) {
 			case OFF:
 				btnMute.startBlinking(IC_NEXT_CYCLE_OFF, IC_EMPTY, false);
@@ -540,8 +528,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 				btnMute.stopBlinking();
 				if (mute) {
 					btnMute.setSelected(true);
-				}
-				else {
+				} else {
 					btnMute.setSelected(false);
 				}
 				break;
@@ -557,56 +544,55 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 				btnSolo.stopBlinking();
 				if (solo) {
 					btnSolo.setSelected(true);
-				}
-				else {
+				} else {
 					btnSolo.setSelected(false);
 				}
 				break;
 			}
 			updateColors();
 		};
-		
 
 		@Override
 		public void onNoteOn(int noteNumber, int velocity, int pos) {
 		}
 
-
 		@Override
 		public void onNoteOff(int notenumber, int pos) {
 		}
-
 
 		@Override
 		public void onClock(int pos) {
 		}
 
-
 		@Override
 		public void onActivityChange(boolean active, int pos) {
 		}
-
 
 		@Override
 		public void onReceiveCC(int cc, int val, int pos) {
 		}
 
-
 		@Override
 		public void onReceivePitchBend(int val, int pos) {
 		}
-		
+
+		@Override
+		public void onReceivePressure(int val, int pos) {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
-	
+
 	private static class BlinkToggleButton extends JCheckBox {
-		
+
 		private static final long serialVersionUID = 7707283219651661189L;
-		
+
 		ImageIcon blinkIcon1;
 		ImageIcon blinkIcon2;
 		boolean blinkUseSelectedIcon;
 		boolean blinkOn;
-		
+
 		public BlinkToggleButton(String string) {
 			super(string);
 			setOpaque(false);
@@ -615,16 +601,15 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 
 		public void blink(boolean blinkState) {
 			if (blinkOn) {
-				ImageIcon useIcon = blinkState?blinkIcon2:blinkIcon1;
+				ImageIcon useIcon = blinkState ? blinkIcon2 : blinkIcon1;
 				if (blinkUseSelectedIcon) {
 					setSelectedIcon(useIcon);
-				}
-				else {
+				} else {
 					setIcon(useIcon);
 				}
 			}
 		}
-		
+
 		public void startBlinking(ImageIcon icon1, ImageIcon icon2, boolean useSelectedIcon) {
 			blinkIcon1 = icon1;
 			blinkIcon2 = icon2;
@@ -634,31 +619,33 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			}
 			blinkOn = true;
 		}
-		
+
 		public void stopBlinking() {
 			blinkOn = false;
 			setIcon(IC_EMPTY);
 			setSelectedIcon(IC_ON);
 		}
-		
+
 	}
-	
+
 	private static final ImageIcon IC_EMPTY = new ImageIcon(Res.IMAGE_CHECK_OFF());
 	private static final ImageIcon IC_ON = new ImageIcon(Res.IMAGE_CHECK_ON());
 	private static final ImageIcon IC_NEXT_CYCLE_ON = new ImageIcon(Res.IMAGE_CHECK_ON_FUTURE());
 	private static final ImageIcon IC_NEXT_CYCLE_OFF = new ImageIcon(Res.IMAGE_CHECK_OFF_FUTURE());
 	private static final ImageIcon IC_CHECKED = new ImageIcon(Res.IMAGE_CHECK_ON_CHECKMARK());
 
-	private static enum Toggle { MUTE, SOLO };
-	
+	private static enum Toggle {
+		MUTE, SOLO
+	};
+
 	private static GridBagConstraints gbc = new GridBagConstraints();
 	static {
-	    gbc.weightx = 1;
-	    gbc.fill = GridBagConstraints.HORIZONTAL;
-	    gbc.gridwidth = GridBagConstraints.REMAINDER;
-	    gbc.insets = new Insets(1, 0, 1, 0);
+		gbc.weightx = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.gridwidth = GridBagConstraints.REMAINDER;
+		gbc.insets = new Insets(1, 0, 1, 0);
 	}
-	
+
 	private static final int WIDTH_PADDING = 34;
 	private static final int HEIGHT_PADDING = 48;
 	private JButton btnAllSoloOff;
@@ -674,7 +661,6 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	private JLabel lblBpm;
 	private JPanel panel_3;
 	private JPanel panel_4;
-
 
 	@Override
 	public void onNoteOn(int noteNumber, int velocity, int pos) {
@@ -703,16 +689,21 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 	}
 
 	@Override
-	public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute,
-			QueuedState queuedSolo) {
+	public void onStateChange(boolean mute, boolean solo, QueuedState queuedMute, QueuedState queuedSolo) {
 	}
 
 	public static void focusLoops(Loop focusLoop) {
-		for (Loop loop: Loop.getLoops()) {
-			if (loop==focusLoop) {
+		for (Loop loop : Loop.getLoops()) {
+			if (loop == focusLoop) {
 				loop.triggerFocusLoop(focusLoop);
 			}
 		}
 	}
-	
+
+	@Override
+	public void onReceivePressure(int val, int pos) {
+		// TODO Auto-generated method stub
+
+	}
+
 }
