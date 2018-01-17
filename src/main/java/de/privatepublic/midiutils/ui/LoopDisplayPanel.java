@@ -389,7 +389,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		float fontSize = 20.0f;
 	    Font font = Theme.APPLY.fontMidiBig().deriveFont(fontSize);
 	    int fheight = g.getFontMetrics(font).getHeight();
-	    fontSize = (height / fheight ) * fontSize;
+	    fontSize = (height / (float)fheight ) * fontSize;
 	    textAttributes.put(TextAttribute.SIZE, fontSize);
 	    g.setFont(Theme.APPLY.fontMidiBig().deriveFont(textAttributes));
 	    int fwidth = g.getFontMetrics(g.getFont()).stringWidth(channelText);
