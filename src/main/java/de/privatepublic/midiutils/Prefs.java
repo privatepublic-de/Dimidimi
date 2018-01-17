@@ -19,6 +19,7 @@ public class Prefs {
 	public static final String MIDI_OUT_DEVICES = "midioutdev";
 	public static final String MIDI_IN_CHANNEL = "midiinch";
 	public static final String MIDI_OUT_CHANNEL = "midioutch";
+	public static final String MIDI_SEND_CLOCK = "midisendclock";
 	public static final String FILE_LOOP_LAST_USED_NAME = "lastfile";
 	public static final String FILE_SESSION_LAST_USED_NAME = "lastsession";
 	public static final String THEME = "theme";
@@ -40,12 +41,21 @@ public class Prefs {
 		flushPrefsSilently();
 	}
 	
+	public static void put(String key, boolean val) {
+		PREFS.putInt(key, val?1:0);
+		flushPrefsSilently();
+	}
+	
 	public static String get(String key, String def) {
 		return PREFS.get(key, def);
 	}
 	
 	public static int get(String key, int def) {
 		return PREFS.getInt(key, def);
+	}
+	
+	public static boolean get(String key, boolean def) {
+		return PREFS.getInt(key, def?1:0)==1;
 	}
 	
 	private static void flushPrefsSilently() {

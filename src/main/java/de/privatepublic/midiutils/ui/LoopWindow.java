@@ -90,6 +90,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 	private JLabel lblDimidimiLooper;
 	private JRadioButtonMenuItem menuItemThemeDark;
 	private JRadioButtonMenuItem menuItemThemeBright;
+	private JMenuItem menuItemSendClock;
 	private JCheckBoxMenuItem menuItemAnimate;
 	private JCheckBox toggleDrumsLayout;
 	private JPanel panelLoop;
@@ -714,12 +715,14 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		});
 		menu.add(menuItem);
 		menu.addSeparator();
-		JMenuItem menuItemSendClock = new JCheckBoxMenuItem("Send Start, Stop and Clock");
+		menuItemSendClock = new JCheckBoxMenuItem("Send Start, Stop and Clock");
 		menuItemSendClock.setSelected(true);
 		menuItemSendClock.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				MidiHandler.instance().setSendStartStopClock(menuItemSendClock.isSelected());
+				Prefs.put(Prefs.MIDI_SEND_CLOCK, menuItemSendClock.isSelected());
+				Loop.updateSettingsOnAllLoops();
 			}
 		});
 		menu.add(menuItemSendClock);
@@ -764,7 +767,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		menuItemAnimate.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				Prefs.put(Prefs.ANIMATE, menuItemAnimate.isSelected() ? 1 : 0);
+				Prefs.put(Prefs.ANIMATE, menuItemAnimate.isSelected());
 				Loop.updateSettingsOnAllLoops();
 			}
 		});
@@ -874,9 +877,10 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 					titleExtension = loop.getName();
 				}
 				frmDimidimi.setTitle(getWindowTitle());
-				boolean animationOn = Prefs.get(Prefs.ANIMATE, 0) == 1;
+				boolean animationOn = Prefs.get(Prefs.ANIMATE, false);
 				menuItemAnimate.setSelected(animationOn);
 				loopDisplayPanel.setAnimate(animationOn);
+				menuItemSendClock.setSelected(Prefs.get(Prefs.MIDI_SEND_CLOCK, false));
 			}
 		});
 	}
