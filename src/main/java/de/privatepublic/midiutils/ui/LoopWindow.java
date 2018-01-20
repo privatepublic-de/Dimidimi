@@ -8,9 +8,13 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
+import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,6 +25,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.RoundRectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -176,12 +181,12 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 						.addGap(4)));
 		SpringLayout sl_panel = new SpringLayout();
 		panelFooter.setLayout(sl_panel);
-		labelLength = new JLabel("8");
+		labelLength = new ColoredValueLabel("8");
 		labelLength.setOpaque(false);
-		labelLength.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		labelLength.setHorizontalTextPosition(SwingConstants.CENTER);
-		labelLength.setVerticalTextPosition(SwingConstants.CENTER);
-		labelLength.setIcon(new ImageIcon(Res.IMAGE_ROUND_S()));
+		// labelLength.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		// labelLength.setHorizontalTextPosition(SwingConstants.CENTER);
+		// labelLength.setVerticalTextPosition(SwingConstants.CENTER);
+		// labelLength.setIcon(new ImageIcon(Res.IMAGE_ROUND_S()));
 
 		// labelLength.setPreferredSize(new Dimension(20, 16));
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, labelLength, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
@@ -240,12 +245,9 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, toggleDrumsLayout, 0, SpringLayout.VERTICAL_CENTER,
 				panelFooter);
 
-		lblRandomize = new JLabel("0%");
-		lblRandomize.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		lblRandomize.setHorizontalTextPosition(SwingConstants.CENTER);
-		lblRandomize.setVerticalTextPosition(SwingConstants.CENTER);
+		lblRandomize = new ColoredValueLabel("0%");
 		lblRandomize.setToolTipText("Note Randomization");
-		lblRandomize.setIcon(new ImageIcon(Res.IMAGE_ROUND_S()));
+		lblRandomize.setOpaque(false);
 		RandomizePopUpMenu menu = new RandomizePopUpMenu();
 		lblRandomize.addMouseListener(new MouseAdapter() {
 			boolean firstShown = true;
@@ -902,6 +904,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				chckbxMute.setSelected(loop.isMuted());
 				chckbxSolo.setSelected(loop.isSolo());
 				panelMidi.setBackground(Theme.isBright() ? loop.getNoteColorPlayed() : loop.getNoteColor(false));
+				labelLength.setBackground(Theme.isBright() ? loop.getNoteColorPlayed() : loop.getNoteColor(false));
 				toggleDrumsLayout.setSelected(loop.isDrums());
 				toggleDrumsLayout.setText(VIEW_LABELS[loop.isDrums() ? 1 : 0]);
 				if (loop.getName() != null && titleExtension == null) {
@@ -1110,6 +1113,35 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		RANDOMIZATION_SLIDER_LABELS.put(50, new JLabel("50%"));
 		RANDOMIZATION_SLIDER_LABELS.put(75, new JLabel("75%"));
 		RANDOMIZATION_SLIDER_LABELS.put(100, new JLabel("100%"));
+	}
+
+	public static class ColoredValueLabel extends JLabel {
+
+		private Color background = Color.decode("#BFBFBF");
+		private RoundRectangle2D backgroundrect;
+
+		public ColoredValueLabel(String s) {
+			super(s, SwingConstants.CENTER);
+			setPreferredSize(new Dimension(42, 23));
+			setHorizontalTextPosition(SwingConstants.CENTER);
+			setVerticalTextPosition(SwingConstants.CENTER);
+			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			backgroundrect = new RoundRectangle2D.Float(1, 1, 40, 21, 20, 20);
+		}
+
+		public void paintComponent(Graphics go) {
+			Graphics2D g = (Graphics2D) go;
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g.setColor(background);
+			g.fill(backgroundrect);
+			super.paintComponent(g);
+		}
+
+		@Override
+		public void setBackground(Color arg0) {
+			background = arg0;
+		}
 	}
 
 }
