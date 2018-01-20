@@ -183,32 +183,22 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		panelFooter.setLayout(sl_panel);
 		labelLength = new ColoredValueLabel("8");
 		labelLength.setOpaque(false);
-		// labelLength.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		// labelLength.setHorizontalTextPosition(SwingConstants.CENTER);
-		// labelLength.setVerticalTextPosition(SwingConstants.CENTER);
-		// labelLength.setIcon(new ImageIcon(Res.IMAGE_ROUND_S()));
-
-		// labelLength.setPreferredSize(new Dimension(20, 16));
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, labelLength, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 
 		LengthPopUpMenu lengthmenu = new LengthPopUpMenu();
 		labelLength.addMouseListener(new MouseAdapter() {
-			boolean firstShown = true;
-
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				lengthmenu.setValue(loop.getLengthQuarters());
-				if (firstShown) {
-					lengthmenu.show(e.getComponent(), e.getX(), e.getComponent().getY() - lengthmenu.getHeight());
-					firstShown = false;
-				}
-				lengthmenu.show(e.getComponent(), e.getX(), e.getComponent().getY() - lengthmenu.getHeight());
+				lengthmenu.show(e.getComponent(), e.getX(),
+						e.getComponent().getY() - (int) lengthmenu.getPreferredSize().getHeight());
 			}
 		});
 
 		panelFooter.add(labelLength);
 
 		comboQuantize = new JComboBox(TransformationProvider.QUANTIZE_LABEL);
+		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, labelLength);
 		comboQuantize.setToolTipText("Note quantization");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER,
 				panelFooter);
@@ -233,7 +223,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		panelFooter.add(buttonNewLoop);
 
 		toggleDrumsLayout = new JCheckBox(VIEW_LABELS[0]);
-		sl_panel.putConstraint(SpringLayout.WEST, labelLength, 0, SpringLayout.EAST, toggleDrumsLayout);
 		toggleDrumsLayout.setPreferredSize(new Dimension(100, 23));
 		sl_panel.putConstraint(SpringLayout.WEST, toggleDrumsLayout, 6, SpringLayout.WEST, panelFooter);
 		panelFooter.add(toggleDrumsLayout);
@@ -250,34 +239,29 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		lblRandomize.setOpaque(false);
 		RandomizePopUpMenu menu = new RandomizePopUpMenu();
 		lblRandomize.addMouseListener(new MouseAdapter() {
-			boolean firstShown = true;
-
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				menu.setValue(loop.getRandomizationLevel());
-				if (firstShown) {
-					menu.show(e.getComponent(), e.getX(), e.getComponent().getY() - menu.getHeight());
-					firstShown = false;
-				}
-				menu.show(e.getComponent(), e.getX(), e.getComponent().getY() - menu.getHeight());
+				menu.show(e.getComponent(), e.getX(),
+						e.getComponent().getY() - (int) menu.getPreferredSize().getHeight());
 			}
 		});
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblRandomize, 0, SpringLayout.VERTICAL_CENTER,
 				panelFooter);
 		panelFooter.add(lblRandomize);
 
-		lblQuarters = new JLabel("Quarters");
-		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, lblQuarters);
+		lblQuarters = new JLabel("Length:");
+		sl_panel.putConstraint(SpringLayout.WEST, labelLength, 0, SpringLayout.EAST, lblQuarters);
+		sl_panel.putConstraint(SpringLayout.WEST, lblQuarters, 6, SpringLayout.EAST, toggleDrumsLayout);
 		lblQuarters.setOpaque(false);
 		lblQuarters.setFont(toggleDrumsLayout.getFont());
-		sl_panel.putConstraint(SpringLayout.WEST, lblQuarters, 6, SpringLayout.EAST, labelLength);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblQuarters, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
 		panelFooter.add(lblQuarters);
 
-		labelRandomize = new JLabel("Randomize");
+		labelRandomize = new JLabel("Randomize:");
+		sl_panel.putConstraint(SpringLayout.WEST, lblRandomize, 0, SpringLayout.EAST, labelRandomize);
 		sl_panel.putConstraint(SpringLayout.WEST, labelRandomize, 6, SpringLayout.EAST, comboBoxTranspose);
 		labelRandomize.setFont(toggleDrumsLayout.getFont());
-		sl_panel.putConstraint(SpringLayout.WEST, lblRandomize, 6, SpringLayout.EAST, labelRandomize);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, labelRandomize, 0, SpringLayout.VERTICAL_CENTER,
 				panelFooter);
 		panelFooter.add(labelRandomize);
@@ -1101,6 +1085,11 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 
 	private void updateRandomizationText() {
 		lblRandomize.setText(loop.getRandomizationLevel() + "%");
+		if (loop.getRandomizationLevel() > 0) {
+			lblRandomize.setBackground(Color.yellow);
+		} else {
+			lblRandomize.setBackground(ColoredValueLabel.DEFAULT_BACKGROUND_COLOR);
+		}
 	}
 
 	private static final Dictionary<Integer, JLabel> RANDOMIZATION_SLIDER_LABELS = new Hashtable<Integer, JLabel>();
@@ -1117,7 +1106,9 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 
 	public static class ColoredValueLabel extends JLabel {
 
-		private Color background = Color.decode("#BFBFBF");
+		private static final long serialVersionUID = 2591216000306376297L;
+		public static final Color DEFAULT_BACKGROUND_COLOR = Color.decode("#BFBFBF");
+		private Color background = DEFAULT_BACKGROUND_COLOR;
 		private RoundRectangle2D backgroundrect;
 
 		public ColoredValueLabel(String s) {
