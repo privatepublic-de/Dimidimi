@@ -766,6 +766,7 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 					loop.triggerRefreshLoopDisplay();;
 				}
 			});
+	        add(new JMenuItem("Velocity"));
 	        add(veloslider);
 	        addSeparator();
 	        add(delete);

@@ -197,7 +197,7 @@ public class Note {
 		public static final String[] QUANTIZE_LABEL = new String[]{"free","1/2","1/4","1/8","1/16","1/32","1/4t", "1/8t", "1/16t"};
 		public static final String[] TRANSPOSE_LABEL = new String[]{
 				" ↑ 2 oct", " ↑ 1 oct"," ↑ 11"," ↑ 10"," ↑ 9"," ↑ 8"," ↑ 7"," ↑ 6"," ↑ 5"," ↑ 4"," ↑ 3"," ↑ 2"," ↑ 1",
-				"↓trans↑",
+				"↓ trans ↑",
 				"↓ 1 ","↓ 2 ","↓ 3 ","↓ 4 ","↓ 5 ","↓ 6 ","↓ 7 ","↓ 8 ","↓ 9 ","↓ 10 ","↓ 11 ","↓ 1 oct ","↓ 2 oct "};
 		
 		public int getTransposeIndex();

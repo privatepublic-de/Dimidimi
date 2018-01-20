@@ -204,7 +204,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		panelFooter.add(labelLength);
 
 		comboQuantize = new JComboBox(TransformationProvider.QUANTIZE_LABEL);
-		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 0, SpringLayout.EAST, labelLength);
 		comboQuantize.setToolTipText("Note quantization");
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, comboQuantize, 0, SpringLayout.VERTICAL_CENTER,
 				panelFooter);
@@ -243,7 +242,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 
 		lblRandomize = new JLabel("0%");
 		lblRandomize.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		sl_panel.putConstraint(SpringLayout.WEST, lblRandomize, 6, SpringLayout.EAST, comboBoxTranspose);
 		lblRandomize.setHorizontalTextPosition(SwingConstants.CENTER);
 		lblRandomize.setVerticalTextPosition(SwingConstants.CENTER);
 		lblRandomize.setToolTipText("Note Randomization");
@@ -265,6 +263,22 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblRandomize, 0, SpringLayout.VERTICAL_CENTER,
 				panelFooter);
 		panelFooter.add(lblRandomize);
+
+		lblQuarters = new JLabel("Quarters");
+		sl_panel.putConstraint(SpringLayout.WEST, comboQuantize, 6, SpringLayout.EAST, lblQuarters);
+		lblQuarters.setOpaque(false);
+		lblQuarters.setFont(toggleDrumsLayout.getFont());
+		sl_panel.putConstraint(SpringLayout.WEST, lblQuarters, 6, SpringLayout.EAST, labelLength);
+		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblQuarters, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
+		panelFooter.add(lblQuarters);
+
+		labelRandomize = new JLabel("Randomize");
+		sl_panel.putConstraint(SpringLayout.WEST, labelRandomize, 6, SpringLayout.EAST, comboBoxTranspose);
+		labelRandomize.setFont(toggleDrumsLayout.getFont());
+		sl_panel.putConstraint(SpringLayout.WEST, lblRandomize, 6, SpringLayout.EAST, labelRandomize);
+		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, labelRandomize, 0, SpringLayout.VERTICAL_CENTER,
+				panelFooter);
+		panelFooter.add(labelRandomize);
 
 		toggleDrumsLayout.addActionListener(new ActionListener() {
 			@Override
@@ -876,6 +890,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				panelLoop.setBackground(Theme.APPLY.colorBackground());
 				panelLoop.setBorder(new LineBorder(Theme.APPLY.colorBackground(), 3));
 				toggleDrumsLayout.setForeground(Theme.APPLY.colorForeground());
+				lblQuarters.setForeground(Theme.APPLY.colorForeground());
+				labelRandomize.setForeground(Theme.APPLY.colorForeground());
 				updateRandomizationText();
 				comboQuantize.setSelectedIndex(loop.getQuantizationIndex());
 				comboBoxTranspose.setSelectedIndex(loop.getTransposeIndex());
@@ -996,7 +1012,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		Collections.sort(list);
 		for (Loop loop : list) {
 			Rectangle pos = new Rectangle(rect.x + 20 * rowiteration + col * wwidth,
-					rect.y + 20 * rowiteration + row * wheight, wwidth - 20, wheight - 20);
+					rect.y + 20 * rowiteration + row * wheight, wwidth - 10, wheight - 10);
 			loop.getWindow().setScreenPosition(pos);
 			col = (col + 1) % numcols;
 			if (col == 0) {
@@ -1012,7 +1028,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 
 	@Override
 	public void onReceivePressure(int val, int pos) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -1026,7 +1041,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 			randslider.setMaximum(100);
 			randslider.setMinimum(0);
 			randslider.setValue(0);
-			randslider.setToolTipText("Randomization Amount");
 			randslider.setLabelTable(RANDOMIZATION_SLIDER_LABELS);
 			randslider.setMajorTickSpacing(25);
 			randslider.setMinorTickSpacing(5);
@@ -1039,6 +1053,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 					updateRandomizationText();
 				}
 			});
+			add(new JMenuItem("Randomize"));
 			add(randslider);
 		}
 
@@ -1049,11 +1064,11 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 
 	private class LengthPopUpMenu extends JPopupMenu {
 
+		private static final long serialVersionUID = -2059922364308024588L;
 		JSlider lengthslider = new JSlider();
 
 		public LengthPopUpMenu() {
 			lengthslider.setOrientation(SwingConstants.VERTICAL);
-			lengthslider.setToolTipText("Randomization Amount");
 			lengthslider.setSnapToTicks(true);
 			lengthslider.setValue(8);
 			lengthslider.setMinimum(0);
@@ -1072,6 +1087,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 					loop.triggerRefreshLoopDisplay();
 				}
 			});
+			add(new JMenuItem("Length"));
 			add(lengthslider);
 		}
 
@@ -1085,6 +1101,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 	}
 
 	private static final Dictionary<Integer, JLabel> RANDOMIZATION_SLIDER_LABELS = new Hashtable<Integer, JLabel>();
+	private JLabel lblQuarters;
+	private JLabel labelRandomize;
 
 	static {
 		RANDOMIZATION_SLIDER_LABELS.put(0, new JLabel("0%"));
