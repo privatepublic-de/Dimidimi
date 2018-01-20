@@ -175,8 +175,19 @@ public class Note {
 	}
 	
 	@JsonIgnore
-	public boolean isOverlapping(Note n, TransformationProvider tp) {
+	public boolean isOverlappingTiming(Note n, TransformationProvider tp) {
 		if (n.getNoteNumber(tp)==getNoteNumber(tp)) {
+			int mystart = getPosStart(tp);
+			if (mystart>=n.getPosStart(tp) && mystart<n.getPosEnd(tp)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	@JsonIgnore
+	public boolean isPlayedPoly(Note n, TransformationProvider tp) {
+		if (n.getNoteNumber(tp)!=getNoteNumber(tp)) {
 			int mystart = getPosStart(tp);
 			if (mystart>=n.getPosStart(tp) && mystart<n.getPosEnd(tp)) {
 				return true;

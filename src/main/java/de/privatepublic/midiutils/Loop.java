@@ -54,6 +54,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	private boolean isDrums = false;
 	private boolean isMetronomeEnabled = false;
 	private int randomizationLevel = 0;
+	private boolean monoRandomization = false;
 	private QueuedState queuedMuteState = QueuedState.NO_CHANGE;
 	private QueuedState queuedSoloState = QueuedState.NO_CHANGE;
 	private int quantizationIndex = 0;
@@ -250,10 +251,12 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	}
 
 	public int getRandomizationLevel() {
-		return randomizationLevel;
+		return randomizationLevel + (monoRandomization?256:0);
 	}
 
 	public void setRandomizationLevel(int randomizationLevel) {
+		monoRandomization = randomizationLevel>=256;
+		randomizationLevel = randomizationLevel & 255;
 		if (randomizationLevel!=this.randomizationLevel) {
 			stopPlayed();
 			this.randomizationLevel = randomizationLevel;
@@ -712,27 +715,37 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		float randlevel = randomizationLevel/100f;
 		float probability = randlevel*randlevel;
 		for (Note clonenote: notesList) {
-			int offset = 0;
-			if (Math.random()<=probability) {
-				offset = (int)(((Math.random()-.5f)*randlevel*maxTicks));
-			}
-			Note note = new Note(clonenote, offset);
-			if (note.getPosStart()<0) {
-				note.setPosStart(note.getPosStart()+maxTicks);
-			}
-			if (note.getPosEnd()<0) {
-				note.setPosEnd(note.getPosEnd()+maxTicks);
-			}
-			boolean useIt = true;
-			for (Note othernote: result) {
-				if (note.isOverlapping(othernote, this)) {
-					useIt = false;
-					break;
+			boolean redo = false;
+			do {
+				redo = false;
+				boolean processNote = Math.random()<=probability;
+				int offset = 0;
+				if (processNote) {
+					offset = (int)(((Math.random()-.5f)*randlevel*maxTicks));
 				}
-			}
-			if (useIt) {
-				result.add(note);
-			}
+				Note note = new Note(clonenote, offset);
+				if (note.getPosStart()<0) {
+					note.setPosStart(note.getPosStart()+maxTicks);
+				}
+				if (note.getPosEnd()<0) {
+					note.setPosEnd(note.getPosEnd()+maxTicks);
+				}
+				boolean useIt = true;
+				for (Note othernote: result) {
+					if (monoRandomization && note.isPlayedPoly(othernote, this)) {
+						redo = true;
+						useIt = false;
+						break;
+					}
+					if (note.isOverlappingTiming(othernote, this)) {
+						useIt = false;
+						break;
+					}
+				}
+				if (useIt) {
+					result.add(note);
+				}
+			} while(redo);
 		}
 		
 		notesListPlayback = result;

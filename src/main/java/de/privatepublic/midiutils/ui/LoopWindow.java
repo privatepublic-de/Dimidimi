@@ -12,7 +12,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
-import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
@@ -1022,6 +1021,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		private static final long serialVersionUID = 9049098677413712819L;
 
 		JSlider randslider = new JSlider();
+		JCheckBoxMenuItem mono;
 
 		public RandomizePopUpMenu() {
 			randslider.setOrientation(SwingConstants.VERTICAL);
@@ -1033,19 +1033,25 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 			randslider.setMinorTickSpacing(5);
 			randslider.setPaintTicks(true);
 			randslider.setPaintLabels(true);
-			randslider.addChangeListener(new ChangeListener() {
-				@Override
-				public void stateChanged(ChangeEvent e) {
-					loop.setRandomizationLevel(randslider.getValue());
-					updateRandomizationText();
-				}
-			});
+			mono = new JCheckBoxMenuItem("Mono");
 			add(new JMenuItem("Randomize"));
 			add(randslider);
+			addSeparator();
+			add(mono);
+			ChangeListener listener = new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					loop.setRandomizationLevel(randslider.getValue() + (mono.isSelected() ? 256 : 0));
+					updateRandomizationText();
+				}
+			};
+			randslider.addChangeListener(listener);
+			mono.addChangeListener(listener);
 		}
 
 		public void setValue(int value) {
-			randslider.setValue(value);
+			randslider.setValue(value & 255);
+			mono.setSelected(value >= 256);
 		}
 	}
 
@@ -1084,8 +1090,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 	}
 
 	private void updateRandomizationText() {
-		lblRandomize.setText(loop.getRandomizationLevel() + "%");
-		if (loop.getRandomizationLevel() > 0) {
+		lblRandomize.setText((loop.getRandomizationLevel() & 255) + "%");
+		if ((loop.getRandomizationLevel() & 255) > 0) {
 			lblRandomize.setBackground(Color.yellow);
 		} else {
 			lblRandomize.setBackground(ColoredValueLabel.DEFAULT_BACKGROUND_COLOR);
