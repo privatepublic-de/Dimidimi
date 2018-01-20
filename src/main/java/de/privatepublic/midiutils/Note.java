@@ -33,7 +33,6 @@ public class Note {
 	private int originPosStart;
 	private int originPosEnd;
 	private int originNoteNumber;
-	private int qantizationOffset = 0;
 	
 	public Note() {
 		
@@ -55,7 +54,8 @@ public class Note {
 	
 	@JsonIgnore
 	public int getPosEnd(TransformationProvider tp) {
-		return (posEnd + qantizationOffset)%tp.getMaxTicks();
+		int quantizationOffset = getQuantizationOffset(tp);
+		return (posEnd + quantizationOffset)%tp.getMaxTicks();
 	}
 	public void setPosEnd(int posEnd) {
 		this.posEnd = posEnd;
@@ -76,20 +76,24 @@ public class Note {
 	
 	@JsonIgnore
 	public int getPosStart(TransformationProvider tp) {
+		int quantizationOffset = getQuantizationOffset(tp);
+		return (posStart + quantizationOffset)%tp.getMaxTicks();
+	}
+	
+	private int getQuantizationOffset(TransformationProvider tp) {
 		if (tp.getQuantizationIndex()>0) {
 			int stepsize = TransformationProvider.Q_STEPS[tp.getQuantizationIndex()];
 			int offset = posStart % stepsize;
 			if (offset<stepsize/2) {
-				qantizationOffset = -offset;
+				return -offset;
 			}
 			else {
-				qantizationOffset = (stepsize-offset);
+				return (stepsize-offset);
 			}
 		}
 		else {
-			qantizationOffset = 0;
+			return 0;
 		}
-		return (posStart + qantizationOffset)%tp.getMaxTicks();
 	}
 	
 	@JsonIgnore

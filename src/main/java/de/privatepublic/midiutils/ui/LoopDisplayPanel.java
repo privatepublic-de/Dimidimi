@@ -483,7 +483,9 @@ public class LoopDisplayPanel extends JPanel implements NotesUpdatedReceiver {
 		
 		boolean isSingleSelection = selectedNotes.size()==1;
 		
-		for (Note note:loop.getNotesList()) {
+		List<Note> useList = MidiHandler.ACTIVE?loop.getNotesListPlayback():loop.getNotesList(); 
+		
+		for (Note note: useList) {
 			boolean isSelected = selectedNotes.contains(note);
 			
 			Color noteColor = loop.getNoteColor(isSelected);

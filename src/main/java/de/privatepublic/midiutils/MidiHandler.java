@@ -393,7 +393,7 @@ public class MidiHandler {
 	public void sendAllNotesOffMidi(Loop loop, int channel, boolean panic) {
 		ShortMessage message = new ShortMessage();		
 		try {
-			for (Note note: loop.getNotesList()) {
+			for (Note note: loop.getNotesListPlayback()) {
 				if (note.isPlayed()) {
 					message.setMessage(ShortMessage.NOTE_OFF, channel, note.getPlayedNoteNumber(), 0);
 					note.setUnPlayed();

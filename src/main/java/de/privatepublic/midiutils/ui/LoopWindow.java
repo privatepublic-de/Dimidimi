@@ -16,6 +16,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -40,6 +42,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSlider;
 import javax.swing.KeyStroke;
@@ -97,6 +100,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 	private Loop loop;
 	private String titleExtension = null;
 	private JCheckBox toggleMetronome;
+	private JLabel lblRandomize;
 
 	public LoopWindow(Loop loop) {
 		this.loop = loop;
@@ -182,7 +186,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		slider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
 				int quarters = Math.max(slider.getValue(), 1);
-				slider.setToolTipText("Loop length: " + quarters + " quarter note" + (quarters > 1 ? "s" : ""));
+				slider.setToolTipText(quarters + " quarter note" + (quarters > 1 ? "s" : ""));
 				labelLength.setText("" + quarters);
 				loop.setLengthQuarters(quarters);
 				loop.triggerRefreshLoopDisplay();
@@ -217,15 +221,9 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		comboBoxTranspose.setMaximumRowCount(27);
 		comboBoxTranspose.setSelectedIndex(13);
 
-		JButton btnClear = new JButton("Clear");
-		btnClear.setToolTipText("Clear loop");
-		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, btnClear, 0, SpringLayout.VERTICAL_CENTER, panelFooter);
-		panelFooter.add(btnClear);
-
 		JButton buttonNewLoop = new JButton("+");
 		sl_panel.putConstraint(SpringLayout.EAST, buttonNewLoop, -6, SpringLayout.EAST, panelFooter);
 		buttonNewLoop.setToolTipText("Create new loop window");
-		sl_panel.putConstraint(SpringLayout.EAST, btnClear, -6, SpringLayout.WEST, buttonNewLoop);
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, buttonNewLoop, 0, SpringLayout.VERTICAL_CENTER,
 				panelFooter);
 		buttonNewLoop.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -244,6 +242,24 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, toggleDrumsLayout, 0, SpringLayout.VERTICAL_CENTER,
 				panelFooter);
 
+		lblRandomize = new JLabel("0% Random");
+		lblRandomize.setOpaque(false);
+		sl_panel.putConstraint(SpringLayout.WEST, lblRandomize, 6, SpringLayout.EAST, comboBoxTranspose);
+		lblRandomize.setHorizontalTextPosition(SwingConstants.LEADING);
+		lblRandomize.setToolTipText("Note Randomization");
+		lblRandomize.setIcon(new ImageIcon(Res.IMAGE_DROPDOWN()));
+		RandomizePopUpMenu menu = new RandomizePopUpMenu();
+		lblRandomize.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				menu.setValue(loop.getRandomizationLevel());
+				menu.show(e.getComponent(), e.getX(), e.getY());
+			}
+		});
+		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, lblRandomize, 0, SpringLayout.VERTICAL_CENTER,
+				panelFooter);
+		panelFooter.add(lblRandomize);
+
 		toggleDrumsLayout.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -259,12 +275,6 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 			}
 		});
 
-		btnClear.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				loop.clearPattern();
-			}
-		});
 		((JLabel) comboBoxTranspose.getRenderer()).setHorizontalAlignment(JLabel.CENTER);
 
 		comboBoxTranspose.addActionListener(new ActionListener() {
@@ -861,6 +871,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 				panelLoop.setBorder(new LineBorder(Theme.APPLY.colorBackground(), 3));
 				labelLength.setForeground(Theme.APPLY.colorForeground());
 				toggleDrumsLayout.setForeground(Theme.APPLY.colorForeground());
+				lblRandomize.setForeground(Theme.APPLY.colorForeground());
+				updateRandomizationText();
 				comboQuantize.setSelectedIndex(loop.getQuantizationIndex());
 				comboBoxTranspose.setSelectedIndex(loop.getTransposeIndex());
 				slider.setValue(loop.getLengthQuarters());
@@ -999,4 +1011,50 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		// TODO Auto-generated method stub
 
 	}
+
+	private class RandomizePopUpMenu extends JPopupMenu {
+		private static final long serialVersionUID = 9049098677413712819L;
+
+		JSlider randslider = new JSlider();
+
+		public RandomizePopUpMenu() {
+			randslider.setOrientation(SwingConstants.VERTICAL);
+			randslider.setMaximum(100);
+			randslider.setMinimum(0);
+			randslider.setValue(0);
+			randslider.setToolTipText("Randomization Amount");
+			randslider.setLabelTable(RANDOMIZATION_SLIDER_LABELS);
+			randslider.setMajorTickSpacing(25);
+			randslider.setMinorTickSpacing(5);
+			randslider.setPaintTicks(true);
+			randslider.setPaintLabels(true);
+			randslider.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					loop.setRandomizationLevel(randslider.getValue());
+					updateRandomizationText();
+				}
+			});
+			add(randslider);
+		}
+
+		public void setValue(int value) {
+			randslider.setValue(value);
+		}
+	}
+
+	private void updateRandomizationText() {
+		lblRandomize.setText(loop.getRandomizationLevel() + "% Random");
+	}
+
+	private static final Dictionary<Integer, JLabel> RANDOMIZATION_SLIDER_LABELS = new Hashtable<Integer, JLabel>();
+
+	static {
+		RANDOMIZATION_SLIDER_LABELS.put(0, new JLabel("0%"));
+		RANDOMIZATION_SLIDER_LABELS.put(25, new JLabel("25%"));
+		RANDOMIZATION_SLIDER_LABELS.put(50, new JLabel("50%"));
+		RANDOMIZATION_SLIDER_LABELS.put(75, new JLabel("75%"));
+		RANDOMIZATION_SLIDER_LABELS.put(100, new JLabel("100%"));
+	}
+
 }

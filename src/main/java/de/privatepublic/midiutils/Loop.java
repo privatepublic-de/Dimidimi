@@ -53,6 +53,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	private boolean isSolo = false;
 	private boolean isDrums = false;
 	private boolean isMetronomeEnabled = false;
+	private int randomizationLevel = 0;
 	private QueuedState queuedMuteState = QueuedState.NO_CHANGE;
 	private QueuedState queuedSoloState = QueuedState.NO_CHANGE;
 	private int quantizationIndex = 0;
@@ -62,6 +63,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	private int currentPressure = 0;
 	private int currentPitchBend = 0;
 	private List<Note> notesList = new CopyOnWriteArrayList<Note>();
+	private List<Note> notesListPlayback = new ArrayList<Note>();
 	private boolean overrideModWheel = false;
 	private boolean overridePressure = false;
 	private boolean overridePitchBend = false;
@@ -202,6 +204,9 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		return notesList;
 	}
 
+	public List<Note> getNotesListPlayback() {
+		return randomizationLevel>0?notesListPlayback:notesList;
+	}
 
 	public void setNotesList(List<Note> notesList) {
 		this.notesList = notesList;
@@ -242,6 +247,17 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 
 	public void setMetronomeEnabled(boolean isMetronomeEnabled) {
 		this.isMetronomeEnabled = isMetronomeEnabled;
+	}
+
+	public int getRandomizationLevel() {
+		return randomizationLevel;
+	}
+
+	public void setRandomizationLevel(int randomizationLevel) {
+		if (randomizationLevel!=this.randomizationLevel) {
+			stopPlayed();
+			this.randomizationLevel = randomizationLevel;
+		}
 	}
 
 	public boolean isMuted() {
@@ -614,6 +630,9 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		
 		if (pos==0) {
 			overrideModWheel = overridePitchBend = overridePressure = false;
+			if (randomizationLevel>0) {
+				randomize();
+			}
 		}
 		if (overridePitchBend) {
 			pitchBendList[pos] = currentPitchBend;	
@@ -638,11 +657,11 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		
 		boolean isAudible = isAudible();
 		
-		for (Note note:getNotesList()) {
+		for (Note note:getNotesListPlayback()) {
 			if (!note.isCompleted()) {
 				Note overlap = findOverlappingNote(note, pos);
 				if (overlap!=null) {
-					getNotesList().remove(overlap);
+					getNotesListPlayback().remove(overlap);
 				}
 				triggerNotesUpdated();
 				continue;
@@ -684,6 +703,33 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 			queuedSoloState = QueuedState.NO_CHANGE;
 		}
 		
+	}
+	
+	private void randomize() {
+		stopPlayed();
+		ArrayList<Note> result = new ArrayList<Note>();
+		float randlevel = randomizationLevel/100f;
+		for (Note note: notesList) {
+			int offset = (int)(((Math.random()-.5f)*randlevel*maxTicks));
+			Note nnote = new Note(note, offset);
+			if (nnote.getPosStart()<0) {
+				nnote.setPosStart(nnote.getPosStart()+maxTicks);
+			}
+			if (nnote.getPosEnd()<0) {
+				nnote.setPosEnd(nnote.getPosEnd()+maxTicks);
+			}
+			result.add(nnote);
+		}
+		notesListPlayback = result;
+	}
+	
+	private void stopPlayed() {
+		for (Note note: getNotesListPlayback()) {
+			if (note.isPlayed()) {
+				MidiHandler.instance().sendNoteOffMidi(this, note.getPlayedNoteNumber());
+				note.setUnPlayed();
+			}
+		}
 	}
 
 
