@@ -174,6 +174,17 @@ public class Note {
 		return originNoteNumber;
 	}
 	
+	@JsonIgnore
+	public boolean isOverlapping(Note n, TransformationProvider tp) {
+		if (n.getNoteNumber(tp)==getNoteNumber(tp)) {
+			int mystart = getPosStart(tp);
+			if (mystart>=n.getPosStart(tp) && mystart<n.getPosEnd(tp)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private static final String[] NOTE_NAMES = new String[] {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
 	private static final String[] DRUM_NAMES = new String[] {"BD0", "BD1", "Rim", "SD", "Cl1", "Cl2", "Cow", "HH", "Clv", "HH2", "TM1", "OH", "TM2", "TM3", "Cym", "TM4"};
 

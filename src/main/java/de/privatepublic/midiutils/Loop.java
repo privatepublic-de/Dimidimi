@@ -257,6 +257,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		if (randomizationLevel!=this.randomizationLevel) {
 			stopPlayed();
 			this.randomizationLevel = randomizationLevel;
+			randomize();
 		}
 	}
 
@@ -709,17 +710,31 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		stopPlayed();
 		ArrayList<Note> result = new ArrayList<Note>();
 		float randlevel = randomizationLevel/100f;
-		for (Note note: notesList) {
-			int offset = (int)(((Math.random()-.5f)*randlevel*maxTicks));
-			Note nnote = new Note(note, offset);
-			if (nnote.getPosStart()<0) {
-				nnote.setPosStart(nnote.getPosStart()+maxTicks);
+		float probability = randlevel*randlevel;
+		for (Note clonenote: notesList) {
+			int offset = 0;
+			if (Math.random()<=probability) {
+				offset = (int)(((Math.random()-.5f)*randlevel*maxTicks));
 			}
-			if (nnote.getPosEnd()<0) {
-				nnote.setPosEnd(nnote.getPosEnd()+maxTicks);
+			Note note = new Note(clonenote, offset);
+			if (note.getPosStart()<0) {
+				note.setPosStart(note.getPosStart()+maxTicks);
 			}
-			result.add(nnote);
+			if (note.getPosEnd()<0) {
+				note.setPosEnd(note.getPosEnd()+maxTicks);
+			}
+			boolean useIt = true;
+			for (Note othernote: result) {
+				if (note.isOverlapping(othernote, this)) {
+					useIt = false;
+					break;
+				}
+			}
+			if (useIt) {
+				result.add(note);
+			}
 		}
+		
 		notesListPlayback = result;
 	}
 	

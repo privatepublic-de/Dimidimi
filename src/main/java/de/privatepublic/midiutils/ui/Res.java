@@ -18,6 +18,7 @@ public class Res {
 	private final static String IMAGE_TOGGLE_ON_EXTRA = "toggle-on-red.png";
 	
 	private final static String IMAGE_DROPDOWN = "dropdown.png";
+	private final static String IMAGE_ROUND_S = "round-s.png";
 	
 	private final static String IMAGE_ICON_32x32 = "icon-32.png";
 	private final static String IMAGE_ICON_LARGE = "icon.png";
@@ -80,7 +81,11 @@ public class Res {
 	public static URL IMAGE_DROPDOWN() {
 		return getResource(IMAGE_DROPDOWN);
 	}
-
+	
+	public static URL IMAGE_ROUND_S() {
+		return getResource(IMAGE_ROUND_S);
+	}
+	
 	public static InputStream PROPS_THEME_BRIGHT() {
 		return getResourceStream(PROPS_THEME_BRIGHT);
 	}
