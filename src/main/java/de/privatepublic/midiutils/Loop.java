@@ -74,6 +74,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	private String name;
 	
 	private Color colorNote;
+	private Color colorNoteComp;
 	private Color colorNoteBright;
 	private Color colorNoteSelected;
 	private Color colorNotePlayed;
@@ -346,6 +347,10 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		else {
 			return colorDimmedBackground;
 		}
+	}
+
+	public Color getColorNoteComp() {
+		return colorNoteComp;
 	}
 
 	public void clearPattern() {
@@ -841,6 +846,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 	private void updateColors() {
 		float hue = midiChannelOut/18f;
 		colorNote = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation(), Theme.APPLY.noteColorBrightness());
+		colorNoteComp = Color.getHSBColor(hue+.5f, Theme.APPLY.noteColorSaturation(), Theme.APPLY.noteColorBrightness());
 		colorNotePlayed = Color.getHSBColor(hue, .25f, 1);
 	    colorNoteBright = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation(), Theme.APPLY.noteColorBrightness()*Theme.APPLY.noteLightColorBrightnessFactor());
 	    colorNoteSelected = Color.getHSBColor(hue, Theme.APPLY.noteColorSaturation()*.5f, Theme.APPLY.noteColorBrightness());

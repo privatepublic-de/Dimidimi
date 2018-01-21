@@ -1092,7 +1092,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 	private void updateRandomizationText() {
 		lblRandomize.setText((loop.getRandomizationLevel() & 255) + "%");
 		if ((loop.getRandomizationLevel() & 255) > 0) {
-			lblRandomize.setBackground(Color.yellow);
+			lblRandomize.setBackground(loop.getColorNoteComp());
 		} else {
 			lblRandomize.setBackground(ColoredValueLabel.DEFAULT_BACKGROUND_COLOR);
 		}
@@ -1137,7 +1137,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 
 		@Override
 		public void setBackground(Color arg0) {
-			background = arg0;
+				background = arg0;
+				repaint();
 		}
 	}
 
