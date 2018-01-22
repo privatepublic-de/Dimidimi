@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.geom.RoundRectangle2D;
 import java.io.InputStream;
 import java.net.URL;
@@ -112,6 +113,9 @@ public class Res {
 		
 		public static enum Type { ON, OFF, FUTURE_ON, FUTURE_OFF, CHECKED };
 		
+		private static final Stroke LINE_STROKE = new BasicStroke(2);
+		private static final Color COLOR_CHECK = Color.decode("#0096ff");
+		
 		private Type type;
 		
 		public CheckIcon(Type type) {
@@ -138,7 +142,7 @@ public class Res {
 				g.setColor(Color.WHITE);
 				g.fillOval(x, y, 18, 18);
 				g.setColor(Color.DARK_GRAY);
-				g.setStroke(new BasicStroke(2));
+				g.setStroke(LINE_STROKE);
 				g.drawLine(x+5, y+5, x+18-5, y+18-5);
 				g.drawLine(x+5, y+18-5, x+18-5, y+5);
 				break;
@@ -149,7 +153,7 @@ public class Res {
 			default:
 				g.setColor(Color.WHITE);
 				g.fillOval(x, y, 18, 18);
-				g.setColor(Color.decode("#0096ff"));
+				g.setColor(COLOR_CHECK);
 				g.fillOval(x+3, y+3, 12, 12);
 			}
 		}
