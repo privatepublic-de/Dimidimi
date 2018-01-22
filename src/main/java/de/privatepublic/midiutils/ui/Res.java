@@ -145,8 +145,8 @@ public class Res {
 				g.fillOval(x, y, 18, 18);
 				g.setColor(Color.DARK_GRAY);
 				g.setStroke(LINE_STROKE);
-				g.drawLine(x+5, y+5, x+18-5, y+18-5);
-				g.drawLine(x+5, y+18-5, x+18-5, y+5);
+				g.drawLine(x+4, y+4, x+18-5, y+18-5);
+				g.drawLine(x+4, y+18-5, x+18-5, y+4);
 				break;
 			case OFF:
 				g.setColor(Color.WHITE);
