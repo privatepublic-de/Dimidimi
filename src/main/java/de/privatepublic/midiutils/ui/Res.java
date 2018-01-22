@@ -129,8 +129,10 @@ public class Res {
 			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 			switch(type) {
 			case ON:
-				g.setColor(Color.BLACK);
+				g.setColor(Color.WHITE);
 				g.fillOval(x, y, 18, 18);
+				g.setColor(Color.BLACK);
+				g.fillOval(x+1, y+1, 18-2, 18-2);
 				break;
 			case FUTURE_ON:
 				g.setColor(Color.WHITE);
@@ -154,7 +156,7 @@ public class Res {
 				g.setColor(Color.WHITE);
 				g.fillOval(x, y, 18, 18);
 				g.setColor(COLOR_CHECK);
-				g.fillOval(x+3, y+3, 12, 12);
+				g.fillOval(x+1, y+1, 18-2, 18-2);
 			}
 		}
 
