@@ -228,8 +228,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		toggleDrumsLayout.setOpaque(false);
 		toggleDrumsLayout.setBorderPainted(false);
 		toggleDrumsLayout.setToolTipText("Toggle notes/drums view");
-		toggleDrumsLayout.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
-		toggleDrumsLayout.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
+		toggleDrumsLayout.setIcon(Res.TOGGLE_ICON);
+//		toggleDrumsLayout.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, toggleDrumsLayout, 0, SpringLayout.VERTICAL_CENTER,
 				panelFooter);
 
@@ -318,8 +318,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		panelMidi.setLayout(sl_panelMidi);
 
 		toggleMetronome = new JCheckBox("Metronome");
-		toggleMetronome.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
-		toggleMetronome.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
+		toggleMetronome.setIcon(Res.TOGGLE_ICON);
+//		toggleMetronome.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
 		toggleMetronome.setHorizontalTextPosition(SwingConstants.LEADING);
 		toggleMetronome.setOpaque(false);
 		toggleMetronome.setToolTipText("Turn on metronome");
@@ -340,8 +340,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		toggleRecord.setBorderPainted(false);
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, toggleRecord, -4, SpringLayout.NORTH, toggleMetronome);
 		toggleRecord.setText("Record");
-		toggleRecord.setIcon(new ImageIcon(Res.IMAGE_TOGGLE_OFF()));
-		toggleRecord.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON_EXTRA()));
+		toggleRecord.setIcon(Res.TOGGLE_ICON_EXTRA);
+//		toggleRecord.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON_EXTRA()));
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleRecord, 0, SpringLayout.VERTICAL_CENTER,
 				panelMidi);
 		toggleRecord.setSelected(true);
@@ -366,8 +366,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 
 		chckbxMute = new JCheckBox("Mute");
 		chckbxMute.setToolTipText("Mute this loop");
-		chckbxMute.setIcon(new ImageIcon(Res.IMAGE_CHECK_OFF()));
-		chckbxMute.setSelectedIcon(new ImageIcon(Res.IMAGE_CHECK_ON()));
+		chckbxMute.setIcon(new Res.CheckIcon(Res.CheckIcon.Type.OFF));
+		chckbxMute.setSelectedIcon(new Res.CheckIcon(Res.CheckIcon.Type.ON));
 		chckbxMute.setOpaque(false);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, chckbxMute, 0, SpringLayout.VERTICAL_CENTER,
 				panelMidi);
@@ -382,8 +382,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 
 		chckbxSolo = new JCheckBox("Solo");
 		chckbxSolo.setToolTipText("Play this loop solo");
-		chckbxSolo.setIcon(new ImageIcon(Res.IMAGE_CHECK_OFF()));
-		chckbxSolo.setSelectedIcon(new ImageIcon(Res.IMAGE_CHECK_ON()));
+		chckbxSolo.setIcon(new Res.CheckIcon(Res.CheckIcon.Type.OFF));
+		chckbxSolo.setSelectedIcon(new Res.CheckIcon(Res.CheckIcon.Type.ON));
 		chckbxSolo.setOpaque(false);
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, chckbxSolo, 0, SpringLayout.VERTICAL_CENTER,
 				panelMidi);

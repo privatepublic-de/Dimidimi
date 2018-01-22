@@ -1,7 +1,17 @@
 package de.privatepublic.midiutils.ui;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.RoundRectangle2D;
 import java.io.InputStream;
 import java.net.URL;
+
+import javax.swing.Icon;
+import javax.swing.JToggleButton;
 
 public class Res {
 
@@ -92,6 +102,109 @@ public class Res {
 
 	public static InputStream PROPS_THEME_DARK() {
 		return getResourceStream(PROPS_THEME_DARK);
-	} 
+	}
+	
+	public static final Icon TOGGLE_ICON = new ToggleIcon();
+	public static final Icon TOGGLE_ICON_EXTRA = new ToggleIcon(Color.RED);
+	
+	
+	public static class CheckIcon implements Icon {
+		
+		public static enum Type { ON, OFF, FUTURE_ON, FUTURE_OFF, CHECKED };
+		
+		private Type type;
+		
+		public CheckIcon(Type type) {
+			this.type = type;
+		}
+
+		@Override
+		public void paintIcon(Component c, Graphics gr, int x, int y) {
+			Graphics2D g = (Graphics2D) gr;
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			switch(type) {
+			case ON:
+				g.setColor(Color.BLACK);
+				g.fillOval(x, y, 18, 18);
+				break;
+			case FUTURE_ON:
+				g.setColor(Color.WHITE);
+				g.fillOval(x, y, 18, 18);
+				g.setColor(Color.BLACK);
+				g.fillOval(x+3, y+3, 12, 12);
+				break;
+			case FUTURE_OFF:
+				g.setColor(Color.WHITE);
+				g.fillOval(x, y, 18, 18);
+				g.setColor(Color.DARK_GRAY);
+				g.setStroke(new BasicStroke(2));
+				g.drawLine(x+5, y+5, x+18-5, y+18-5);
+				g.drawLine(x+5, y+18-5, x+18-5, y+5);
+				break;
+			case OFF:
+				g.setColor(Color.WHITE);
+				g.fillOval(x, y, 18, 18);
+				break;
+			default:
+				g.setColor(Color.WHITE);
+				g.fillOval(x, y, 18, 18);
+				g.setColor(Color.decode("#0096ff"));
+				g.fillOval(x+3, y+3, 12, 12);
+			}
+		}
+
+		@Override
+		public int getIconWidth() {
+			return 18;
+		}
+
+		@Override
+		public int getIconHeight() {
+			return 18;
+		}
+		
+	}
+	
+	
+	
+	
+	
+	private static class ToggleIcon implements Icon {
+		
+		final Color bgCol = Color.decode("#cbcbcb");
+		Color bgSelectedCol = Color.decode("#5e5e5e");
+		
+		public ToggleIcon() {
+			
+		}
+		
+		public ToggleIcon(Color selectedBackground) {
+			bgSelectedCol = selectedBackground;
+		}
+		
+		@Override
+		public void paintIcon(Component c, Graphics gr, int x, int y) {
+			boolean selected = ((JToggleButton)c).isSelected();
+			Graphics2D g = (Graphics2D) gr;
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g.setColor(selected?bgSelectedCol:bgCol);
+			g.fill(new RoundRectangle2D.Float(x+1, y+1, 40, 21, 20, 20));
+			g.setColor(Color.WHITE);
+			g.fillOval(x+(selected?21:4), y+3, 17, 17);
+		}
+
+		@Override
+		public int getIconWidth() {
+			return 42;
+		}
+
+		@Override
+		public int getIconHeight() {
+			return 23;
+		}
+		
+	}
 	
 }

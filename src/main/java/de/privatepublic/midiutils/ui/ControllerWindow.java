@@ -24,6 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -588,8 +589,9 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 
 		private static final long serialVersionUID = 7707283219651661189L;
 
-		ImageIcon blinkIcon1;
-		ImageIcon blinkIcon2;
+		
+		Icon blinkIcon1;
+		Icon blinkIcon2;
 		boolean blinkUseSelectedIcon;
 		boolean blinkOn;
 
@@ -601,7 +603,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 
 		public void blink(boolean blinkState) {
 			if (blinkOn) {
-				ImageIcon useIcon = blinkState ? blinkIcon2 : blinkIcon1;
+				Icon useIcon = blinkState ? blinkIcon2 : blinkIcon1;
 				if (blinkUseSelectedIcon) {
 					setSelectedIcon(useIcon);
 				} else {
@@ -610,7 +612,7 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 			}
 		}
 
-		public void startBlinking(ImageIcon icon1, ImageIcon icon2, boolean useSelectedIcon) {
+		public void startBlinking(Icon icon1, Icon icon2, boolean useSelectedIcon) {
 			blinkIcon1 = icon1;
 			blinkIcon2 = icon2;
 			blinkUseSelectedIcon = useSelectedIcon;
@@ -628,11 +630,11 @@ public class ControllerWindow extends JFrame implements SettingsUpdateReceiver, 
 
 	}
 
-	private static final ImageIcon IC_EMPTY = new ImageIcon(Res.IMAGE_CHECK_OFF());
-	private static final ImageIcon IC_ON = new ImageIcon(Res.IMAGE_CHECK_ON());
-	private static final ImageIcon IC_NEXT_CYCLE_ON = new ImageIcon(Res.IMAGE_CHECK_ON_FUTURE());
-	private static final ImageIcon IC_NEXT_CYCLE_OFF = new ImageIcon(Res.IMAGE_CHECK_OFF_FUTURE());
-	private static final ImageIcon IC_CHECKED = new ImageIcon(Res.IMAGE_CHECK_ON_CHECKMARK());
+	private static final Icon IC_EMPTY = new Res.CheckIcon(Res.CheckIcon.Type.OFF);//new ImageIcon(Res.IMAGE_CHECK_OFF());
+	private static final Icon IC_ON = new Res.CheckIcon(Res.CheckIcon.Type.ON);
+	private static final Icon IC_NEXT_CYCLE_ON = new Res.CheckIcon(Res.CheckIcon.Type.FUTURE_ON);
+	private static final Icon IC_NEXT_CYCLE_OFF = new Res.CheckIcon(Res.CheckIcon.Type.FUTURE_OFF);
+	private static final Icon IC_CHECKED = new Res.CheckIcon(Res.CheckIcon.Type.CHECKED);
 
 	private static enum Toggle {
 		MUTE, SOLO
