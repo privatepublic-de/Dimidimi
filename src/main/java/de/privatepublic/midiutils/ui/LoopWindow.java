@@ -229,7 +229,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		toggleDrumsLayout.setBorderPainted(false);
 		toggleDrumsLayout.setToolTipText("Toggle notes/drums view");
 		toggleDrumsLayout.setIcon(Res.TOGGLE_ICON);
-//		toggleDrumsLayout.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
+		// toggleDrumsLayout.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
 		sl_panel.putConstraint(SpringLayout.VERTICAL_CENTER, toggleDrumsLayout, 0, SpringLayout.VERTICAL_CENTER,
 				panelFooter);
 
@@ -319,7 +319,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 
 		toggleMetronome = new JCheckBox("Metronome");
 		toggleMetronome.setIcon(Res.TOGGLE_ICON);
-//		toggleMetronome.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
+		// toggleMetronome.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON()));
 		toggleMetronome.setHorizontalTextPosition(SwingConstants.LEADING);
 		toggleMetronome.setOpaque(false);
 		toggleMetronome.setToolTipText("Turn on metronome");
@@ -341,7 +341,7 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		sl_panelMidi.putConstraint(SpringLayout.NORTH, toggleRecord, -4, SpringLayout.NORTH, toggleMetronome);
 		toggleRecord.setText("Record");
 		toggleRecord.setIcon(Res.TOGGLE_ICON_EXTRA);
-//		toggleRecord.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON_EXTRA()));
+		// toggleRecord.setSelectedIcon(new ImageIcon(Res.IMAGE_TOGGLE_ON_EXTRA()));
 		sl_panelMidi.putConstraint(SpringLayout.VERTICAL_CENTER, toggleRecord, 0, SpringLayout.VERTICAL_CENTER,
 				panelMidi);
 		toggleRecord.setSelected(true);
@@ -961,48 +961,23 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 		int height = rect.height;
 
 		LOG.info("Arranging windows in {}x{}", width, height);
-		int minwidth = WINDOW_MAX_WIDTH - 40;
-		int minheight = WINDOW_MAX_HEIGHT;
-		int maxcols = width / minwidth;
-		int maxrows = height / minheight;
-		int numcols = maxcols;
-		int numrows = maxrows;
-		int number = Loop.getLoops().size();
-		switch (number) {
-		case 1:
-			// maximize single window
-			numcols = 1;
-			numrows = 1;
-			break;
-		case 2:
-			numcols = 1;
-			numrows = Math.min(2, maxcols);
-			break;
-		case 3:
-		case 4:
-			numcols = Math.min(2, maxcols);
-			numrows = Math.min(2, maxrows);
-			break;
-		case 5:
-		case 6:
-			numcols = Math.min(2, maxcols);
-			numrows = Math.min(3, maxrows);
-			break;
-		}
-		int wwidth = width / numcols;
-		int wheight = height / numrows;
+		int winwidth = WINDOW_MAX_WIDTH;
+		int winheight = WINDOW_MAX_HEIGHT;
+		int maxcols = width / (winwidth + 20);
+		int maxrows = height / (winheight + 10);
+
 		int row = 0;
 		int col = 0;
 		int rowiteration = 0;
 		List<Loop> list = new ArrayList<Loop>(Loop.getLoops());
 		Collections.sort(list);
 		for (Loop loop : list) {
-			Rectangle pos = new Rectangle(rect.x + 20 * rowiteration + col * wwidth,
-					rect.y + 20 * rowiteration + row * wheight, wwidth - 10, wheight - 10);
+			Rectangle pos = new Rectangle(rect.x + 20 * rowiteration + col * (winwidth + 20),
+					rect.y + 30 * rowiteration + row * (winheight + 10), winwidth, winheight);
 			loop.getWindow().setScreenPosition(pos);
-			col = (col + 1) % numcols;
+			col = (col + 1) % maxcols;
 			if (col == 0) {
-				row = (row + 1) % numrows;
+				row = (row + 1) % maxrows;
 				if (row == 0) {
 					rowiteration++;
 				}
@@ -1137,8 +1112,8 @@ public class LoopWindow implements PerformanceReceiver, SettingsUpdateReceiver, 
 
 		@Override
 		public void setBackground(Color arg0) {
-				background = arg0;
-				repaint();
+			background = arg0;
+			repaint();
 		}
 	}
 
