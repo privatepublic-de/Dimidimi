@@ -14,6 +14,7 @@ public class StorageContainer {
 	private int length;
 	private int midiChannelIn;
 	private int midiChannelOut;
+	private int randomizationLevel;
 	private boolean midiChannelInActive;
 	private boolean isDrums;
 	private Map<String, Integer> windowPos;
@@ -39,6 +40,7 @@ public class StorageContainer {
 		this.modWheel = asList(loop.getModWheelList());
 		this.channelPressure = asList(loop.getPressureList());
 		this.isDrums = loop.isDrums();
+		this.randomizationLevel = loop.getRandomizationLevel();
 		Rectangle bounds = loop.getWindow().getScreenPosition();
 		windowPos.put("x", bounds.x);
 		windowPos.put("y", bounds.y);
@@ -76,6 +78,16 @@ public class StorageContainer {
 
 	public void setLength(int length) {
 		this.length = length;
+	}
+
+
+	public int getRandomizationLevel() {
+		return randomizationLevel;
+	}
+
+
+	public void setRandomizationLevel(int randomizationLevel) {
+		this.randomizationLevel = randomizationLevel;
 	}
 
 

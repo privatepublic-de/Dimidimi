@@ -414,6 +414,7 @@ public class Loop implements TransformationProvider, PerformanceReceiver, Settin
 		setMidiChannelOut(data.getMidiChannelOut());
 		setRecordOn(data.isMidiChannelInActive());
 		setDrums(data.isDrums());
+		setRandomizationLevel(data.getRandomizationLevel());
 		clearPattern();
 		for (Note n: data.getNotes()) {
 			getNotesList().add(n);
